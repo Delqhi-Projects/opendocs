@@ -1,4 +1,4 @@
-import { useMemo, type ReactNode } from "react";
+import { useMemo, useState, useRef, type ReactNode } from "react";
 import type { DocBlock, TableBlock, ChecklistBlock } from "@/types/docs";
 import { MermaidView } from "@/components/blocks/MermaidView";
 import { DatabaseBlockView } from "@/components/blocks/DatabaseBlockView";
@@ -6,15 +6,17 @@ import { WorkflowBlockView } from "@/components/blocks/WorkflowBlockView";
 import { DrawBlockView } from "@/components/blocks/DrawBlockView";
 import { N8nBlockView } from "@/components/blocks/N8nBlockView";
 import { AiPromptBlockView } from "@/components/blocks/AiPromptBlockView";
-import { BotMessageSquare, Lock, Unlock, Trash2, ArrowUp, ArrowDown, Copy } from "lucide-react";
+import { BotMessageSquare, Lock, Unlock, Trash2, ArrowUp, ArrowDown, Copy, GripVertical } from "lucide-react";
 import { BlockChatModal } from "@/components/blocks/BlockChatModal";
-import { useState } from "react";
 import { useDocsStore } from "@/store/useDocsStore";
 import { nanoid } from "nanoid";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 export function BlockRenderer({
   block,
   dark,
+  dragId,
   onUpdate,
   onDelete,
   onMove,
@@ -23,6 +25,7 @@ export function BlockRenderer({
 }: {
   block: DocBlock;
   dark: boolean;
+  dragId: string;
   onUpdate: (patch: Partial<DocBlock>) => void;
   onDelete: () => void;
   onMove: (dir: "up" | "down") => void;
@@ -32,59 +35,92 @@ export function BlockRenderer({
   const { state } = useDocsStore();
   const pageId = state.selectedPageId || "";
   const [chatOpen, setChatOpen] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: dragId });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
 
   const locked = !!block.locked;
   const frame = locked
     ? "border-amber-300 bg-amber-50/40 dark:border-amber-600 dark:bg-amber-950/20"
     : "border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950";
 
+  const embed = useMemo(() => toEmbedUrl(block.url), [block.url]);
+
   const toolbar = (
-    <div className="flex items-center gap-1">
+    <div
+      className={`flex items-center gap-0.5 px-1.5 py-1 rounded-md bg-zinc-100/95 dark:bg-zinc-900/95 backdrop-blur-sm border border-zinc-200/50 dark:border-zinc-800/50 shadow-sm transition-all duration-200 ${
+        isHovered ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-1 pointer-events-none"
+      }`}
+      onClick={(e) => e.stopPropagation()}
+    >
       <button
-        className="rounded-md p-1 text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-900"
-        onClick={() => setChatOpen(true)}
-        title="Chat about this block"
+        className="rounded p-1 text-zinc-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:text-indigo-400 dark:hover:bg-indigo-950/30 transition-colors cursor-grab"
+        {...listeners}
+        {...attributes}
+        title="Drag to move"
       >
-        <BotMessageSquare className="h-4 w-4" />
+        <GripVertical className="h-3.5 w-3.5" />
+      </button>
+      <div className="w-px h-3.5 bg-zinc-300 dark:bg-zinc-700 mx-0.5" />
+      <button
+        className="rounded p-1 text-zinc-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:text-indigo-400 dark:hover:bg-indigo-950/30 transition-colors"
+        onClick={() => setChatOpen(true)}
+        title="Chat"
+      >
+        <BotMessageSquare className="h-3.5 w-3.5" />
       </button>
       <button
-        className="rounded-md p-1 text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-900"
+        className="rounded p-1 text-zinc-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:text-amber-400 dark:hover:bg-amber-950/30 transition-colors"
         onClick={onToggleLock}
         title={locked ? "Unlock" : "Lock"}
       >
-        {locked ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
+        {locked ? <Lock className="h-3.5 w-3.5" /> : <Unlock className="h-3.5 w-3.5" />}
       </button>
       {!locked && (
         <>
+          <div className="w-px h-3.5 bg-zinc-300 dark:bg-zinc-700 mx-0.5" />
           <button
-            className="rounded-md p-1 text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-900"
+            className="rounded p-1 text-zinc-400 hover:text-zinc-700 hover:bg-zinc-200 dark:hover:text-zinc-200 dark:hover:bg-zinc-800 transition-colors"
             onClick={() => onMove("up")}
             title="Move up"
           >
-            <ArrowUp className="h-4 w-4" />
+            <ArrowUp className="h-3.5 w-3.5" />
           </button>
           <button
-            className="rounded-md p-1 text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-900"
+            className="rounded p-1 text-zinc-400 hover:text-zinc-700 hover:bg-zinc-200 dark:hover:text-zinc-200 dark:hover:bg-zinc-800 transition-colors"
             onClick={() => onMove("down")}
             title="Move down"
           >
-            <ArrowDown className="h-4 w-4" />
+            <ArrowDown className="h-3.5 w-3.5" />
           </button>
           {block.type === "table" && (
             <button
-              className="rounded-md px-2 py-1 text-[11px] font-medium text-indigo-700 hover:bg-indigo-50 dark:text-indigo-200 dark:hover:bg-indigo-950/40"
+              className="rounded px-2 py-0.5 text-[10px] font-medium text-indigo-600 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-950/40 transition-colors"
               onClick={() => onUpdate({ __convertToDatabase: true } as any)}
               title="Convert to Database"
             >
-              Convert → DB
+              → DB
             </button>
           )}
           <button
-            className="rounded-md p-1 text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-900"
+            className="rounded p-1 text-zinc-400 hover:text-red-600 hover:bg-red-50 dark:hover:text-red-400 dark:hover:bg-red-950/30 transition-colors"
             onClick={onDelete}
             title="Delete"
           >
-            <Trash2 className="h-4 w-4" />
+            <Trash2 className="h-3.5 w-3.5" />
           </button>
         </>
       )}
@@ -103,8 +139,14 @@ export function BlockRenderer({
           : "text-xl font-semibold";
 
     content = (
-      <div className={`rounded-lg border p-3 ${frame}`}>
-        <div className="mb-2 flex items-center justify-between">{toolbar}</div>
+      <div
+        ref={setNodeRef}
+        style={style}
+        className={`relative group rounded-lg border p-3 ${frame} ${isDragging ? "ring-2 ring-indigo-500 ring-opacity-50" : ""}`}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        <div className="absolute -top-6 left-0 z-10">{toolbar}</div>
         <input
           disabled={disabled}
           value={block.text}
@@ -115,8 +157,14 @@ export function BlockRenderer({
     );
   } else if (block.type === "paragraph") {
     content = (
-      <div className={`rounded-lg border p-3 ${frame}`}>
-        <div className="mb-2 flex items-center justify-between">{toolbar}</div>
+      <div
+        ref={setNodeRef}
+        style={style}
+        className={`relative group rounded-lg border p-3 ${frame} ${isDragging ? "ring-2 ring-indigo-500 ring-opacity-50" : ""}`}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        <div className="absolute -top-6 left-0 z-10">{toolbar}</div>
         <textarea
           disabled={disabled}
           value={block.text}
@@ -134,30 +182,35 @@ export function BlockRenderer({
     );
   } else if (block.type === "code") {
     content = (
-      <div className={`rounded-lg border p-3 ${frame}`}>
-        <div className="mb-2 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <input
-              disabled={disabled}
-              value={block.language}
-              onChange={(e) => onUpdate({ language: e.target.value } as any)}
-              className="w-24 rounded-md border border-zinc-200 bg-white px-2 py-1 text-xs text-zinc-700 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200"
-            />
-            <button
-              className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-900"
-              onClick={async () => {
-                try {
-                  await navigator.clipboard.writeText(block.code);
-                } catch {
-                  // ignore
-                }
-              }}
-              title="Copy"
-            >
-              <Copy className="h-3.5 w-3.5" /> Copy
-            </button>
-          </div>
-          {toolbar}
+      <div
+        ref={setNodeRef}
+        style={style}
+        className={`relative group rounded-lg border p-3 ${frame} ${isDragging ? "ring-2 ring-indigo-500 ring-opacity-50" : ""}`}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        <div className="absolute -top-6 left-0 z-10">{toolbar}</div>
+        <div className="mb-2 flex items-center gap-2">
+          <input
+            disabled={disabled}
+            value={block.language}
+            onChange={(e) => onUpdate({ language: e.target.value } as any)}
+            className="w-24 rounded-md border border-zinc-200 bg-white px-2 py-1 text-xs text-zinc-700 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200"
+          />
+          <button
+            type="button"
+            className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-900"
+            onClick={async () => {
+              try {
+                await navigator.clipboard.writeText(block.code);
+              } catch {
+                // ignore
+              }
+            }}
+            title="Copy"
+          >
+            <Copy className="h-3.5 w-3.5" /> Copy
+          </button>
         </div>
         <textarea
           disabled={disabled}
@@ -169,8 +222,14 @@ export function BlockRenderer({
     );
   } else if (block.type === "callout") {
     content = (
-      <div className={`rounded-lg border p-3 ${frame}`}>
-        <div className="mb-2 flex items-center justify-between">{toolbar}</div>
+      <div
+        ref={setNodeRef}
+        style={style}
+        className={`relative group rounded-lg border p-3 ${frame} ${isDragging ? "ring-2 ring-indigo-500 ring-opacity-50" : ""}`}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        <div className="absolute -top-6 left-0 z-10">{toolbar}</div>
         <div className="mb-2 flex items-center gap-2">
           <select
             disabled={disabled}
@@ -203,8 +262,14 @@ export function BlockRenderer({
   } else if (block.type === "checklist") {
     const checklistBlock = block as ChecklistBlock;
     content = (
-      <div className={`rounded-lg border p-3 ${frame}`}>
-        <div className="mb-2 flex items-center justify-between">{toolbar}</div>
+      <div
+        ref={setNodeRef}
+        style={style}
+        className={`relative group rounded-lg border p-3 ${frame} ${isDragging ? "ring-2 ring-indigo-500 ring-opacity-50" : ""}`}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        <div className="absolute -top-6 left-0 z-10">{toolbar}</div>
         <div className="space-y-2">
           {checklistBlock.items.map((it, idx) => (
             <div key={it.id} className="flex items-center gap-2">
@@ -219,6 +284,7 @@ export function BlockRenderer({
               />
               <input
                 disabled={disabled}
+                type="button"
                 value={it.text}
                 onChange={(e) => {
                   const items = checklistBlock.items.map((x) => (x.id === it.id ? { ...x, text: e.target.value } : x));
@@ -231,6 +297,7 @@ export function BlockRenderer({
           ))}
           {!disabled && (
             <button
+              type="button"
               className="rounded-md px-2 py-1 text-xs text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-900"
               onClick={() => onUpdate({ items: [...checklistBlock.items, { id: nanoid(), text: "", checked: false }] } as any)}
             >
@@ -337,10 +404,15 @@ export function BlockRenderer({
       </div>
     );
   } else if (block.type === "video") {
-    const embed = useMemo(() => toEmbedUrl(block.url), [block.url]);
     content = (
-      <div className={`rounded-lg border p-3 ${frame}`}>
-        <div className="mb-2 flex items-center justify-between">{toolbar}</div>
+      <div
+        ref={setNodeRef}
+        style={style}
+        className={`relative group rounded-lg border p-3 ${frame} ${isDragging ? "ring-2 ring-indigo-500 ring-opacity-50" : ""}`}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        <div className="absolute -top-6 left-0 z-10">{toolbar}</div>
         <input
           disabled={disabled}
           value={block.url}
@@ -361,8 +433,14 @@ export function BlockRenderer({
     );
   } else if (block.type === "link") {
     content = (
-      <div className={`rounded-lg border p-3 ${frame}`}>
-        <div className="mb-2 flex items-center justify-between">{toolbar}</div>
+      <div
+        ref={setNodeRef}
+        style={style}
+        className={`relative group rounded-lg border p-3 ${frame} ${isDragging ? "ring-2 ring-indigo-500 ring-opacity-50" : ""}`}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        <div className="absolute -top-6 left-0 z-10">{toolbar}</div>
         <input
           disabled={disabled}
           value={block.url}
@@ -374,8 +452,14 @@ export function BlockRenderer({
     );
   } else if (block.type === "file") {
     content = (
-      <div className={`rounded-lg border p-3 ${frame}`}>
-        <div className="mb-2 flex items-center justify-between">{toolbar}</div>
+      <div
+        ref={setNodeRef}
+        style={style}
+        className={`relative group rounded-lg border p-3 ${frame} ${isDragging ? "ring-2 ring-indigo-500 ring-opacity-50" : ""}`}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        <div className="absolute -top-6 left-0 z-10">{toolbar}</div>
         <div className="flex items-center gap-2">
           <input
             disabled={disabled}
@@ -395,8 +479,14 @@ export function BlockRenderer({
     );
   } else {
     content = (
-      <div className={`rounded-lg border p-3 ${frame}`}>
-        <div className="mb-2 flex items-center justify-between">{toolbar}</div>
+      <div
+        ref={setNodeRef}
+        style={style}
+        className={`relative group rounded-lg border p-3 ${frame} ${isDragging ? "ring-2 ring-indigo-500 ring-opacity-50" : ""}`}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        <div className="absolute -top-6 left-0 z-10">{toolbar}</div>
         <div className="text-sm text-zinc-600 dark:text-zinc-300">Unsupported block type: {(block as any).type}</div>
       </div>
     );

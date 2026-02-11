@@ -75,6 +75,7 @@ export type DocsActions = {
   updateBlock: (pageId: string, blockId: string, patch: Partial<DocBlock>) => void;
   deleteBlock: (pageId: string, blockId: string) => void;
   moveBlock: (pageId: string, blockId: string, direction: "up" | "down") => void;
+  reorderBlocks: (pageId: string, oldIndex: number, newIndex: number) => void;
   toggleBlockLock: (pageId: string, blockId: string) => void;
   convertTableToDatabase: (pageId: string, blockId: string) => void;
   setTheme: (theme: "light" | "dark") => void;
@@ -513,6 +514,19 @@ export const useDocsStore = create<DocsStore>()((set) => {
           const [moved] = blocks.splice(idx, 1);
           blocks.splice(nextIdx, 0, moved);
 
+          const nextState: DocsState = { ...s.state, pages: { ...s.state.pages, [pageId]: { ...page, blocks, updatedAt: now() } } };
+          persist(nextState);
+          return { state: nextState };
+        });
+      },
+
+      reorderBlocks: (pageId, oldIndex, newIndex) => {
+        set((s) => {
+          const page = s.state.pages[pageId];
+          if (!page) return s;
+          const blocks = [...page.blocks];
+          const [moved] = blocks.splice(oldIndex, 1);
+          blocks.splice(newIndex, 0, moved);
           const nextState: DocsState = { ...s.state, pages: { ...s.state.pages, [pageId]: { ...page, blocks, updatedAt: now() } } };
           persist(nextState);
           return { state: nextState };

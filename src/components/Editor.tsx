@@ -5,6 +5,21 @@ import { SlashMenu } from "@/components/SlashMenu";
 import { PageHeader } from "@/components/PageHeader";
 import type { BlockType } from "@/types/docs";
 import { Sparkles } from "lucide-react";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 
 export function Editor() {
   const { state, actions } = useDocsStore();
@@ -20,6 +35,26 @@ export function Editor() {
     return blocks.findIndex((b) => b.id === slashBlockId);
   }, [blocks, slashBlockId]);
 
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = blocks.findIndex((b) => b.id === active.id);
+    const newIndex = blocks.findIndex((b) => b.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+    actions.reorderBlocks(page.id, oldIndex, newIndex);
+  }
+
   if (!page) {
     return (
       <div className="p-10 text-sm text-zinc-600 dark:text-zinc-300">
@@ -32,40 +67,48 @@ export function Editor() {
     <div className="mx-auto w-full max-w-5xl px-6 py-8">
       <PageHeader />
 
-      <div className="space-y-4">
-        {blocks.map((b, idx) => (
-          <div key={b.id}>
-            <BlockRenderer
-              block={b}
-              dark={dark}
-              onUpdate={(patch) => {
-                const anyPatch = patch as any;
-                if (anyPatch?.__convertToDatabase) {
-                  actions.convertTableToDatabase(page.id, b.id);
-                  return;
-                }
-                actions.updateBlock(page.id, b.id, patch);
-              }}
-              onDelete={() => actions.deleteBlock(page.id, b.id)}
-              onMove={(dir) => actions.moveBlock(page.id, b.id, dir)}
-              onToggleLock={() => actions.toggleBlockLock(page.id, b.id)}
-              onSlash={() => setSlashBlockId(b.id)}
-            />
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext items={blocks.map((b) => b.id)} strategy={verticalListSortingStrategy}>
+          <div className="space-y-4">
+            {blocks.map((b, idx) => (
+              <div key={b.id}>
+                <BlockRenderer
+                  block={b}
+                  dark={dark}
+                  dragId={b.id}
+                  onUpdate={(patch) => {
+                    const anyPatch = patch as any;
+                    if (anyPatch?.__convertToDatabase) {
+                      actions.convertTableToDatabase(page.id, b.id);
+                      return;
+                    }
+                    actions.updateBlock(page.id, b.id, patch);
+                  }}
+                  onDelete={() => actions.deleteBlock(page.id, b.id)}
+                  onMove={(dir) => actions.moveBlock(page.id, b.id, dir)}
+                  onToggleLock={() => actions.toggleBlockLock(page.id, b.id)}
+                  onSlash={() => setSlashBlockId(b.id)}
+                />
 
-            {slashIndex === idx && (
-              <SlashMenu
-                onClose={() => setSlashBlockId(null)}
-                onSelect={(t: BlockType) => {
-                  const id = actions.addBlockAfter(page.id, b.id, t);
-                  // optionally set initial content
-                  if (t === "heading2") actions.updateBlock(page.id, id, { text: "New section" } as any);
-                  setSlashBlockId(null);
-                }}
-              />
-            )}
+                {slashIndex === idx && (
+                  <SlashMenu
+                    onClose={() => setSlashBlockId(null)}
+                    onSelect={(t: BlockType) => {
+                      const id = actions.addBlockAfter(page.id, b.id, t);
+                      if (t === "heading2") actions.updateBlock(page.id, id, { text: "New section" } as any);
+                      setSlashBlockId(null);
+                    }}
+                  />
+                )}
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </SortableContext>
+      </DndContext>
 
       <div className="mt-6 flex items-center gap-3">
         <button
