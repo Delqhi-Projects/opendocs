@@ -18,7 +18,8 @@ export type BlockType =
   | "video"
   | "link"
   | "file"
-  | "aiPrompt";
+  | "aiPrompt"
+  | "horizontal";
 
 import type { DatabaseBlockData } from "@/types/database";
 import type { N8nBlockData } from "@/types/n8n";
@@ -31,6 +32,7 @@ export type DocBlockBase = {
   locked?: boolean;
   lockedAt?: string;
   lockedBy?: string;
+  layout?: "grid" | "default";
 };
 
 export type HeadingBlock = DocBlockBase & { type: "heading1" | "heading2" | "heading3"; text: string };
@@ -85,6 +87,7 @@ export type N8nBlock = DocBlockBase & {
 
 export type CalloutBlock = DocBlockBase & { type: "callout"; tone: CalloutTone; title?: string; text: string };
 export type MermaidBlock = DocBlockBase & { type: "mermaid"; code: string };
+export type HorizontalBlock = DocBlockBase & { type: "horizontal"; blocks: DocBlock[] };
 
 export type DocBlock =
   | HeadingBlock
@@ -98,6 +101,7 @@ export type DocBlock =
   | CalloutBlock
   | ChecklistBlock
   | MermaidBlock
+  | HorizontalBlock
   | QuoteBlock
   | DividerBlock
   | ImageBlock

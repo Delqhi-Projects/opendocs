@@ -71,7 +71,7 @@ export type DocsActions = {
   updateFolderIcon: (folderId: string, icon: DocIcon) => void;
   deleteFolder: (folderId: string) => void;
   toggleFolderExpanded: (folderId: string) => void;
-  addBlockAfter: (pageId: string, afterBlockId: string | null, type: BlockType) => string;
+  addBlockAfter: (pageId: string, afterBlockId: string | null, type: BlockType, options?: { layout?: "grid" | "default" }) => string;
   updateBlock: (pageId: string, blockId: string, patch: Partial<DocBlock>) => void;
   deleteBlock: (pageId: string, blockId: string) => void;
   moveBlock: (pageId: string, blockId: string, direction: "up" | "down") => void;
@@ -432,7 +432,7 @@ export const useDocsStore = create<DocsStore>()((set) => {
         });
       },
 
-      addBlockAfter: (pageId, afterBlockId, type) => {
+      addBlockAfter: (pageId, afterBlockId, type, options) => {
         const id = nanoid();
         set((s) => {
           const page = s.state.pages[pageId];
@@ -441,7 +441,11 @@ export const useDocsStore = create<DocsStore>()((set) => {
 
           const idx = afterBlockId ? blocks.findIndex((b) => b.id === afterBlockId) : -1;
           const insertAt = idx >= 0 ? idx + 1 : 0;
-          blocks.splice(insertAt, 0, { ...newBlock(type), id });
+          const newBlockWithLayout = { ...newBlock(type), id };
+          if (options?.layout) {
+            newBlockWithLayout.layout = options.layout;
+          }
+          blocks.splice(insertAt, 0, newBlockWithLayout);
 
           const nextState: DocsState = {
             ...s.state,

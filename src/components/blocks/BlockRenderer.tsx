@@ -539,8 +539,36 @@ export function BlockRenderer({
         <div className="absolute -top-6 left-0 z-10">{toolbar}</div>
         <div className="grid grid-cols-2 gap-4 p-3">
           {horizontalBlock.blocks?.map((subBlock: any) => (
-            <div key={subBlock.id} className="p-4 rounded-lg border border-dashed border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/50">
-              <div className="text-sm text-zinc-500 dark:text-zinc-400">{subBlock.type}</div>
+            <div key={subBlock.id} className="p-4 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-sm">
+              {subBlock.type === "paragraph" ? (
+                <AutoResizeTextarea
+                  disabled={disabled}
+                  value={subBlock.text || ""}
+                  onChange={(value) => {
+                    const updatedBlocks = horizontalBlock.blocks.map((b: any) =>
+                      b.id === subBlock.id ? { ...b, text: value } : b
+                    );
+                    onUpdate({ blocks: updatedBlocks } as any);
+                  }}
+                  placeholder="Type here..."
+                />
+              ) : subBlock.type === "heading1" || subBlock.type === "heading2" || subBlock.type === "heading3" ? (
+                <input
+                  disabled={disabled}
+                  value={subBlock.text || ""}
+                  onChange={(e) => {
+                    const updatedBlocks = horizontalBlock.blocks.map((b: any) =>
+                      b.id === subBlock.id ? { ...b, text: e.target.value } : b
+                    );
+                    onUpdate({ blocks: updatedBlocks } as any);
+                  }}
+                  className="w-full bg-transparent outline-none font-semibold text-zinc-900 dark:text-zinc-100"
+                  style={{ fontSize: subBlock.type === "heading1" ? "1.5rem" : subBlock.type === "heading2" ? "1.25rem" : "1.125rem" }}
+                  placeholder="Heading..."
+                />
+              ) : (
+                <div className="text-sm text-zinc-500 dark:text-zinc-400">{subBlock.type} block</div>
+              )}
             </div>
           ))}
           {!disabled && (

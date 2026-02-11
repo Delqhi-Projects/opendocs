@@ -81,5 +81,43 @@ opendocs/
 - **API Gating:** Alle AI/n8n Endpoints sind durch `X-OpenDocs-Token` geschützt.
 - **Error Recovery:** Root-Level `ErrorBoundary` ermöglicht Daten-Reset bei State-Korruption.
 
+## 9. UI/UX Architecture Patterns
+
+### 9.1 Auto-Resize Textarea Pattern
+- **Problem:** Standard textarea hat scrollbar und fester Mindesthöhe
+- **Lösung:** AutoResizeTextarea Komponente mit dynamischer Höhenberechnung
+- **Implementation:** `src/components/ui/AutoResizeTextarea.tsx`
+- **Behavior:** Wächst mit Inhalt, keine Scrollbar, min-height 24px für Single-Line
+
+### 9.2 Grid Layout Pattern
+- **Problem:** Blöcke können nur untereinander, nicht nebeneinander
+- **Lösung:** Layout-Property auf Blöcken (`layout: "grid" | "default"`)
+- **Implementation:** `groupBlocksForLayout()` in Editor.tsx
+- **Behavior:** Aufeinanderfolgende Grid-Blöcke werden in 2-Spalten-Grid gerendert
+- **UI:** "Add grid block" Button in Editor Toolbar
+
+### 9.3 Toolbar Hover Pattern
+- **Problem:** Toolbar verschwindet wenn Maus vom Block zur Toolbar bewegt wird
+- **Lösung:** `onMouseEnter` auf Toolbar-Elementen behält Hover-State
+- **Implementation:** BlockRenderer.tsx sideToolbar und top toolbar
+- **Behavior:** Toolbar bleibt sichtbar bei Mouse-Over
+- **Technical Details:** 
+  - sideToolbar: positioniert bei `-left-10`, z-index 50
+  - top toolbar: positioniert bei `-top-6`, z-index 10
+  - Beide verwenden `onMouseEnter` um Hover-State zu behalten
+
+### 9.4 Seamless Block Design Pattern
+- **Ziel:** Notion-like seamless Design ohne sichtbare Rahmen
+- **Implementation:** 
+  - Text-Blöcke: `bg-transparent` statt `bg-white`
+  - Keine `border` Klassen auf Text-Elementen
+  - Nur `outline-none` für Fokus-State
+- **Resultat:** Blöcke verschmelzen visuell mit dem Hintergrund
+
+### 9.5 Code Block Error Handling Pattern
+- **Implementation:** try-catch bei Clipboard-Operationen
+- **Pattern:** Leerer catch-Block (kein Console.error)
+- **Reasoning:** Clipboard-Fehler sind nicht kritisch, keine User-Benachrichtigung nötig
+
 ---
 © 2026 OpenDocs Project. Tier 1 Architecture.
