@@ -119,5 +119,43 @@ opendocs/
 - **Pattern:** Leerer catch-Block (kein Console.error)
 - **Reasoning:** Clipboard-Fehler sind nicht kritisch, keine User-Benachrichtigung nötig
 
+## 10. Block Components (12 Core Blocks)
+
+OpenDocs includes 12 specialized block components for various use cases:
+
+### 10.1 Core Block Registry
+
+| Block | File | Purpose | Status |
+|-------|------|---------|--------|
+| **TableBlock** | `src/components/blocks/TableBlock.ts` | Data tables with sorting/filtering | ✅ Migrated |
+| **DatabaseBlock** | `src/components/blocks/DatabaseBlock.ts` | Database connection management | ✅ Migrated |
+| **N8NBlock** | `src/components/blocks/N8NBlock.ts` | n8n workflow integration | ✅ Migrated |
+| **CodeBlock** | `src/components/blocks/CodeBlock.ts` | Code editor with syntax highlighting | ✅ Migrated |
+| **DrawBlock** | `src/components/blocks/DrawBlock.ts` | Canvas drawing component | ✅ Migrated |
+| **CaptchaWidget** | `src/components/blocks/CaptchaWidget.ts` | CAPTCHA solving widget | ✅ Migrated |
+| **CaptchaWorkerPanel** | `src/components/blocks/CaptchaWorkerPanel.ts` | Worker management panel | ✅ Migrated |
+| **CaptchaDashboard** | `src/components/blocks/CaptchaDashboard.ts` | CAPTCHA statistics dashboard | ✅ Migrated |
+| **ChatPanel** | `src/components/blocks/ChatPanel.ts` | AI chat interface | ✅ Migrated |
+| **RightSidebarAIChat** | `src/components/blocks/RightSidebarAIChat.ts` | Sidebar chat component | ✅ Migrated |
+| **HealthDashboard** | `src/components/blocks/HealthDashboard.ts` | System health monitoring | ✅ Migrated |
+| **EarningsTracker** | `src/components/blocks/EarningsTracker.ts` | Earnings tracking panel | ✅ Migrated |
+
+### 10.2 Block Usage
+
+All blocks are exported from `src/components/blocks/` and can be imported:
+
+```typescript
+import { TableBlock } from './components/blocks/TableBlock';
+import { N8NBlock } from './components/blocks/N8NBlock';
+import { ChatPanel } from './components/blocks/ChatPanel';
+```
+
+### 10.3 Block Architecture
+
+- **Pure TypeScript:** All blocks implemented as TypeScript classes
+- **DOM-based:** Direct HTMLElement manipulation
+- **Self-contained:** Each block manages its own rendering and lifecycle
+- **Destroy method:** Proper cleanup via `destroy()` method
+
 ---
 © 2026 OpenDocs Project. Tier 1 Architecture.
