@@ -198,6 +198,27 @@ function newBlock(type: BlockType): DocBlock {
         type: "aiPrompt",
         prompt: "",
       } as DocBlock;
+    case "horizontal":
+      return {
+        id,
+        type: "horizontal",
+        blocks: [],
+      } as DocBlock;
+    case "automation":
+      return {
+        id,
+        type: "automation",
+        automation: {
+          id: nanoid(),
+          name: "New Automation",
+          enabled: false,
+          nodes: [],
+          edges: [],
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          executionCount: 0,
+        },
+      } as DocBlock;
     default:
       return { id, type: "paragraph", text: "" } as DocBlock;
   }

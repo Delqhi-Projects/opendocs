@@ -19,7 +19,8 @@ export type BlockType =
   | "link"
   | "file"
   | "aiPrompt"
-  | "horizontal";
+  | "horizontal"
+  | "automation";
 
 import type { DatabaseBlockData } from "@/types/database";
 import type { N8nBlockData } from "@/types/n8n";
@@ -89,6 +90,9 @@ export type CalloutBlock = DocBlockBase & { type: "callout"; tone: CalloutTone; 
 export type MermaidBlock = DocBlockBase & { type: "mermaid"; code: string };
 export type HorizontalBlock = DocBlockBase & { type: "horizontal"; blocks: DocBlock[] };
 
+import type { Automation } from "./automation";
+export type AutomationBlock = DocBlockBase & { type: "automation"; automation: Automation };
+
 export type DocBlock =
   | HeadingBlock
   | ParagraphBlock
@@ -108,7 +112,8 @@ export type DocBlock =
   | VideoBlock
   | LinkBlock
   | FileBlock
-  | AiPromptBlock;
+  | AiPromptBlock
+  | AutomationBlock;
 
 import type { DocIcon } from "@/types/icons";
 

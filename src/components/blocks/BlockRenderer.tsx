@@ -6,6 +6,7 @@ import { WorkflowBlockView } from "@/components/blocks/WorkflowBlockView";
 import { DrawBlockView } from "@/components/blocks/DrawBlockView";
 import { N8nBlockView } from "@/components/blocks/N8nBlockView";
 import { AiPromptBlockView } from "@/components/blocks/AiPromptBlockView";
+import { AutomationBlockView } from "@/components/blocks/AutomationBlockView";
 import { AutoResizeTextarea } from "@/components/ui/AutoResizeTextarea";
 import { BotMessageSquare, Lock, Unlock, Trash2, ArrowUp, ArrowDown, Copy, GripVertical, Plus, Columns, Grid3X3 } from "lucide-react";
 import { BlockChatModal } from "@/components/blocks/BlockChatModal";
@@ -581,6 +582,19 @@ export function BlockRenderer({
             </button>
           )}
         </div>
+      </div>
+    );
+  } else if (block.type === "automation") {
+    const automationBlock = block as any;
+    content = (
+      <div ref={setNodeRef} style={style} role="presentation" className={`relative group ${frame} ${isDragging ? "opacity-50" : ""}`} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
+        {sideToolbar}
+        <div className="absolute -top-6 left-0 z-10">{toolbar}</div>
+        <AutomationBlockView
+          automation={automationBlock.automation || { id: nanoid(), name: "New Automation", enabled: false, nodes: [], edges: [], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), executionCount: 0 }}
+          onUpdate={(automation) => onUpdate({ automation } as any)}
+          disabled={disabled}
+        />
       </div>
     );
   } else {

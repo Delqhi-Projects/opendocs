@@ -3,7 +3,7 @@ import type { BlockType } from "@/types/docs";
 import { 
   Heading1, Heading2, Heading3, Type, Code, Table, Database, 
   Network, PencilLine, ListChecks, Info, Activity, Image, 
-  Video, Link, Quote, Minus, File, Sparkles
+  Video, Link, Quote, Minus, File, Sparkles, Zap
 } from "lucide-react";
 
 const ITEMS: { type: BlockType; label: string; hint: string; icon: any }[] = [
@@ -27,6 +27,7 @@ const ITEMS: { type: BlockType; label: string; hint: string; icon: any }[] = [
   { type: "divider", label: "Divider", hint: "Separator", icon: Minus },
   { type: "file", label: "File", hint: "Attachment", icon: File },
   { type: "aiPrompt", label: "AI Prompt", hint: "Generate block", icon: Sparkles },
+  { type: "automation", label: "Automation", hint: "n8n-style workflow", icon: Zap },
 ];
 
 export function SlashMenu({ onSelect, onClose }: { onSelect: (t: BlockType) => void; onClose: () => void }) {

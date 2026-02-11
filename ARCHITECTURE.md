@@ -119,43 +119,226 @@ opendocs/
 - **Pattern:** Leerer catch-Block (kein Console.error)
 - **Reasoning:** Clipboard-Fehler sind nicht kritisch, keine User-Benachrichtigung nötig
 
-## 10. Block Components (12 Core Blocks)
+## 10. Block System (21 Block Types)
 
-OpenDocs includes 12 specialized block components for various use cases:
+OpenDocs implements a comprehensive block-based editor with 21 distinct block types, each serving specific documentation and workflow needs.
 
-### 10.1 Core Block Registry
+### 10.1 Block Registry (Complete)
 
-| Block | File | Purpose | Status |
-|-------|------|---------|--------|
-| **TableBlock** | `src/components/blocks/TableBlock.ts` | Data tables with sorting/filtering | ✅ Migrated |
-| **DatabaseBlock** | `src/components/blocks/DatabaseBlock.ts` | Database connection management | ✅ Migrated |
-| **N8NBlock** | `src/components/blocks/N8NBlock.ts` | n8n workflow integration | ✅ Migrated |
-| **CodeBlock** | `src/components/blocks/CodeBlock.ts` | Code editor with syntax highlighting | ✅ Migrated |
-| **DrawBlock** | `src/components/blocks/DrawBlock.ts` | Canvas drawing component | ✅ Migrated |
-| **CaptchaWidget** | `src/components/blocks/CaptchaWidget.ts` | CAPTCHA solving widget | ✅ Migrated |
-| **CaptchaWorkerPanel** | `src/components/blocks/CaptchaWorkerPanel.ts` | Worker management panel | ✅ Migrated |
-| **CaptchaDashboard** | `src/components/blocks/CaptchaDashboard.ts` | CAPTCHA statistics dashboard | ✅ Migrated |
-| **ChatPanel** | `src/components/blocks/ChatPanel.ts` | AI chat interface | ✅ Migrated |
-| **RightSidebarAIChat** | `src/components/blocks/RightSidebarAIChat.ts` | Sidebar chat component | ✅ Migrated |
-| **HealthDashboard** | `src/components/blocks/HealthDashboard.ts` | System health monitoring | ✅ Migrated |
-| **EarningsTracker** | `src/components/blocks/EarningsTracker.ts` | Earnings tracking panel | ✅ Migrated |
+| Block | Type | Purpose | Implementation | Status |
+|-------|------|---------|----------------|--------|
+| **Heading 1-3** | `heading1/2/3` | Section hierarchy | BlockRenderer.tsx input | ✅ Production |
+| **Paragraph** | `paragraph` | Basic text content | AutoResizeTextarea | ✅ Production |
+| **Code** | `code` | Syntax-highlighted code | textarea with language selector | ✅ Production |
+| **Quote** | `quote` | Blockquote with citation | textarea | ✅ Production |
+| **Divider** | `divider` | Visual separator | Horizontal line | ✅ Production |
+| **Callout** | `callout` | Info/success/warning/error boxes | tone selector + title + text | ✅ Production |
+| **Checklist** | `checklist` | Interactive todo lists | checkbox + text inputs | ✅ Production |
+| **Table** | `table` | Static data tables | Editable rows/columns | ✅ Production |
+| **Database** | `database` | Real SQL-backed tables | 6 views (Table/Kanban/Graph/Calendar/Timeline/Gallery) | ✅ Production |
+| **Workflow** | `workflow` | Visual node graphs | XYFlow-based canvas | ✅ Production |
+| **Draw** | `draw` | Excalidraw canvas | @excalidraw/excalidraw | ✅ Production |
+| **Mermaid** | `mermaid` | Diagrams from text | mermaid.js rendering | ✅ Production |
+| **Image** | `image` | Image embeds | URL input + preview | ✅ Production |
+| **Video** | `video` | Video embeds (YouTube/Vimeo) | URL input + iframe embed | ✅ Production |
+| **Link** | `link` | URL cards | URL input | ✅ Production |
+| **File** | `file` | File attachments | name + URL inputs | ✅ Production |
+| **AI Prompt** | `aiPrompt` | Natural language block generation | Prompt input + AI execution | ✅ Production |
+| **n8n Node** | `n8n` | Workflow automation nodes | n8n integration panel | ✅ Production |
+| **Horizontal Layout** | `horizontal` | 2-column nested blocks | Grid with editable sub-blocks | ✅ Production |
 
-### 10.2 Block Usage
+### 10.2 Block Architecture (Best Practices 2026)
 
-All blocks are exported from `src/components/blocks/` and can be imported:
-
-```typescript
-import { TableBlock } from './components/blocks/TableBlock';
-import { N8NBlock } from './components/blocks/N8NBlock';
-import { ChatPanel } from './components/blocks/ChatPanel';
+```
+DocBlock (Base)
+├── id: string (nanoid)
+├── type: BlockType
+├── locked?: boolean (R2: Hard Locks)
+├── lockedAt?: string
+├── lockedBy?: string
+├── layout?: "grid" | "default" (Section 9.2)
+└── ...type-specific data
 ```
 
-### 10.3 Block Architecture
+**Implementation Patterns:**
+- **Single File per Block:** Each block type rendered in BlockRenderer.tsx switch statement
+- **Type Safety:** Full TypeScript discriminated unions in `src/types/docs.ts`
+- **Lock Support:** All blocks respect R2 (Hard Locks) via `locked` property
+- **Grid Layout:** Blocks support `layout: "grid"` for 2-column rendering (Section 9.2)
+- **Toolbar Pattern:** Every block has hover-activated toolbar (Section 9.3)
+- **AI Integration:** Every block has per-block chat via BlockChatModal
 
-- **Pure TypeScript:** All blocks implemented as TypeScript classes
-- **DOM-based:** Direct HTMLElement manipulation
-- **Self-contained:** Each block manages its own rendering and lifecycle
-- **Destroy method:** Proper cleanup via `destroy()` method
+### 10.3 Block Data Flow
+
+```
+User Input → BlockRenderer → onUpdate() → useDocsStore → LocalStorage → Supabase
+                                              ↓
+                                       Block validation
+                                       (type guards)
+```
+
+### 10.4 Adding New Blocks
+
+1. **Add type to** `src/types/docs.ts`:
+   ```typescript
+   export type BlockType = ... | "newBlock";
+   export type NewBlock = DocBlockBase & { type: "newBlock"; data: any };
+   ```
+
+2. **Implement in** `src/components/blocks/BlockRenderer.tsx`:
+   ```typescript
+   } else if (block.type === "newBlock") {
+     content = <NewBlockView block={block} ... />
+   }
+   ```
+
+3. **Add to SlashMenu** `src/components/SlashMenu.tsx`
+
+4. **Add to store** `src/store/useDocsStore.ts` `newBlock()` function
 
 ---
-© 2026 OpenDocs Project. Tier 1 Architecture.
+
+## 11. Automation Architecture (Phase 2)
+
+### 11.1 n8n-Style Visual Automation Builder
+
+**Design:** Node-based workflow editor (n8n-style), NOT linear Zapier-style
+
+**Components:**
+- **Canvas:** XYFlow-based infinite canvas
+- **Nodes:** Trigger, Condition, Action types
+- **Connections:** Bezier curves between node handles
+- **Node Panel:** Draggable node types sidebar
+- **Property Panel:** Right-side configuration panel
+
+**Node Types:**
+| Node | Category | Purpose |
+|------|----------|---------|
+| **Webhook** | Trigger | HTTP endpoint trigger |
+| **Schedule** | Trigger | Cron-based time trigger |
+| **DB Row Changed** | Trigger | Supabase realtime trigger |
+| **Manual** | Trigger | Button-activated |
+| **If/Else** | Logic | Condition branching |
+| **Switch** | Logic | Multi-path branching |
+| **Wait** | Logic | Delay execution |
+| **Send Email** | Action | Email notification |
+| **Send Webhook** | Action | HTTP POST/GET |
+| **Update DB Row** | Action | Modify Supabase row |
+| **Call n8n** | Action | Execute n8n workflow |
+| **OpenClaw** | Action | Send WhatsApp/Meta |
+
+### 11.2 Edge Functions (Supabase)
+
+**Runtime:** Deno-based Supabase Edge Functions
+
+**Functions:**
+```typescript
+// supabase/functions/on-row-change/index.ts
+- Trigger: Supabase database webhooks
+- Input: { table, operation, old_record, new_record }
+- Action: Evaluate automation rules, execute actions
+
+// supabase/functions/on-schedule/index.ts  
+- Trigger: CRON jobs (pg_cron)
+- Input: { schedule_id, timestamp }
+- Action: Time-based automation execution
+
+// supabase/functions/send-notification/index.ts
+- Trigger: Internal API call
+- Input: { type: 'email'|'slack'|'discord', payload }
+- Action: Send external notifications
+```
+
+### 11.3 Automation Data Model
+
+```typescript
+interface Automation {
+  id: string;
+  name: string;
+  enabled: boolean;
+  nodes: AutomationNode[];
+  edges: AutomationEdge[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface AutomationNode {
+  id: string;
+  type: 'trigger' | 'condition' | 'action';
+  position: { x: number; y: number };
+  data: {
+    subtype: string;
+    config: Record<string, any>;
+  };
+}
+
+interface AutomationEdge {
+  id: string;
+  source: string;
+  target: string;
+  label?: string;
+}
+```
+
+---
+
+## 12. Integration Architecture
+
+### 12.1 Supabase Integration
+- **Auth:** JWT-based, stored in memory (never localStorage)
+- **Database:** Direct Postgres connection for provisioning
+- **Realtime:** WebSocket subscriptions for live collaboration
+- **Edge Functions:** Deno runtime for serverless automation
+
+### 12.2 n8n Integration
+- **Webhook:** Trigger workflows via HTTP POST
+- **API:** n8n REST API for workflow CRUD
+- **Nodes:** Custom OpenDocs nodes for n8n
+
+### 12.3 OpenClaw Integration
+- **Purpose:** Meta/WhatsApp API without official APIs
+- **Auth:** Local container with user-provided credentials
+- **Endpoints:** /send-message, /get-status, /webhook
+
+---
+
+## 13. State Management Patterns
+
+### 13.1 Zustand Store Structure
+```typescript
+useDocsStore
+├── state: DocsState
+│   ├── rootFolderId
+│   ├── folders: Record<string, DocFolder>
+│   ├── pages: Record<string, DocPage>
+│   ├── selectedPageId
+│   └── theme
+└── actions: DocsActions
+    ├── CRUD operations
+    ├── Block operations
+    └── Persistence (localStorage)
+```
+
+### 13.2 Persistence Strategy
+- **Primary:** localStorage (immediate, offline-capable)
+- **Secondary:** Supabase sync (background, eventual consistency)
+- **Hydration:** On load, merge localStorage with defaults
+
+---
+
+## 14. Security Considerations
+
+### 14.1 Client-Side
+- No secrets in React code (R1)
+- Input sanitization for user content
+- XSS prevention via React's escape hatch
+
+### 14.2 Server-Side (server.js)
+- SSRF protection (private IP blocking)
+- Rate limiting per IP
+- CORS strict mode
+- Token validation for all AI endpoints
+
+---
+
+© 2026 OpenDocs Project. Tier 1 Architecture. Phase 2 Ready.

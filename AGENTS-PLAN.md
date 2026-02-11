@@ -91,17 +91,53 @@
   - Fixed: `src/components/blocks/BlockRenderer.tsx:330`
   - Changed: `type="button"` → `type="text"`
   - Committed: `24cad699`
-- [ ] **P1.03** — Implement actual nested block rendering in Horizontal Layout (not placeholder)
-- [ ] **P1.04** — Create Skeleton component + apply to all async operations
-- [ ] **P1.05** — Build Toast notification system with undo actions
+- [x] **P1.03** ✅ DONE — Implement actual nested block rendering in Horizontal Layout
+  - Fixed: `src/components/blocks/BlockRenderer.tsx:534`
+  - Paragraph and heading blocks now render actual editable content
+  - Committed: `db1292c1`
+- [x] **P1.04** ✅ DONE — Create Skeleton component + apply to all async operations
+  - Created: `src/components/ui/Skeleton.tsx`
+  - Components: Skeleton, SkeletonText, SkeletonBlock, SkeletonDatabase, SkeletonPage
+  - Best Practices 2026: Professional loading states
+  - Committed: `21f71973`
+- [x] **P1.05** ✅ DONE — Build Toast notification system with undo actions
+  - Created: `src/store/useToastStore.ts` + `src/components/ui/Toast.tsx`
+  - Features: 4 types (success/error/warning/info), progress bar, auto-dismiss, action buttons
+  - Integrated: Added ToastProvider to App.tsx
+  - Committed: `33e79620`
 
-#### PHASE 2: CORE FEATURES (Missing Differentiators)
+#### PHASE 2: CORE FEATURES (Missing Differentiators) — IN PROGRESS
 
-- [ ] **P2.01** — Visual Automation Builder: Trigger → Condition → Action UI
-- [ ] **P2.02** — Supabase Edge Functions: on-row-change, on-schedule, send-notification
-- [ ] **P2.03** — Automation Rule Engine for client-side execution
-- [ ] **P2.04** — Complete OpenClaw integration with local container
-- [ ] **P2.05** — Local container setup: docker-compose.local.yml for Supabase + OpenClaw + n8n
+**P2.01: Visual Automation Builder (n8n-Style, NOT Zapier)** ⏳ NEXT
+- Node-based canvas (XYFlow)
+- Drag-drop node types: Trigger | Condition | Action
+- Connection lines between nodes
+- Properties panel for node configuration
+- Execute button for testing
+
+**P2.02: Supabase Edge Functions** ⏳
+- `on-row-change`: Database trigger handler
+- `on-schedule`: Cron job execution
+- `send-notification`: Email/Slack/Discord dispatcher
+- Deploy scripts and documentation
+
+**P2.03: Automation Rule Engine** ⏳
+- Parse automation JSON from Supabase
+- Client-side condition evaluation
+- Action execution (sync/async)
+- Real-time rule updates via Supabase Realtime
+
+**P2.04: OpenClaw Integration** ⏳
+- Connection to local OpenClaw container
+- WhatsApp message sending
+- Meta API proxy endpoints
+- Status monitoring
+
+**P2.05: Local Docker Compose** ⏳
+- `docker-compose.local.yml`: Supabase + OpenClaw + n8n
+- Environment variable templates
+- Health check endpoints
+- One-command setup: `docker-compose up`
 
 #### PHASE 3: DESIGN POLISH (Best Practices 2026)
 
@@ -132,6 +168,22 @@
 - [ ] **P6.02** — USER-PLAN.md: Complete user guide with screenshots
 - [ ] **P6.03** — API-ENDPOINTS.md: Full REST documentation
 - [ ] **P6.04** — README.md: Hero image, deploy buttons, feature comparison
+
+---
+
+### 📊 PROGRESS DASHBOARD
+
+| Phase | Tasks | Done | Progress |
+|-------|-------|------|----------|
+| **P1: Critical Fixes** | 5 | 5 | ✅ 100% |
+| P2: Core Features | 5 | 0 | 0% |
+| P3: Design Polish | 6 | 0 | 0% |
+| P4: UX | 4 | 0 | 0% |
+| P5: Testing | 4 | 0 | 0% |
+| P6: Documentation | 4 | 0 | 0% |
+| **TOTAL** | **28** | **5** | **18%** |
+
+**Phase 1 Complete:** All critical UI/UX blockers resolved
 
 ---
 
