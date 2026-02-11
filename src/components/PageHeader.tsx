@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useDocsStore } from "@/store/useDocsStore";
 import { IconPicker, RenderDocIcon } from "@/components/ui/IconPicker";
-import { Image as ImageIcon, X } from "lucide-react";
+import { Image as ImageIcon, X, FileText } from "lucide-react";
 import { cn } from "@/utils/cn";
 
 export function PageHeader() {
@@ -53,7 +53,7 @@ export function PageHeader() {
             onClick={() => setShowIconPicker(!showIconPicker)}
             className="flex h-20 w-20 items-center justify-center rounded-2xl border-4 border-white bg-zinc-50 text-4xl shadow-sm transition-transform hover:scale-105 dark:border-black dark:bg-zinc-900"
           >
-            {page.icon ? <RenderDocIcon icon={page.icon} className="h-10 w-10" /> : "📄"}
+            {page.icon ? <RenderDocIcon icon={page.icon} className="h-10 w-10" /> : <FileText className="h-10 w-10 text-zinc-400" />}
           </button>
 
           {showIconPicker && (
