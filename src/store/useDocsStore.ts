@@ -615,8 +615,19 @@ export const useDocsStore = create<DocsStore>()((set) => {
   };
 
   const storedTheme = localStorage.getItem(STORAGE_KEYS.theme) || STORAGE_KEYS.themeLegacy.map((k) => localStorage.getItem(k)).find(Boolean) || "";
+  
+  // Detect system preference if no stored theme
+  let initialTheme: "light" | "dark" = "light";
   if (storedTheme === "dark" || storedTheme === "light") {
-    store.state = { ...store.state, theme: storedTheme };
+    initialTheme = storedTheme as "light" | "dark";
+  } else if (typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+    initialTheme = "dark";
+  }
+  
+  if (storedTheme === "dark" || storedTheme === "light") {
+    store.state = { ...store.state, theme: storedTheme as "light" | "dark" };
+  } else {
+    store.state = { ...store.state, theme: initialTheme };
   }
 
   return store;
