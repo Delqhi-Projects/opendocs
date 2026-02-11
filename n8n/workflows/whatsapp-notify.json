@@ -1,0 +1,58 @@
+{
+  "name": "opendocs-notification-on-row-change",
+  "description": "Send a WhatsApp notification when an OpenDocs database row is updated",
+  "trigger": {
+    "type": "webhook",
+    "path": "/webhook/opendocs-sync",
+    "method": "POST"
+  },
+  "nodes": [
+    {
+      "name": "Filter Status",
+      "type": "n8n-nodes-base.filter",
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.status }}",
+              "value2": "Done"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Send WhatsApp via OpenDocs→OpenClaw Proxy",
+      "type": "n8n-nodes-base.httpRequest",
+      "parameters": {
+        "url": "={{ $env.OPENDOCS_BASE_URL || 'http://localhost:3000' }}/api/integrations/openclaw/send",
+        "method": "POST",
+        "authentication": "headerAuth",
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-OpenDocs-Token",
+              "value": "={{ $env.OPENDOCS_API_AUTH_TOKEN }}"
+            }
+          ]
+        },
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "integrationId",
+              "value": "whatsapp-primary"
+            },
+            {
+              "name": "to",
+              "value": "={{ $json.assignee_phone }}"
+            },
+            {
+              "name": "text",
+              "value": "=Task '{{ $json.name }}' is now DONE!"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

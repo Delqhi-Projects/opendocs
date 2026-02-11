@@ -1,0 +1,37 @@
+{
+  "name": "opendocs-ai-summary-webhook",
+  "description": "Receive document updates, summarize via AI, and post to a Slack channel",
+  "trigger": {
+    "type": "webhook",
+    "path": "/webhook/opendocs-ai-notify",
+    "method": "POST"
+  },
+  "nodes": [
+    {
+      "name": "Summarize via AI",
+      "type": "n8n-nodes-base.openAi",
+      "parameters": {
+        "resource": "chat",
+        "model": "gpt-4o",
+        "messages": [
+          {
+            "role": "system",
+            "content": "You are a concise summarizer. Summarize the following document changes."
+          },
+          {
+            "role": "user",
+            "content": "={{ $json.document_content }}"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Post to Slack",
+      "type": "n8n-nodes-base.slack",
+      "parameters": {
+        "channel": "general",
+        "text": "=New OpenDocs Summary: {{ $json.choices[0].message.content }}"
+      }
+    }
+  ]
+}

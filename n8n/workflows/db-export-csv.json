@@ -1,0 +1,39 @@
+{
+  "name": "opendocs-db-to-csv",
+  "description": "Export an OpenDocs database table to a CSV file and notify via email",
+  "trigger": {
+    "type": "webhook",
+    "path": "/webhook/opendocs-export",
+    "method": "POST"
+  },
+  "nodes": [
+    {
+      "name": "Fetch DB Rows",
+      "type": "n8n-nodes-base.postgres",
+      "parameters": {
+        "operation": "select",
+        "table": "={{ $json.tableName }}",
+        "where": "updated_at > '{{ $json.since || \"1970-01-01\" }}'"
+      }
+    },
+    {
+      "name": "Convert to CSV",
+      "type": "n8n-nodes-base.spreadsheetFile",
+      "parameters": {
+        "operation": "toFile",
+        "fileFormat": "csv",
+        "options": {}
+      }
+    },
+    {
+      "name": "Send Email",
+      "type": "n8n-nodes-base.emailSend",
+      "parameters": {
+        "fromEmail": "opendocs-bot@example.com",
+        "toEmail": "={{ $json.admin_email }}",
+        "subject": "=OpenDocs Export: {{ $json.tableName }}",
+        "html": "Attached is your requested database export."
+      }
+    }
+  ]
+}
