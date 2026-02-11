@@ -1,4 +1,4 @@
-import { useMemo, useState, useRef, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import type { DocBlock, TableBlock, ChecklistBlock } from "@/types/docs";
 import { MermaidView } from "@/components/blocks/MermaidView";
 import { DatabaseBlockView } from "@/components/blocks/DatabaseBlockView";
@@ -6,7 +6,8 @@ import { WorkflowBlockView } from "@/components/blocks/WorkflowBlockView";
 import { DrawBlockView } from "@/components/blocks/DrawBlockView";
 import { N8nBlockView } from "@/components/blocks/N8nBlockView";
 import { AiPromptBlockView } from "@/components/blocks/AiPromptBlockView";
-import { BotMessageSquare, Lock, Unlock, Trash2, ArrowUp, ArrowDown, Copy, GripVertical } from "lucide-react";
+import { AutoResizeTextarea } from "@/components/ui/AutoResizeTextarea";
+import { BotMessageSquare, Lock, Unlock, Trash2, ArrowUp, ArrowDown, Copy, GripVertical, Plus, Columns, Grid3X3 } from "lucide-react";
 import { BlockChatModal } from "@/components/blocks/BlockChatModal";
 import { useDocsStore } from "@/store/useDocsStore";
 import { nanoid } from "nanoid";
@@ -22,6 +23,7 @@ export function BlockRenderer({
   onMove,
   onToggleLock,
   onSlash,
+  onAddBlock,
 }: {
   block: DocBlock;
   dark: boolean;
@@ -31,6 +33,7 @@ export function BlockRenderer({
   onMove: (dir: "up" | "down") => void;
   onToggleLock: () => void;
   onSlash: () => void;
+  onAddBlock: (type: string) => void;
 }) {
   const { state } = useDocsStore();
   const pageId = state.selectedPageId || "";
@@ -54,19 +57,50 @@ export function BlockRenderer({
 
   const locked = !!block.locked;
   const frame = locked
-    ? "border-amber-300 bg-amber-50/40 dark:border-amber-600 dark:bg-amber-950/20"
-    : "border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950";
+    ? "bg-amber-50/20 dark:bg-amber-950/10"
+    : "";
 
   const embed = useMemo(() => toEmbedUrl(block.url), [block.url]);
 
+  const sideToolbar = (
+    <div
+      className={`absolute -left-10 top-0 flex flex-col items-center gap-1 transition-all duration-200 z-50 ${
+        isHovered ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-1 pointer-events-none"
+      }`}
+      onMouseEnter={() => setIsHovered(true)}
+    >
+      <button
+        type="button"
+        className="p-1.5 rounded-md text-zinc-300 hover:text-zinc-600 hover:bg-zinc-100 dark:hover:text-zinc-200 dark:hover:bg-zinc-800 transition-colors"
+        onClick={() => onAddBlock("paragraph")}
+        title="Add block below"
+      >
+        <Plus className="h-4 w-4" />
+      </button>
+      <button
+        type="button"
+        className="p-1.5 rounded-md text-zinc-300 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:text-indigo-400 dark:hover:bg-indigo-950/30 transition-colors"
+        onClick={() => onAddBlock("horizontal")}
+        title="Add horizontal layout"
+      >
+        <Columns className="h-4 w-4" />
+      </button>
+    </div>
+  );
+
   const toolbar = (
     <div
+      role="toolbar"
+      aria-label="Block actions"
       className={`flex items-center gap-0.5 px-1.5 py-1 rounded-md bg-zinc-100/95 dark:bg-zinc-900/95 backdrop-blur-sm border border-zinc-200/50 dark:border-zinc-800/50 shadow-sm transition-all duration-200 ${
         isHovered ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-1 pointer-events-none"
       }`}
       onClick={(e) => e.stopPropagation()}
+      onKeyDown={(e) => e.stopPropagation()}
+      onMouseEnter={() => setIsHovered(true)}
     >
       <button
+        type="button"
         className="rounded p-1 text-zinc-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:text-indigo-400 dark:hover:bg-indigo-950/30 transition-colors cursor-grab"
         {...listeners}
         {...attributes}
@@ -76,6 +110,7 @@ export function BlockRenderer({
       </button>
       <div className="w-px h-3.5 bg-zinc-300 dark:bg-zinc-700 mx-0.5" />
       <button
+        type="button"
         className="rounded p-1 text-zinc-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:text-indigo-400 dark:hover:bg-indigo-950/30 transition-colors"
         onClick={() => setChatOpen(true)}
         title="Chat"
@@ -83,6 +118,7 @@ export function BlockRenderer({
         <BotMessageSquare className="h-3.5 w-3.5" />
       </button>
       <button
+        type="button"
         className="rounded p-1 text-zinc-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:text-amber-400 dark:hover:bg-amber-950/30 transition-colors"
         onClick={onToggleLock}
         title={locked ? "Unlock" : "Lock"}
@@ -93,6 +129,7 @@ export function BlockRenderer({
         <>
           <div className="w-px h-3.5 bg-zinc-300 dark:bg-zinc-700 mx-0.5" />
           <button
+            type="button"
             className="rounded p-1 text-zinc-400 hover:text-zinc-700 hover:bg-zinc-200 dark:hover:text-zinc-200 dark:hover:bg-zinc-800 transition-colors"
             onClick={() => onMove("up")}
             title="Move up"
@@ -100,6 +137,7 @@ export function BlockRenderer({
             <ArrowUp className="h-3.5 w-3.5" />
           </button>
           <button
+            type="button"
             className="rounded p-1 text-zinc-400 hover:text-zinc-700 hover:bg-zinc-200 dark:hover:text-zinc-200 dark:hover:bg-zinc-800 transition-colors"
             onClick={() => onMove("down")}
             title="Move down"
@@ -108,6 +146,7 @@ export function BlockRenderer({
           </button>
           {block.type === "table" && (
             <button
+              type="button"
               className="rounded px-2 py-0.5 text-[10px] font-medium text-indigo-600 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-950/40 transition-colors"
               onClick={() => onUpdate({ __convertToDatabase: true } as any)}
               title="Convert to Database"
@@ -116,6 +155,7 @@ export function BlockRenderer({
             </button>
           )}
           <button
+            type="button"
             className="rounded p-1 text-zinc-400 hover:text-red-600 hover:bg-red-50 dark:hover:text-red-400 dark:hover:bg-red-950/30 transition-colors"
             onClick={onDelete}
             title="Delete"
@@ -142,10 +182,12 @@ export function BlockRenderer({
       <div
         ref={setNodeRef}
         style={style}
-        className={`relative group rounded-lg border p-3 ${frame} ${isDragging ? "ring-2 ring-indigo-500 ring-opacity-50" : ""}`}
+        role="presentation"
+        className={`relative group ${frame} ${isDragging ? "ring-2 ring-indigo-500 ring-opacity-50" : ""}`}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
+        {sideToolbar}
         <div className="absolute -top-6 left-0 z-10">{toolbar}</div>
         <input
           disabled={disabled}
@@ -160,23 +202,19 @@ export function BlockRenderer({
       <div
         ref={setNodeRef}
         style={style}
-        className={`relative group rounded-lg border p-3 ${frame} ${isDragging ? "ring-2 ring-indigo-500 ring-opacity-50" : ""}`}
+        role="presentation"
+        className={`relative group ${frame} ${isDragging ? "ring-2 ring-indigo-500 ring-opacity-50" : ""}`}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
+        {sideToolbar}
         <div className="absolute -top-6 left-0 z-10">{toolbar}</div>
-        <textarea
+        <AutoResizeTextarea
           disabled={disabled}
           value={block.text}
-          onChange={(e) => onUpdate({ text: e.target.value } as any)}
-          onKeyDown={(e) => {
-            if (e.key === "/" && (e.currentTarget.value ?? "") === "") {
-              e.preventDefault();
-              onSlash();
-            }
-          }}
+          onChange={(value) => onUpdate({ text: value } as any)}
+          onSlash={onSlash}
           placeholder="Write… (type / on empty block to insert)"
-          className="min-h-[72px] w-full resize-y rounded-md border border-zinc-200 bg-white p-2 text-sm text-zinc-900 outline-none focus:ring-2 focus:ring-indigo-500 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
         />
       </div>
     );
@@ -185,10 +223,12 @@ export function BlockRenderer({
       <div
         ref={setNodeRef}
         style={style}
-        className={`relative group rounded-lg border p-3 ${frame} ${isDragging ? "ring-2 ring-indigo-500 ring-opacity-50" : ""}`}
+        role="presentation"
+        className={`relative group ${frame} ${isDragging ? "ring-2 ring-indigo-500 ring-opacity-50" : ""}`}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
+        {sideToolbar}
         <div className="absolute -top-6 left-0 z-10">{toolbar}</div>
         <div className="mb-2 flex items-center gap-2">
           <input
@@ -204,7 +244,6 @@ export function BlockRenderer({
               try {
                 await navigator.clipboard.writeText(block.code);
               } catch {
-                // ignore
               }
             }}
             title="Copy"
@@ -225,10 +264,12 @@ export function BlockRenderer({
       <div
         ref={setNodeRef}
         style={style}
-        className={`relative group rounded-lg border p-3 ${frame} ${isDragging ? "ring-2 ring-indigo-500 ring-opacity-50" : ""}`}
+        role="presentation"
+        className={`relative group ${frame} ${isDragging ? "ring-2 ring-indigo-500 ring-opacity-50" : ""}`}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
+        {sideToolbar}
         <div className="absolute -top-6 left-0 z-10">{toolbar}</div>
         <div className="mb-2 flex items-center gap-2">
           <select
@@ -265,10 +306,12 @@ export function BlockRenderer({
       <div
         ref={setNodeRef}
         style={style}
-        className={`relative group rounded-lg border p-3 ${frame} ${isDragging ? "ring-2 ring-indigo-500 ring-opacity-50" : ""}`}
+        role="presentation"
+        className={`relative group ${frame} ${isDragging ? "ring-2 ring-indigo-500 ring-opacity-50" : ""}`}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
+        {sideToolbar}
         <div className="absolute -top-6 left-0 z-10">{toolbar}</div>
         <div className="space-y-2">
           {checklistBlock.items.map((it, idx) => (
@@ -284,7 +327,7 @@ export function BlockRenderer({
               />
               <input
                 disabled={disabled}
-                type="button"
+                type="text"
                 value={it.text}
                 onChange={(e) => {
                   const items = checklistBlock.items.map((x) => (x.id === it.id ? { ...x, text: e.target.value } : x));
@@ -311,156 +354,167 @@ export function BlockRenderer({
     content = <TableEditor block={block} disabled={disabled} frame={frame} toolbar={toolbar} onUpdate={onUpdate} />;
   } else if (block.type === "database") {
     content = (
-      <div className={`rounded-lg border p-3 ${frame}`}>
-        <div className="mb-2 flex items-center justify-between">{toolbar}</div>
-        <DatabaseBlockView block={block} disabled={disabled} onUpdate={onUpdate} />
+      <div ref={setNodeRef} style={style} role="presentation" className={`relative group ${frame} ${isDragging ? "opacity-50" : ""}`} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
+        {sideToolbar}
+        <div className="absolute -top-6 left-0 z-10">{toolbar}</div>
+        <div className="p-3">
+          <DatabaseBlockView block={block} disabled={disabled} onUpdate={onUpdate} />
+        </div>
       </div>
     );
   } else if (block.type === "workflow") {
     content = (
-      <div className={`rounded-lg border p-3 ${frame}`}>
-        <div className="mb-2 flex items-center justify-between">{toolbar}</div>
-        <WorkflowBlockView block={block} disabled={disabled} onUpdate={onUpdate} />
+      <div ref={setNodeRef} style={style} role="presentation" className={`relative group ${frame} ${isDragging ? "opacity-50" : ""}`} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
+        {sideToolbar}
+        <div className="absolute -top-6 left-0 z-10">{toolbar}</div>
+        <div className="p-3">
+          <WorkflowBlockView block={block} disabled={disabled} onUpdate={onUpdate} />
+        </div>
       </div>
     );
   } else if (block.type === "draw") {
     content = (
-      <div className={`rounded-lg border p-3 ${frame}`}>
-        <div className="mb-2 flex items-center justify-between">{toolbar}</div>
-        <DrawBlockView block={block} disabled={disabled} onUpdate={onUpdate} />
+      <div ref={setNodeRef} style={style} role="presentation" className={`relative group ${frame} ${isDragging ? "opacity-50" : ""}`} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
+        {sideToolbar}
+        <div className="absolute -top-6 left-0 z-10">{toolbar}</div>
+        <div className="p-3">
+          <DrawBlockView block={block} disabled={disabled} onUpdate={onUpdate} />
+        </div>
       </div>
     );
   } else if (block.type === "n8n") {
     content = (
-      <div className={`rounded-lg border p-3 ${frame}`}>
-        <div className="mb-2 flex items-center justify-between">{toolbar}</div>
-        <N8nBlockView block={block} disabled={disabled} onUpdate={onUpdate} />
+      <div ref={setNodeRef} style={style} role="presentation" className={`relative group ${frame} ${isDragging ? "opacity-50" : ""}`} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
+        {sideToolbar}
+        <div className="absolute -top-6 left-0 z-10">{toolbar}</div>
+        <div className="p-3">
+          <N8nBlockView block={block} disabled={disabled} onUpdate={onUpdate} />
+        </div>
       </div>
     );
   } else if (block.type === "aiPrompt") {
     content = (
-      <div className={`rounded-lg border p-3 ${frame}`}>
-        <div className="mb-2 flex items-center justify-between">{toolbar}</div>
-        <AiPromptBlockView
-          pageId={pageId}
-          block={block}
-          disabled={disabled}
-          onDelete={onDelete}
-        />
+      <div ref={setNodeRef} style={style} role="presentation" className={`relative group ${frame} ${isDragging ? "opacity-50" : ""}`} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
+        {sideToolbar}
+        <div className="absolute -top-6 left-0 z-10">{toolbar}</div>
+        <div className="p-3">
+          <AiPromptBlockView pageId={pageId} block={block} disabled={disabled} onDelete={onDelete} />
+        </div>
       </div>
     );
   } else if (block.type === "mermaid") {
     content = (
-      <div className={`rounded-lg border p-3 ${frame}`}>
-        <div className="mb-2 flex items-center justify-between">{toolbar}</div>
-        <textarea
-          disabled={disabled}
-          value={block.code}
-          onChange={(e) => onUpdate({ code: e.target.value } as any)}
-          className="min-h-[100px] w-full resize-y rounded-md border border-zinc-200 bg-white p-2 font-mono text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
-        />
-        <div className="mt-3 rounded-md border border-zinc-200 bg-white p-2 dark:border-zinc-800 dark:bg-zinc-950">
-          <MermaidView code={block.code} dark={dark} />
+      <div ref={setNodeRef} style={style} role="presentation" className={`relative group ${frame} ${isDragging ? "opacity-50" : ""}`} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
+        {sideToolbar}
+        <div className="absolute -top-6 left-0 z-10">{toolbar}</div>
+        <div className="p-3">
+          <textarea
+            disabled={disabled}
+            value={block.code}
+            onChange={(e) => onUpdate({ code: e.target.value } as any)}
+            className="min-h-[100px] w-full resize-y rounded-md border border-zinc-200 bg-white p-2 font-mono text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
+          />
+          <div className="mt-3 rounded-md border border-zinc-200 bg-white p-2 dark:border-zinc-800 dark:bg-zinc-950">
+            <MermaidView code={block.code} dark={dark} />
+          </div>
         </div>
       </div>
     );
   } else if (block.type === "quote") {
     content = (
-      <div className={`rounded-lg border p-3 ${frame}`}>
-        <div className="mb-2 flex items-center justify-between">{toolbar}</div>
-        <textarea
-          disabled={disabled}
-          value={block.text}
-          onChange={(e) => onUpdate({ text: e.target.value } as any)}
-          className="min-h-[72px] w-full resize-y rounded-md border border-zinc-200 bg-white p-2 text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
-        />
+      <div ref={setNodeRef} style={style} role="presentation" className={`relative group ${frame} ${isDragging ? "opacity-50" : ""}`} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
+        {sideToolbar}
+        <div className="absolute -top-6 left-0 z-10">{toolbar}</div>
+        <div className="p-3">
+          <textarea
+            disabled={disabled}
+            value={block.text}
+            onChange={(e) => onUpdate({ text: e.target.value } as any)}
+            className="min-h-[72px] w-full resize-y rounded-md border border-zinc-200 bg-white p-2 text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
+          />
+        </div>
       </div>
     );
   } else if (block.type === "divider") {
     content = (
-      <div className={`rounded-lg border p-3 ${frame}`}>
-        <div className="flex items-center justify-between">{toolbar}</div>
-        <div className="my-3 h-px w-full bg-zinc-200 dark:bg-zinc-800" />
+      <div ref={setNodeRef} style={style} role="presentation" className={`relative group ${frame} ${isDragging ? "opacity-50" : ""}`} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
+        {sideToolbar}
+        <div className="absolute -top-6 left-0 z-10">{toolbar}</div>
+        <div className="py-3">
+          <div className="h-px w-full bg-zinc-200 dark:bg-zinc-800" />
+        </div>
       </div>
     );
   } else if (block.type === "image") {
     content = (
-      <div className={`rounded-lg border p-3 ${frame}`}>
-        <div className="mb-2 flex items-center justify-between">{toolbar}</div>
-        <input
-          disabled={disabled}
-          value={block.url}
-          onChange={(e) => onUpdate({ url: e.target.value } as any)}
-          placeholder="Image URL"
-          className="mb-2 w-full rounded-md border border-zinc-200 bg-white px-2 py-1 text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
-        />
-        {block.url ? (
-          <img src={block.url} alt={block.alt || ""} className="max-h-[360px] w-full rounded-md object-contain" />
-        ) : (
-          <div className="rounded-md border border-dashed border-zinc-300 p-6 text-center text-sm text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
-            Paste an image URL
-          </div>
-        )}
+      <div ref={setNodeRef} style={style} role="presentation" className={`relative group ${frame} ${isDragging ? "opacity-50" : ""}`} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
+        {sideToolbar}
+        <div className="absolute -top-6 left-0 z-10">{toolbar}</div>
+        <div className="p-3">
+          <input
+            disabled={disabled}
+            value={block.url}
+            onChange={(e) => onUpdate({ url: e.target.value } as any)}
+            placeholder="Image URL"
+            className="mb-2 w-full rounded-md border border-zinc-200 bg-white px-2 py-1 text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
+          />
+          {block.url ? (
+            <img src={block.url} alt={block.alt || ""} className="max-h-[360px] w-full rounded-md object-contain" />
+          ) : (
+            <div className="rounded-md border border-dashed border-zinc-300 p-6 text-center text-sm text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
+              Paste an image URL
+            </div>
+          )}
+        </div>
       </div>
     );
   } else if (block.type === "video") {
     content = (
-      <div
-        ref={setNodeRef}
-        style={style}
-        className={`relative group rounded-lg border p-3 ${frame} ${isDragging ? "ring-2 ring-indigo-500 ring-opacity-50" : ""}`}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-      >
+      <div ref={setNodeRef} style={style} role="presentation" className={`relative group ${frame} ${isDragging ? "opacity-50" : ""}`} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
+        {sideToolbar}
         <div className="absolute -top-6 left-0 z-10">{toolbar}</div>
-        <input
-          disabled={disabled}
-          value={block.url}
-          onChange={(e) => onUpdate({ url: e.target.value } as any)}
-          placeholder="Video URL (YouTube/Vimeo)"
-          className="mb-2 w-full rounded-md border border-zinc-200 bg-white px-2 py-1 text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
-        />
-        {embed ? (
-          <div className="aspect-video w-full overflow-hidden rounded-md border border-zinc-200 dark:border-zinc-800">
-            <iframe className="h-full w-full" src={embed} title="Video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" />
-          </div>
-        ) : (
-          <div className="rounded-md border border-dashed border-zinc-300 p-6 text-center text-sm text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
-            Paste a supported URL
-          </div>
-        )}
+        <div className="p-3">
+          <input
+            disabled={disabled}
+            value={block.url}
+            onChange={(e) => onUpdate({ url: e.target.value } as any)}
+            placeholder="Video URL (YouTube/Vimeo)"
+            className="mb-2 w-full rounded-md border border-zinc-200 bg-white px-2 py-1 text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
+          />
+          {embed ? (
+            <div className="aspect-video w-full overflow-hidden rounded-md border border-zinc-200 dark:border-zinc-800">
+              <iframe className="h-full w-full" src={embed} title="Video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" />
+            </div>
+          ) : (
+            <div className="rounded-md border border-dashed border-zinc-300 p-6 text-center text-sm text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
+              Paste a supported URL
+            </div>
+          )}
+        </div>
       </div>
     );
   } else if (block.type === "link") {
     content = (
-      <div
-        ref={setNodeRef}
-        style={style}
-        className={`relative group rounded-lg border p-3 ${frame} ${isDragging ? "ring-2 ring-indigo-500 ring-opacity-50" : ""}`}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-      >
+      <div ref={setNodeRef} style={style} role="presentation" className={`relative group ${frame} ${isDragging ? "opacity-50" : ""}`} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
+        {sideToolbar}
         <div className="absolute -top-6 left-0 z-10">{toolbar}</div>
-        <input
-          disabled={disabled}
-          value={block.url}
-          onChange={(e) => onUpdate({ url: e.target.value } as any)}
-          placeholder="URL"
-          className="w-full rounded-md border border-zinc-200 bg-white px-2 py-1 text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
-        />
+        <div className="p-3">
+          <input
+            disabled={disabled}
+            value={block.url}
+            onChange={(e) => onUpdate({ url: e.target.value } as any)}
+            placeholder="URL"
+            className="w-full rounded-md border border-zinc-200 bg-white px-2 py-1 text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
+          />
+        </div>
       </div>
     );
   } else if (block.type === "file") {
     content = (
-      <div
-        ref={setNodeRef}
-        style={style}
-        className={`relative group rounded-lg border p-3 ${frame} ${isDragging ? "ring-2 ring-indigo-500 ring-opacity-50" : ""}`}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-      >
+      <div ref={setNodeRef} style={style} role="presentation" className={`relative group ${frame} ${isDragging ? "opacity-50" : ""}`} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
+        {sideToolbar}
         <div className="absolute -top-6 left-0 z-10">{toolbar}</div>
-        <div className="flex items-center gap-2">
+        <div className="p-3 flex items-center gap-2">
           <input
             disabled={disabled}
             value={block.name}
@@ -477,17 +531,36 @@ export function BlockRenderer({
         </div>
       </div>
     );
+  } else if (block.type === "horizontal") {
+    const horizontalBlock = block as any;
+    content = (
+      <div ref={setNodeRef} style={style} role="presentation" className={`relative group ${frame} ${isDragging ? "opacity-50" : ""}`} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
+        {sideToolbar}
+        <div className="absolute -top-6 left-0 z-10">{toolbar}</div>
+        <div className="grid grid-cols-2 gap-4 p-3">
+          {horizontalBlock.blocks?.map((subBlock: any) => (
+            <div key={subBlock.id} className="p-4 rounded-lg border border-dashed border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/50">
+              <div className="text-sm text-zinc-500 dark:text-zinc-400">{subBlock.type}</div>
+            </div>
+          ))}
+          {!disabled && (
+            <button
+              type="button"
+              className="p-4 rounded-lg border border-dashed border-zinc-300 dark:border-zinc-700 hover:border-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-colors text-zinc-400 hover:text-indigo-600 dark:text-zinc-500 dark:hover:text-indigo-400"
+              onClick={() => onUpdate({ blocks: [...(horizontalBlock.blocks || []), { id: nanoid(), type: "paragraph", text: "" }] } as any)}
+            >
+              + Add block
+            </button>
+          )}
+        </div>
+      </div>
+    );
   } else {
     content = (
-      <div
-        ref={setNodeRef}
-        style={style}
-        className={`relative group rounded-lg border p-3 ${frame} ${isDragging ? "ring-2 ring-indigo-500 ring-opacity-50" : ""}`}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-      >
+      <div ref={setNodeRef} style={style} role="presentation" className={`relative group ${frame} ${isDragging ? "opacity-50" : ""}`} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
+        {sideToolbar}
         <div className="absolute -top-6 left-0 z-10">{toolbar}</div>
-        <div className="text-sm text-zinc-600 dark:text-zinc-300">Unsupported block type: {(block as any).type}</div>
+        <div className="p-3 text-sm text-zinc-600 dark:text-zinc-300">Unsupported block type: {(block as any).type}</div>
       </div>
     );
   }
