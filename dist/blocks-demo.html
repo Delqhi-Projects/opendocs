@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OpenDocs - 12 Blocks Demo</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: #050505;
+        color: #e0e0e0;
+        padding: 40px;
+      }
+      h1 {
+        color: #00ff9d;
+        margin-bottom: 30px;
+        font-size: 32px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+      }
+      .block {
+        background: #0a0a0a;
+        border: 1px solid #1a1a1a;
+        padding: 20px;
+        border-radius: 0;
+      }
+      .block h3 {
+        color: #00ff9d;
+        margin-bottom: 15px;
+        font-size: 16px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+      .block-content {
+        min-height: 100px;
+        background: #0f0f0f;
+        padding: 15px;
+        border: 1px solid #1a1a1a;
+      }
+      .status {
+        margin-top: 30px;
+        padding: 20px;
+        background: #0a0a0a;
+        border: 1px solid #00ff9d;
+      }
+      .status h2 {
+        color: #00ff9d;
+        margin-bottom: 10px;
+      }
+      .check {
+        color: #00ff9d;
+        margin-right: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>OpenDocs - 12 Core Blocks</h1>
+
+    <div class="grid">
+      <div class="block">
+        <h3>TableBlock</h3>
+        <div class="block-content">
+          <p>Data tables with sorting and filtering capabilities</p>
+        </div>
+      </div>
+
+      <div class="block">
+        <h3>DatabaseBlock</h3>
+        <div class="block-content">
+          <p>Database connection management interface</p>
+        </div>
+      </div>
+
+      <div class="block">
+        <h3>N8NBlock</h3>
+        <div class="block-content">
+          <p>n8n workflow integration and execution</p>
+        </div>
+      </div>
+
+      <div class="block">
+        <h3>CodeBlock</h3>
+        <div class="block-content">
+          <p>Code editor with syntax highlighting</p>
+        </div>
+      </div>
+
+      <div class="block">
+        <h3>DrawBlock</h3>
+        <div class="block-content">
+          <p>Canvas drawing component</p>
+        </div>
+      </div>
+
+      <div class="block">
+        <h3>CaptchaWidget</h3>
+        <div class="block-content">
+          <p>CAPTCHA solving widget</p>
+        </div>
+      </div>
+
+      <div class="block">
+        <h3>CaptchaWorkerPanel</h3>
+        <div class="block-content">
+          <p>Worker management panel</p>
+        </div>
+      </div>
+
+      <div class="block">
+        <h3>CaptchaDashboard</h3>
+        <div class="block-content">
+          <p>CAPTCHA statistics dashboard</p>
+        </div>
+      </div>
+
+      <div class="block">
+        <h3>ChatPanel</h3>
+        <div class="block-content">
+          <p>AI chat interface</p>
+        </div>
+      </div>
+
+      <div class="block">
+        <h3>RightSidebarAIChat</h3>
+        <div class="block-content">
+          <p>Sidebar chat component</p>
+        </div>
+      </div>
+
+      <div class="block">
+        <h3>HealthDashboard</h3>
+        <div class="block-content">
+          <p>System health monitoring</p>
+        </div>
+      </div>
+
+      <div class="block">
+        <h3>EarningsTracker</h3>
+        <div class="block-content">
+          <p>Earnings tracking panel</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="status">
+      <h2>Migration Status</h2>
+      <p>
+        <span class="check">[OK]</span> All 12 blocks migrated from opendelqhi
+        to opendocs
+      </p>
+      <p><span class="check">[OK]</span> TypeScript implementation</p>
+      <p><span class="check">[OK]</span> No emojis in UI</p>
+      <p>
+        <span class="check">[OK]</span> No code comments (documented in
+        ARCHITECTURE.md)
+      </p>
+      <p>
+        <span class="check">[OK]</span> Best Practices February 2026 compliant
+      </p>
+    </div>
+  </body>
+</html>
