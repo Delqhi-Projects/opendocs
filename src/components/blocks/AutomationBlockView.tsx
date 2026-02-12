@@ -83,7 +83,13 @@ export function AutomationBlockView({ automation, onUpdate, disabled }: Automati
   const onConnect = useCallback(
     (connection: Connection) => {
       if (disabled) return;
-      const edge = { ...connection, id: nanoid() };
+      const edge: Edge = { 
+        id: nanoid(),
+        source: connection.source!,
+        target: connection.target!,
+        sourceHandle: connection.sourceHandle ?? undefined,
+        targetHandle: connection.targetHandle ?? undefined,
+      };
       setEdges((eds) => addEdge(edge, eds));
     },
     [disabled, setEdges]
@@ -117,15 +123,17 @@ export function AutomationBlockView({ automation, onUpdate, disabled }: Automati
       nodes: nodes.map((n) => ({
         id: n.id,
         type: n.type as "trigger" | "logic" | "action",
-        subtype: n.data.label,
+        subtype: n.data.label as import("@/types/automation").AutomationNodeType,
         position: n.position,
-        data: n.data,
+        data: n.data as { label: string; config: Record<string, unknown>; description?: string },
       })),
       edges: edges.map((e) => ({
         id: e.id,
         source: e.source,
         target: e.target,
-        label: e.label,
+        label: typeof e.label === 'string' ? e.label : undefined,
+        sourceHandle: e.sourceHandle ?? undefined,
+        targetHandle: e.targetHandle ?? undefined,
       })),
       updatedAt: new Date().toISOString(),
     };

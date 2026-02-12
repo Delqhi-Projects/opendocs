@@ -38,15 +38,15 @@ export function AutomationCanvas({ automation, onChange, readOnly = false }: Aut
     id: n.id,
     type: 'automationNode',
     position: n.position,
-    data: { node: n },
+    data: { node: n as AutomationNode },
   }));
 
   const initialEdges: Edge[] = automation.edges.map(e => ({
     id: e.id,
     source: e.source,
     target: e.target,
-    sourceHandle: e.sourceHandle,
-    targetHandle: e.targetHandle,
+    sourceHandle: e.sourceHandle ?? undefined,
+    targetHandle: e.targetHandle ?? undefined,
     type: 'smoothstep',
     animated: true,
     style: { stroke: '#6366f1', strokeWidth: 2 },
@@ -74,15 +74,15 @@ export function AutomationCanvas({ automation, onChange, readOnly = false }: Aut
         id: newEdge.id,
         source: params.source!,
         target: params.target!,
-        sourceHandle: params.sourceHandle,
-        targetHandle: params.targetHandle,
+        sourceHandle: params.sourceHandle ?? undefined,
+        targetHandle: params.targetHandle ?? undefined,
       };
       
       setEdges((eds) => {
         const updated = addEdge(newEdge, eds);
         const automationEdges = [...automation.edges, newAutomationEdge];
         onChange(
-          nodes.map(n => n.data.node),
+          nodes.map(n => (n.data as { node: AutomationNode }).node),
           automationEdges
         );
         return updated;
@@ -104,13 +104,17 @@ export function AutomationCanvas({ automation, onChange, readOnly = false }: Aut
       setNodes((nds) => {
         const updated = nds.map((node) => {
           if (node.id === nodeId) {
-            const updatedNode = {
+            const nodeData = node.data as { node: AutomationNode };
+            const updatedNode: Node = {
               ...node,
               data: {
-                ...node.data,
+                ...nodeData,
                 node: {
-                  ...node.data.node,
-                  config: { ...node.data.node.config, ...config },
+                  ...nodeData.node,
+                  data: {
+                    ...nodeData.node.data,
+                    config: { ...nodeData.node.data.config, ...config },
+                  },
                 },
               },
             };
@@ -120,13 +124,13 @@ export function AutomationCanvas({ automation, onChange, readOnly = false }: Aut
         });
         
         onChange(
-          updated.map(n => n.data.node),
+          updated.map(n => (n.data as { node: AutomationNode }).node),
           edges.map(e => ({
             id: e.id,
             source: e.source,
             target: e.target,
-            sourceHandle: e.sourceHandle,
-            targetHandle: e.targetHandle,
+            sourceHandle: e.sourceHandle ?? undefined,
+            targetHandle: e.targetHandle ?? undefined,
           }))
         );
         
@@ -139,6 +143,7 @@ export function AutomationCanvas({ automation, onChange, readOnly = false }: Aut
   const nodeTypes = {
     automationNode: ({ data }: { data: { node: AutomationNode } }) => {
       const def = AUTOMATION_NODE_DEFINITIONS[data.node.subtype];
+      if (!def) return null;
       return (
         <div className={automationNodeStyles.node(def.color)}>
           <div className={automationNodeStyles.header}>
@@ -185,7 +190,10 @@ export function AutomationCanvas({ automation, onChange, readOnly = false }: Aut
         <MiniMap 
           className={canvasStyles.minimap}
           nodeColor={(node) => {
-            const def = AUTOMATION_NODE_DEFINITIONS[node.data?.node?.subtype];
+            const nodeData = node.data as { node?: AutomationNode } | undefined;
+            const subtype = nodeData?.node?.subtype;
+            if (!subtype) return '#6366f1';
+            const def = AUTOMATION_NODE_DEFINITIONS[subtype];
             return def?.color || '#6366f1';
           }}
         />
