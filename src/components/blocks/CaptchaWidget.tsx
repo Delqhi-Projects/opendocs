@@ -1,112 +1,273 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 
-const styles = {
-  container: {
-    backgroundColor: "#0a0a0a",
-    color: "#ffffff",
-    padding: "16px",
-    borderRadius: 0,
-    border: "1px solid #333",
-    fontFamily: "monospace",
-  },
-  header: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: "16px",
-    borderBottom: "1px solid #333",
-    paddingBottom: "8px",
-  },
-  label: {
-    color: "#00ff9d",
-    textTransform: "uppercase" as const,
-    fontSize: "0.75rem",
-    fontWeight: "bold",
-    letterSpacing: "1px",
-  },
-  captchaArea: {
-    backgroundColor: "#000000",
-    border: "1px solid #333",
-    height: "100px",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: "16px",
-    fontSize: "2rem",
-    fontWeight: "bold",
-    color: "#00ff9d",
-    letterSpacing: "4px",
-    userSelect: "none" as const,
-  },
-  input: {
-    width: "100%",
-    backgroundColor: "#1a1a1a",
-    color: "#ffffff",
-    border: "1px solid #333",
-    padding: "8px",
-    fontSize: "1rem",
-    marginBottom: "16px",
-    borderRadius: 0,
-    outline: "none",
-  },
-  button: {
-    backgroundColor: "#1a1a1a",
-    color: "#00ff9d",
-    border: "1px solid #00ff9d",
-    padding: "8px 16px",
-    fontSize: "0.8rem",
-    cursor: "pointer",
-    textTransform: "uppercase" as const,
-    borderRadius: 0,
-    fontWeight: "bold",
-    width: "100%",
-  },
-};
+export interface CaptchaWidgetProps {
+  onSolve?: (file: File) => Promise<string>;
+}
 
-export const CaptchaWidget: React.FC = () => {
-  const [captcha, setCaptcha] = useState("X7K9P");
-  const [input, setInput] = useState("");
-  const [status, setStatus] = useState("");
+export const CaptchaWidget: React.FC<CaptchaWidgetProps> = ({ onSolve }) => {
+  const [file, setFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [status, setStatus] = useState<
+    "idle" | "uploading" | "solving" | "success" | "error"
+  >("idle");
+  const [result, setResult] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const verify = () => {
-    if (input.toUpperCase() === captcha) {
-      setStatus("VERIFIED");
-    } else {
-      setStatus("FAILED");
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const selectedFile = e.target.files[0];
+      setFile(selectedFile);
+      setPreview(URL.createObjectURL(selectedFile));
+      setStatus("idle");
+      setResult(null);
     }
   };
 
-  const refresh = () => {
-    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    let result = "";
-    for (let i = 0; i < 5; i++) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length));
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const selectedFile = e.dataTransfer.files[0];
+      setFile(selectedFile);
+      setPreview(URL.createObjectURL(selectedFile));
+      setStatus("idle");
+      setResult(null);
     }
-    setCaptcha(result);
-    setInput("");
-    setStatus("");
+  };
+
+  const handleSolve = async () => {
+    if (!file) return;
+
+    setStatus("solving");
+    try {
+      if (onSolve) {
+        const solution = await onSolve(file);
+        setResult(solution);
+      } else {
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        setResult("X7K9P");
+      }
+      setStatus("success");
+    } catch (error) {
+      setStatus("error");
+    }
+  };
+
+  const handleReset = () => {
+    setFile(null);
+    setPreview(null);
+    setStatus("idle");
+    setResult(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   return (
-    <div style={styles.container}>
-      <div style={styles.header}>
-        <span style={styles.label}>[CAPTCHA VERIFICATION]</span>
-        <div style={styles.label}>{status || "PENDING"}</div>
+    <div
+      style={{
+        background: "#0a0a0a",
+        border: "1px solid #1a1a1a",
+        borderRadius: 0,
+        padding: "20px",
+        fontFamily: "-apple-system, BlinkMacSystemFont, sans-serif",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: "20px",
+          borderBottom: "1px solid #1a1a1a",
+          paddingBottom: "15px",
+        }}
+      >
+        <h3
+          style={{
+            margin: 0,
+            color: "#00ff9d",
+            fontSize: "16px",
+            textTransform: "uppercase",
+            letterSpacing: "1px",
+          }}
+        >
+          [CAPTCHA SOLVER]
+        </h3>
+        <div
+          style={{
+            color:
+              status === "success"
+                ? "#00ff9d"
+                : status === "error"
+                  ? "#ff0000"
+                  : status === "solving"
+                    ? "#e0e0e0"
+                    : "#666",
+            fontSize: "12px",
+            textTransform: "uppercase",
+          }}
+        >
+          STATUS: {status.toUpperCase()}
+        </div>
       </div>
 
-      <div style={styles.captchaArea} onClick={refresh}>
-        {captcha}
-      </div>
+      {!preview ? (
+        <div
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={handleDrop}
+          onClick={() => fileInputRef.current?.click()}
+          style={{
+            border: "2px dashed #333",
+            padding: "40px 20px",
+            textAlign: "center",
+            cursor: "pointer",
+            marginBottom: "20px",
+            color: "#666",
+            fontSize: "14px",
+            transition: "border-color 0.2s",
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.borderColor = "#00ff9d")}
+          onMouseLeave={(e) => (e.currentTarget.style.borderColor = "#333")}
+        >
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            accept="image/*"
+            style={{ display: "none" }}
+          />
+          <div>[DROP IMAGE HERE]</div>
+          <div style={{ fontSize: "12px", marginTop: "10px" }}>
+            OR CLICK TO UPLOAD
+          </div>
+        </div>
+      ) : (
+        <div style={{ marginBottom: "20px" }}>
+          <div
+            style={{
+              position: "relative",
+              width: "100%",
+              height: "200px",
+              background: "#000",
+              border: "1px solid #333",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              overflow: "hidden",
+            }}
+          >
+            <img
+              src={preview}
+              alt="Captcha"
+              style={{
+                maxWidth: "100%",
+                maxHeight: "100%",
+                objectFit: "contain",
+              }}
+            />
+            {status === "solving" && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  height: "100%",
+                  background: "rgba(0,0,0,0.7)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "#00ff9d",
+                  fontSize: "14px",
+                  textTransform: "uppercase",
+                  letterSpacing: "1px",
+                }}
+              >
+                [PROCESSING...]
+              </div>
+            )}
+          </div>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              marginTop: "10px",
+              fontSize: "12px",
+              color: "#666",
+            }}
+          >
+            <span>{file?.name}</span>
+            <button
+              onClick={handleReset}
+              style={{
+                background: "transparent",
+                border: "none",
+                color: "#ff0000",
+                cursor: "pointer",
+                fontSize: "12px",
+                textTransform: "uppercase",
+                padding: 0,
+              }}
+            >
+              [REMOVE]
+            </button>
+          </div>
+        </div>
+      )}
 
-      <input
-        style={styles.input}
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
-        placeholder="ENTER CODE"
-      />
+      {result && (
+        <div
+          style={{
+            background: "rgba(0, 255, 157, 0.1)",
+            border: "1px solid #00ff9d",
+            padding: "15px",
+            marginBottom: "20px",
+            textAlign: "center",
+          }}
+        >
+          <div
+            style={{
+              color: "#00ff9d",
+              fontSize: "12px",
+              textTransform: "uppercase",
+              marginBottom: "5px",
+            }}
+          >
+            SOLUTION FOUND
+          </div>
+          <div
+            style={{
+              color: "#fff",
+              fontSize: "24px",
+              fontWeight: "bold",
+              letterSpacing: "2px",
+            }}
+          >
+            {result}
+          </div>
+        </div>
+      )}
 
-      <button style={styles.button} onClick={verify}>
-        VERIFY
+      <button
+        onClick={handleSolve}
+        disabled={!file || status === "solving"}
+        style={{
+          width: "100%",
+          padding: "12px",
+          background: !file || status === "solving" ? "#1a1a1a" : "#00ff9d",
+          border: "1px solid",
+          borderColor: !file || status === "solving" ? "#333" : "#00ff9d",
+          color: !file || status === "solving" ? "#666" : "#050505",
+          cursor: !file || status === "solving" ? "not-allowed" : "pointer",
+          fontSize: "14px",
+          fontWeight: "bold",
+          textTransform: "uppercase",
+          letterSpacing: "1px",
+          borderRadius: 0,
+          transition: "all 0.2s",
+        }}
+      >
+        {status === "solving" ? "[SOLVING...]" : "[SOLVE CAPTCHA]"}
       </button>
     </div>
   );
