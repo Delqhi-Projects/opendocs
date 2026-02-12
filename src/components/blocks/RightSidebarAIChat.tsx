@@ -1,156 +1,249 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 
-const styles = {
-  container: {
-    backgroundColor: "#0a0a0a",
-    color: "#ffffff",
-    padding: "16px",
-    borderRadius: 0,
-    borderLeft: "1px solid #333",
-    fontFamily: "monospace",
-    height: "100%",
-    width: "300px",
-    display: "flex",
-    flexDirection: "column" as const,
-  },
-  header: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: "16px",
-    borderBottom: "1px solid #333",
-    paddingBottom: "8px",
-  },
-  label: {
-    color: "#00ff9d",
-    textTransform: "uppercase" as const,
-    fontSize: "0.75rem",
-    fontWeight: "bold",
-    letterSpacing: "1px",
-  },
-  chatArea: {
-    flex: 1,
-    backgroundColor: "#000000",
-    border: "1px solid #333",
-    padding: "12px",
-    overflowY: "auto" as const,
-    marginBottom: "16px",
-    display: "flex",
-    flexDirection: "column" as const,
-    gap: "8px",
-  },
-  message: {
-    padding: "8px 12px",
-    borderRadius: 0,
-    maxWidth: "90%",
-    fontSize: "0.8rem",
-    lineHeight: "1.4",
-  },
-  userMessage: {
-    backgroundColor: "#1a1a1a",
-    color: "#00ff9d",
-    alignSelf: "flex-end",
-    border: "1px solid #00ff9d",
-  },
-  aiMessage: {
-    backgroundColor: "#111",
-    color: "#e0e0e0",
-    alignSelf: "flex-start",
-    border: "1px solid #333",
-  },
-  inputArea: {
-    display: "flex",
-    flexDirection: "column" as const,
-    gap: "8px",
-  },
-  input: {
-    width: "100%",
-    backgroundColor: "#1a1a1a",
-    color: "#ffffff",
-    border: "1px solid #333",
-    padding: "8px",
-    fontSize: "0.85rem",
-    borderRadius: 0,
-    outline: "none",
-    minHeight: "60px",
-    resize: "none" as const,
-  },
-  button: {
-    backgroundColor: "#1a1a1a",
-    color: "#00ff9d",
-    border: "1px solid #00ff9d",
-    padding: "8px 16px",
-    fontSize: "0.75rem",
-    cursor: "pointer",
-    textTransform: "uppercase" as const,
-    borderRadius: 0,
-    fontWeight: "bold",
-    width: "100%",
-  },
-};
+export interface AIMessage {
+  id: string;
+  text: string;
+  sender: "user" | "ai";
+  timestamp: string;
+  context?: string;
+}
 
-export const RightSidebarAIChat: React.FC = () => {
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      text: "AI Assistant ready. Ask me anything about your workflow.",
-      sender: "ai",
-    },
-  ]);
+export interface RightSidebarAIChatProps {
+  context?: string;
+  onAskAI?: (question: string, context?: string) => Promise<string>;
+}
+
+const mockMessages: AIMessage[] = [
+  {
+    id: "1",
+    text: "AI Assistant ready. Context loaded.",
+    sender: "ai",
+    timestamp: "10:00:00",
+  },
+];
+
+export const RightSidebarAIChat: React.FC<RightSidebarAIChatProps> = ({
+  context = "No active context selected.",
+  onAskAI,
+}) => {
+  const [messages, setMessages] = useState<AIMessage[]>(mockMessages);
   const [input, setInput] = useState("");
+  const [isThinking, setIsThinking] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement>(null);
 
-  const sendMessage = () => {
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  const handleSend = async () => {
     if (!input.trim()) return;
 
-    const newMsg = { id: Date.now(), text: input, sender: "user" };
-    setMessages([...messages, newMsg]);
-    setInput("");
+    const userMsg: AIMessage = {
+      id: Date.now().toString(),
+      text: input,
+      sender: "user",
+      timestamp: new Date().toLocaleTimeString(),
+      context: context,
+    };
 
-    setTimeout(() => {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: Date.now() + 1,
-          text: "Analyzing context...",
+    setMessages((prev) => [...prev, userMsg]);
+    setInput("");
+    setIsThinking(true);
+
+    try {
+      if (onAskAI) {
+        const response = await onAskAI(userMsg.text, context);
+        const aiMsg: AIMessage = {
+          id: (Date.now() + 1).toString(),
+          text: response,
           sender: "ai",
-        },
-      ]);
-    }, 1000);
+          timestamp: new Date().toLocaleTimeString(),
+        };
+        setMessages((prev) => [...prev, aiMsg]);
+      } else {
+        setTimeout(() => {
+          const aiMsg: AIMessage = {
+            id: (Date.now() + 1).toString(),
+            text: `I analyzed the context: "${context.substring(0, 20)}...". Here is my answer to "${userMsg.text}".`,
+            sender: "ai",
+            timestamp: new Date().toLocaleTimeString(),
+          };
+          setMessages((prev) => [...prev, aiMsg]);
+          setIsThinking(false);
+        }, 1500);
+      }
+    } catch (error) {
+      const errorMsg: AIMessage = {
+        id: (Date.now() + 1).toString(),
+        text: "Error analyzing request.",
+        sender: "ai",
+        timestamp: new Date().toLocaleTimeString(),
+      };
+      setMessages((prev) => [...prev, errorMsg]);
+      setIsThinking(false);
+    }
   };
 
   return (
-    <div style={styles.container}>
-      <div style={styles.header}>
-        <span style={styles.label}>[AI ASSISTANT]</span>
-        <div style={styles.label}>V2.0</div>
+    <div
+      style={{
+        background: "#0a0a0a",
+        borderLeft: "1px solid #1a1a1a",
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        fontFamily: "-apple-system, BlinkMacSystemFont, sans-serif",
+        width: "300px",
+      }}
+    >
+      <div
+        style={{
+          padding: "15px",
+          borderBottom: "1px solid #1a1a1a",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <h3
+          style={{
+            margin: 0,
+            color: "#00ff9d",
+            fontSize: "14px",
+            textTransform: "uppercase",
+            letterSpacing: "1px",
+          }}
+        >
+          [AI ASSISTANT]
+        </h3>
+        <div
+          style={{
+            width: "8px",
+            height: "8px",
+            background: isThinking ? "#00ff9d" : "#333",
+            borderRadius: "50%",
+            animation: isThinking ? "pulse 1s infinite" : "none",
+          }}
+        />
       </div>
 
-      <div style={styles.chatArea}>
+      <div
+        style={{
+          padding: "10px",
+          background: "#0f0f0f",
+          borderBottom: "1px solid #1a1a1a",
+          fontSize: "11px",
+          color: "#666",
+        }}
+      >
+        <div style={{ marginBottom: "4px", textTransform: "uppercase" }}>
+          ACTIVE CONTEXT:
+        </div>
+        <div
+          style={{
+            color: "#e0e0e0",
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}
+          title={context}
+        >
+          {context}
+        </div>
+      </div>
+
+      <div
+        style={{
+          flex: 1,
+          overflowY: "auto",
+          padding: "15px",
+          display: "flex",
+          flexDirection: "column",
+          gap: "15px",
+        }}
+      >
         {messages.map((msg) => (
           <div
             key={msg.id}
             style={{
-              ...styles.message,
-              ...(msg.sender === "user"
-                ? styles.userMessage
-                : styles.aiMessage),
+              alignSelf: msg.sender === "user" ? "flex-end" : "flex-start",
+              maxWidth: "90%",
             }}
           >
-            {msg.text}
+            <div
+              style={{
+                fontSize: "10px",
+                color: "#666",
+                marginBottom: "4px",
+                textAlign: msg.sender === "user" ? "right" : "left",
+                textTransform: "uppercase",
+              }}
+            >
+              [{msg.sender}] {msg.timestamp}
+            </div>
+            <div
+              style={{
+                background: msg.sender === "user" ? "#1a1a1a" : "#0f0f0f",
+                border: `1px solid ${
+                  msg.sender === "user" ? "#00ff9d" : "#333"
+                }`,
+                color: msg.sender === "user" ? "#fff" : "#e0e0e0",
+                padding: "10px",
+                fontSize: "12px",
+                lineHeight: "1.5",
+              }}
+            >
+              {msg.text}
+            </div>
           </div>
         ))}
+        <div ref={chatEndRef} />
       </div>
 
-      <div style={styles.inputArea}>
+      <div style={{ padding: "15px", borderTop: "1px solid #1a1a1a" }}>
         <textarea
-          style={styles.input}
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          onKeyPress={(e) => e.key === "Enter" && !e.shiftKey && sendMessage()}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              handleSend();
+            }
+          }}
           placeholder="ASK AI..."
+          style={{
+            width: "100%",
+            height: "80px",
+            background: "#0f0f0f",
+            border: "1px solid #1a1a1a",
+            color: "#fff",
+            padding: "10px",
+            fontSize: "12px",
+            outline: "none",
+            resize: "none",
+            marginBottom: "10px",
+            borderRadius: 0,
+            fontFamily: "inherit",
+          }}
         />
-        <button style={styles.button} onClick={sendMessage}>
-          EXECUTE
+        <button
+          onClick={handleSend}
+          disabled={!input.trim() || isThinking}
+          style={{
+            width: "100%",
+            padding: "8px",
+            background: !input.trim() || isThinking ? "#1a1a1a" : "#00ff9d",
+            border: "1px solid",
+            borderColor: !input.trim() || isThinking ? "#333" : "#00ff9d",
+            color: !input.trim() || isThinking ? "#666" : "#050505",
+            cursor: !input.trim() || isThinking ? "not-allowed" : "pointer",
+            fontSize: "12px",
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            borderRadius: 0,
+          }}
+        >
+          {isThinking ? "[THINKING...]" : "[EXECUTE]"}
         </button>
       </div>
     </div>

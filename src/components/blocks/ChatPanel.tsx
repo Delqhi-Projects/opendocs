@@ -1,147 +1,245 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 
-const styles = {
-  container: {
-    backgroundColor: "#0a0a0a",
-    color: "#ffffff",
-    padding: "16px",
-    borderRadius: 0,
-    border: "1px solid #333",
-    fontFamily: "monospace",
-    height: "400px",
-    display: "flex",
-    flexDirection: "column" as const,
-  },
-  header: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: "16px",
-    borderBottom: "1px solid #333",
-    paddingBottom: "8px",
-  },
-  label: {
-    color: "#00ff9d",
-    textTransform: "uppercase" as const,
-    fontSize: "0.75rem",
-    fontWeight: "bold",
-    letterSpacing: "1px",
-  },
-  chatArea: {
-    flex: 1,
-    backgroundColor: "#000000",
-    border: "1px solid #333",
-    padding: "12px",
-    overflowY: "auto" as const,
-    marginBottom: "16px",
-    display: "flex",
-    flexDirection: "column" as const,
-    gap: "8px",
-  },
-  message: {
-    padding: "8px 12px",
-    borderRadius: 0,
-    maxWidth: "80%",
-    fontSize: "0.85rem",
-    lineHeight: "1.4",
-  },
-  userMessage: {
-    backgroundColor: "#1a1a1a",
-    color: "#00ff9d",
-    alignSelf: "flex-end",
-    border: "1px solid #00ff9d",
-  },
-  botMessage: {
-    backgroundColor: "#111",
-    color: "#e0e0e0",
-    alignSelf: "flex-start",
-    border: "1px solid #333",
-  },
-  inputArea: {
-    display: "flex",
-    gap: "8px",
-  },
-  input: {
-    flex: 1,
-    backgroundColor: "#1a1a1a",
-    color: "#ffffff",
-    border: "1px solid #333",
-    padding: "8px",
-    fontSize: "0.9rem",
-    borderRadius: 0,
-    outline: "none",
-  },
-  button: {
-    backgroundColor: "#1a1a1a",
-    color: "#00ff9d",
-    border: "1px solid #00ff9d",
-    padding: "8px 16px",
-    fontSize: "0.8rem",
-    cursor: "pointer",
-    textTransform: "uppercase" as const,
-    borderRadius: 0,
-    fontWeight: "bold",
-  },
-};
+export interface Message {
+  id: string;
+  text: string;
+  sender: "user" | "bot" | "system";
+  timestamp: string;
+}
 
-export const ChatPanel: React.FC = () => {
-  const [messages, setMessages] = useState([
-    { id: 1, text: "System initialized. How can I assist?", sender: "bot" },
-  ]);
+export interface ChatPanelProps {
+  initialMessages?: Message[];
+  onSendMessage?: (text: string) => Promise<string>;
+}
+
+const mockMessages: Message[] = [
+  {
+    id: "1",
+    text: "System initialized. Secure channel established.",
+    sender: "system",
+    timestamp: "10:00:00",
+  },
+  {
+    id: "2",
+    text: "How can I assist you today?",
+    sender: "bot",
+    timestamp: "10:00:05",
+  },
+];
+
+export const ChatPanel: React.FC<ChatPanelProps> = ({
+  initialMessages = mockMessages,
+  onSendMessage,
+}) => {
+  const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [input, setInput] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement>(null);
 
-  const sendMessage = () => {
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  const handleSend = async () => {
     if (!input.trim()) return;
 
-    const newMsg = { id: Date.now(), text: input, sender: "user" };
-    setMessages([...messages, newMsg]);
-    setInput("");
+    const userMsg: Message = {
+      id: Date.now().toString(),
+      text: input,
+      sender: "user",
+      timestamp: new Date().toLocaleTimeString(),
+    };
 
-    setTimeout(() => {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: Date.now() + 1,
-          text: "Processing request...",
+    setMessages((prev) => [...prev, userMsg]);
+    setInput("");
+    setIsTyping(true);
+
+    try {
+      if (onSendMessage) {
+        const response = await onSendMessage(userMsg.text);
+        const botMsg: Message = {
+          id: (Date.now() + 1).toString(),
+          text: response,
           sender: "bot",
-        },
-      ]);
-    }, 1000);
+          timestamp: new Date().toLocaleTimeString(),
+        };
+        setMessages((prev) => [...prev, botMsg]);
+      } else {
+        setTimeout(() => {
+          const botMsg: Message = {
+            id: (Date.now() + 1).toString(),
+            text: `Command received: "${userMsg.text}". Processing...`,
+            sender: "bot",
+            timestamp: new Date().toLocaleTimeString(),
+          };
+          setMessages((prev) => [...prev, botMsg]);
+          setIsTyping(false);
+        }, 1000);
+      }
+    } catch (error) {
+      const errorMsg: Message = {
+        id: (Date.now() + 1).toString(),
+        text: "Error processing command.",
+        sender: "system",
+        timestamp: new Date().toLocaleTimeString(),
+      };
+      setMessages((prev) => [...prev, errorMsg]);
+      setIsTyping(false);
+    }
   };
 
   return (
-    <div style={styles.container}>
-      <div style={styles.header}>
-        <span style={styles.label}>[SYSTEM CHAT]</span>
-        <div style={styles.label}>ONLINE</div>
+    <div
+      style={{
+        background: "#0a0a0a",
+        border: "1px solid #1a1a1a",
+        borderRadius: 0,
+        padding: "20px",
+        fontFamily: "-apple-system, BlinkMacSystemFont, sans-serif",
+        height: "500px",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: "15px",
+          borderBottom: "1px solid #1a1a1a",
+          paddingBottom: "15px",
+        }}
+      >
+        <h3
+          style={{
+            margin: 0,
+            color: "#00ff9d",
+            fontSize: "16px",
+            textTransform: "uppercase",
+            letterSpacing: "1px",
+          }}
+        >
+          [SECURE CHAT]
+        </h3>
+        <div
+          style={{
+            color: isTyping ? "#00ff9d" : "#666",
+            fontSize: "12px",
+            textTransform: "uppercase",
+            animation: isTyping ? "pulse 1s infinite" : "none",
+          }}
+        >
+          {isTyping ? "TYPING..." : "ONLINE"}
+        </div>
       </div>
 
-      <div style={styles.chatArea}>
+      <div
+        style={{
+          flex: 1,
+          overflowY: "auto",
+          marginBottom: "15px",
+          paddingRight: "5px",
+          display: "flex",
+          flexDirection: "column",
+          gap: "10px",
+        }}
+      >
         {messages.map((msg) => (
           <div
             key={msg.id}
             style={{
-              ...styles.message,
-              ...(msg.sender === "user"
-                ? styles.userMessage
-                : styles.botMessage),
+              alignSelf:
+                msg.sender === "user"
+                  ? "flex-end"
+                  : msg.sender === "system"
+                    ? "center"
+                    : "flex-start",
+              maxWidth: msg.sender === "system" ? "100%" : "80%",
+              width: msg.sender === "system" ? "100%" : "auto",
+              textAlign: msg.sender === "system" ? "center" : "left",
             }}
           >
-            {msg.text}
+            {msg.sender !== "system" && (
+              <div
+                style={{
+                  fontSize: "10px",
+                  color: "#666",
+                  marginBottom: "2px",
+                  textAlign: msg.sender === "user" ? "right" : "left",
+                  textTransform: "uppercase",
+                }}
+              >
+                [{msg.sender}] {msg.timestamp}
+              </div>
+            )}
+            <div
+              style={{
+                background:
+                  msg.sender === "user"
+                    ? "rgba(0, 255, 157, 0.1)"
+                    : msg.sender === "system"
+                      ? "transparent"
+                      : "#1a1a1a",
+                border:
+                  msg.sender === "user"
+                    ? "1px solid #00ff9d"
+                    : msg.sender === "system"
+                      ? "none"
+                      : "1px solid #333",
+                color:
+                  msg.sender === "user"
+                    ? "#fff"
+                    : msg.sender === "system"
+                      ? "#666"
+                      : "#e0e0e0",
+                padding: msg.sender === "system" ? "5px" : "10px 15px",
+                fontSize: msg.sender === "system" ? "11px" : "13px",
+                lineHeight: "1.5",
+              }}
+            >
+              {msg.text}
+            </div>
           </div>
         ))}
+        <div ref={chatEndRef} />
       </div>
 
-      <div style={styles.inputArea}>
+      <div style={{ display: "flex", gap: "10px" }}>
         <input
-          style={styles.input}
+          type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          onKeyPress={(e) => e.key === "Enter" && sendMessage()}
-          placeholder="TYPE COMMAND..."
+          onKeyDown={(e) => e.key === "Enter" && handleSend()}
+          placeholder="ENTER MESSAGE..."
+          style={{
+            flex: 1,
+            padding: "12px",
+            background: "#0f0f0f",
+            border: "1px solid #1a1a1a",
+            color: "#fff",
+            fontSize: "13px",
+            outline: "none",
+            borderRadius: 0,
+          }}
         />
-        <button style={styles.button} onClick={sendMessage}>
-          SEND
+        <button
+          onClick={handleSend}
+          disabled={!input.trim()}
+          style={{
+            padding: "0 20px",
+            background: input.trim() ? "#00ff9d" : "#1a1a1a",
+            border: "1px solid",
+            borderColor: input.trim() ? "#00ff9d" : "#333",
+            color: input.trim() ? "#050505" : "#666",
+            cursor: input.trim() ? "pointer" : "not-allowed",
+            fontSize: "12px",
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            borderRadius: 0,
+          }}
+        >
+          [SEND]
         </button>
       </div>
     </div>

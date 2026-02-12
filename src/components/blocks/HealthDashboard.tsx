@@ -1,168 +1,327 @@
 import React, { useState, useEffect } from "react";
 
-const styles = {
-  container: {
-    backgroundColor: "#0a0a0a",
-    color: "#ffffff",
-    padding: "16px",
-    borderRadius: 0,
-    border: "1px solid #333",
-    fontFamily: "monospace",
-  },
-  header: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: "16px",
-    borderBottom: "1px solid #333",
-    paddingBottom: "8px",
-  },
-  label: {
-    color: "#00ff9d",
-    textTransform: "uppercase" as const,
-    fontSize: "0.75rem",
-    fontWeight: "bold",
-    letterSpacing: "1px",
-  },
-  grid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(3, 1fr)",
-    gap: "16px",
-    marginBottom: "16px",
-  },
-  card: {
-    backgroundColor: "#1a1a1a",
-    border: "1px solid #333",
-    padding: "12px",
-    display: "flex",
-    flexDirection: "column" as const,
-    alignItems: "center",
-  },
-  value: {
-    fontSize: "1.5rem",
-    fontWeight: "bold",
-    color: "#00ff9d",
-    marginBottom: "4px",
-  },
-  metric: {
-    fontSize: "0.7rem",
-    color: "#888",
-    textTransform: "uppercase" as const,
-  },
-  logArea: {
-    backgroundColor: "#000000",
-    border: "1px solid #333",
-    height: "150px",
-    padding: "8px",
-    overflowY: "auto" as const,
-    fontSize: "0.75rem",
-    color: "#aaa",
-    fontFamily: "monospace",
-  },
-  logEntry: {
-    marginBottom: "4px",
-    borderBottom: "1px solid #111",
-    paddingBottom: "2px",
-  },
-  statusOk: { color: "#00ff9d" },
-  statusWarn: { color: "#ffcc00" },
-  statusErr: { color: "#ff0055" },
+export interface SystemMetrics {
+  cpu: number;
+  memory: number;
+  uptime: string;
+  requests: number;
+  errors: number;
+  latency: number;
+  cpuHistory: number[];
+  memoryHistory: number[];
+}
+
+export interface HealthDashboardProps {
+  metrics?: SystemMetrics;
+}
+
+const mockMetrics: SystemMetrics = {
+  cpu: 12,
+  memory: 42,
+  uptime: "14d 2h 15m",
+  requests: 1250,
+  errors: 0.01,
+  latency: 45,
+  cpuHistory: [10, 15, 12, 20, 25, 18, 15, 12, 10, 14, 16, 12, 10, 8, 12],
+  memoryHistory: [40, 41, 42, 42, 43, 42, 41, 40, 40, 41, 42, 42, 41, 40, 42],
 };
 
-export const HealthDashboard: React.FC = () => {
-  const [metrics, setMetrics] = useState({
-    cpu: "12%",
-    memory: "4.2GB",
-    uptime: "14d 2h",
-    requests: "1.2k/s",
-    errors: "0.01%",
-    latency: "45ms",
-  });
-
-  const [logs] = useState([
-    { time: "10:42:01", level: "INFO", msg: "System health check passed" },
-    {
-      time: "10:41:55",
-      level: "WARN",
-      msg: "High memory usage detected on worker-04",
-    },
-    { time: "10:41:30", level: "INFO", msg: "Backup completed successfully" },
-  ]);
+export const HealthDashboard: React.FC<HealthDashboardProps> = ({
+  metrics: initialMetrics = mockMetrics,
+}) => {
+  const [metrics, setMetrics] = useState<SystemMetrics>(initialMetrics);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setMetrics((prev) => ({
-        ...prev,
-        cpu: Math.floor(Math.random() * 30) + "%",
-        latency: Math.floor(Math.random() * 50 + 20) + "ms",
-      }));
+      setMetrics((prev) => {
+        const newCpu = Math.floor(Math.random() * 30) + 5;
+        const newMemory = Math.floor(Math.random() * 10) + 40;
+        return {
+          ...prev,
+          cpu: newCpu,
+          memory: newMemory,
+          latency: Math.floor(Math.random() * 50 + 20),
+          cpuHistory: [...prev.cpuHistory.slice(1), newCpu],
+          memoryHistory: [...prev.memoryHistory.slice(1), newMemory],
+        };
+      });
     }, 2000);
     return () => clearInterval(interval);
   }, []);
 
+  const renderChart = (data: number[], color: string, maxVal: number = 100) => {
+    const width = 100;
+    const height = 40;
+    const points = data
+      .map(
+        (val, i) =>
+          `${(i / (data.length - 1)) * width},${
+            height - (val / maxVal) * height
+          }`,
+      )
+      .join(" ");
+
+    return (
+      <svg
+        viewBox={`0 0 ${width} ${height}`}
+        style={{ width: "100%", height: "100%", overflow: "visible" }}
+        preserveAspectRatio="none"
+      >
+        <path
+          d={`M0,${height} ${points} L${width},${height} Z`}
+          fill={color}
+          fillOpacity="0.2"
+        />
+        <polyline
+          points={points}
+          fill="none"
+          stroke={color}
+          strokeWidth="1.5"
+          vectorEffect="non-scaling-stroke"
+        />
+      </svg>
+    );
+  };
+
   return (
-    <div style={styles.container}>
-      <div style={styles.header}>
-        <span style={styles.label}>[SYSTEM HEALTH]</span>
-        <div style={styles.label}>OPTIMAL</div>
+    <div
+      style={{
+        background: "#0a0a0a",
+        border: "1px solid #1a1a1a",
+        borderRadius: 0,
+        padding: "20px",
+        fontFamily: "-apple-system, BlinkMacSystemFont, sans-serif",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: "20px",
+          borderBottom: "1px solid #1a1a1a",
+          paddingBottom: "15px",
+        }}
+      >
+        <h3
+          style={{
+            margin: 0,
+            color: "#00ff9d",
+            fontSize: "16px",
+            textTransform: "uppercase",
+            letterSpacing: "1px",
+          }}
+        >
+          [SYSTEM HEALTH]
+        </h3>
+        <div
+          style={{
+            color: "#00ff9d",
+            fontSize: "12px",
+            textTransform: "uppercase",
+          }}
+        >
+          STATUS: OPTIMAL
+        </div>
       </div>
 
-      <div style={styles.grid}>
-        <div style={styles.card}>
-          <div style={styles.value}>{metrics.cpu}</div>
-          <div style={styles.metric}>CPU LOAD</div>
-        </div>
-        <div style={styles.card}>
-          <div style={styles.value}>{metrics.memory}</div>
-          <div style={styles.metric}>MEMORY</div>
-        </div>
-        <div style={styles.card}>
-          <div style={styles.value}>{metrics.uptime}</div>
-          <div style={styles.metric}>UPTIME</div>
-        </div>
-        <div style={styles.card}>
-          <div style={styles.value}>{metrics.requests}</div>
-          <div style={styles.metric}>THROUGHPUT</div>
-        </div>
-        <div style={styles.card}>
-          <div style={{ ...styles.value, color: "#ff0055" }}>
-            {metrics.errors}
-          </div>
-          <div style={styles.metric}>ERROR RATE</div>
-        </div>
-        <div style={styles.card}>
-          <div style={styles.value}>{metrics.latency}</div>
-          <div style={styles.metric}>LATENCY</div>
-        </div>
-      </div>
-
-      <div style={styles.header}>
-        <span style={styles.label}>[EVENT LOGS]</span>
-      </div>
-
-      <div style={styles.logArea}>
-        {logs.map((log, i) => (
-          <div key={i} style={styles.logEntry}>
-            <span style={{ color: "#555", marginRight: "8px" }}>
-              [{log.time}]
-            </span>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(3, 1fr)",
+          gap: "15px",
+          marginBottom: "20px",
+        }}
+      >
+        <div
+          style={{
+            background: "#0f0f0f",
+            border: "1px solid #1a1a1a",
+            padding: "15px",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              marginBottom: "10px",
+            }}
+          >
             <span
               style={{
-                color:
-                  log.level === "INFO"
-                    ? "#00ff9d"
-                    : log.level === "WARN"
-                      ? "#ffcc00"
-                      : "#ff0055",
-                fontWeight: "bold",
-                marginRight: "8px",
+                fontSize: "10px",
+                color: "#666",
+                textTransform: "uppercase",
               }}
             >
-              {log.level}
+              CPU LOAD
             </span>
-            {log.msg}
+            <span
+              style={{ fontSize: "14px", fontWeight: "bold", color: "#fff" }}
+            >
+              {metrics.cpu}%
+            </span>
           </div>
-        ))}
+          <div style={{ height: "40px" }}>
+            {renderChart(metrics.cpuHistory, "#00ff9d")}
+          </div>
+        </div>
+
+        <div
+          style={{
+            background: "#0f0f0f",
+            border: "1px solid #1a1a1a",
+            padding: "15px",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              marginBottom: "10px",
+            }}
+          >
+            <span
+              style={{
+                fontSize: "10px",
+                color: "#666",
+                textTransform: "uppercase",
+              }}
+            >
+              MEMORY
+            </span>
+            <span
+              style={{ fontSize: "14px", fontWeight: "bold", color: "#fff" }}
+            >
+              {metrics.memory}%
+            </span>
+          </div>
+          <div style={{ height: "40px" }}>
+            {renderChart(metrics.memoryHistory, "#0088ff")}
+          </div>
+        </div>
+
+        <div
+          style={{
+            background: "#0f0f0f",
+            border: "1px solid #1a1a1a",
+            padding: "15px",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+          }}
+        >
+          <div
+            style={{
+              fontSize: "10px",
+              color: "#666",
+              textTransform: "uppercase",
+              marginBottom: "5px",
+            }}
+          >
+            UPTIME
+          </div>
+          <div
+            style={{ fontSize: "18px", fontWeight: "bold", color: "#00ff9d" }}
+          >
+            {metrics.uptime}
+          </div>
+        </div>
+      </div>
+
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(3, 1fr)",
+          gap: "15px",
+        }}
+      >
+        <div
+          style={{
+            background: "#0f0f0f",
+            border: "1px solid #1a1a1a",
+            padding: "15px",
+            textAlign: "center",
+          }}
+        >
+          <div
+            style={{
+              fontSize: "20px",
+              fontWeight: "bold",
+              color: "#fff",
+              marginBottom: "5px",
+            }}
+          >
+            {metrics.requests}/s
+          </div>
+          <div
+            style={{
+              fontSize: "10px",
+              color: "#666",
+              textTransform: "uppercase",
+            }}
+          >
+            REQUESTS
+          </div>
+        </div>
+
+        <div
+          style={{
+            background: "#0f0f0f",
+            border: "1px solid #1a1a1a",
+            padding: "15px",
+            textAlign: "center",
+          }}
+        >
+          <div
+            style={{
+              fontSize: "20px",
+              fontWeight: "bold",
+              color: "#ff0055",
+              marginBottom: "5px",
+            }}
+          >
+            {metrics.errors}%
+          </div>
+          <div
+            style={{
+              fontSize: "10px",
+              color: "#666",
+              textTransform: "uppercase",
+            }}
+          >
+            ERROR RATE
+          </div>
+        </div>
+
+        <div
+          style={{
+            background: "#0f0f0f",
+            border: "1px solid #1a1a1a",
+            padding: "15px",
+            textAlign: "center",
+          }}
+        >
+          <div
+            style={{
+              fontSize: "20px",
+              fontWeight: "bold",
+              color: "#fff",
+              marginBottom: "5px",
+            }}
+          >
+            {metrics.latency}ms
+          </div>
+          <div
+            style={{
+              fontSize: "10px",
+              color: "#666",
+              textTransform: "uppercase",
+            }}
+          >
+            LATENCY
+          </div>
+        </div>
       </div>
     </div>
   );

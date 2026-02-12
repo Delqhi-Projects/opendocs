@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   supabase-db:
@@ -133,8 +133,8 @@ services:
       - "${APP_PORT:-3000}:3000"
     environment:
       NODE_ENV: development
-      NEXT_PUBLIC_SUPABASE_URL: http://localhost:8000
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY:-demo-key}
+      VITE_SUPABASE_URL: http://localhost:8000
+      VITE_SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY:-demo-key}
       SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_KEY:-demo-key}
       N8N_API_URL: http://n8n:5678
       N8N_API_KEY: ${N8N_API_KEY:-demo-key}
