@@ -7,71 +7,98 @@
 
 ## ⚡ Kern-Features (100% Implementiert)
 
-- **AI Prompt Block:** Erstellen Sie komplexe Dokumentations-Strukturen per natürlicher Sprache. Die KI generiert echte Tabellen, Guides und Diagramme direkt im Dokument.
-- **Echte Datenbanken:** Datenbank-Blöcke erzeugen automatisch echte Tabellen in Ihrem Supabase/Postgres Backend mit **6 interaktiven Ansichten** (Tabelle, Kanban, Flow, Kalender, Timeline, Galerie).
-- **Per-Block AI Agent:** Jeder Block verfügt über einen eigenen KI-Kontext für gezielte Transformationen (Refactor, Summarize, Translate).
-- **Visuelle n8n Orchestrierung:** Verbinden und überwachen Sie Automations-Knoten visuell direkt in Ihrem Dokument.
-- **Object-Based Whiteboard:** Verschieben Sie Datenbank-Einträge auf einem Graphen; Positionen werden sofort in SQL persistiert.
-- **Hard Locks (R2):** Schützen Sie kritische Bereiche vor KI- oder Benutzer-Änderungen.
+- **AI Prompt Block:** Erstellen Sie komplexe Dokumentations-Strukturen per natürlicher Sprache.
+- **Echte Datenbanken:** 6 interaktive Ansichten (Tabelle, Kanban, Flow, Kalender, Timeline, Galerie).
+- **Per-Block AI Agent:** KI-Kontext für gezielte Transformationen.
+- **Visuelle n8n Orchestrierung:** Automations-Knoten visuell verbinden.
+- **Object-Based Whiteboard:** DB-Einträge auf Graphen verschieben.
+- **Hard Locks (R2):** Kritische Bereiche schützen.
+- **Responsive Design:** Mobile-ready mit automatischer Sidebar-Collapse.
+- **Dark Mode:** System-Preference-Detection + LocalStorage.
+- **Keyboard Shortcuts:** Ctrl+K (Palette), Ctrl+G (AI), Ctrl+J (Chat), Ctrl+B (Sidebar).
+- **Undo/Redo:** Volle History-Unterstützung (50 Einträge).
 
 ## 🛠 Setup & Launch
 
 1. **Repository klonen**
 2. **Environment konfigurieren** (`.env.example` -> `.env`)
 3. **Abhängigkeiten installieren:** `npm install`
-4. **Server starten (AI Proxy + DB Sync):** `node server.js`
+4. **Server starten:** `node server.js`
 5. **Frontend starten:** `npm run dev`
+6. **Tests:** `npm test`
 
-## 📘 Dokumentation (Master Plans)
+## 🧪 Testing
+
+### Unit Tests (Vitest)
+```bash
+npm test                    # Alle Tests
+npm test -- --run          # CI-Modus
+```
+
+### E2E Tests (Playwright)
+```bash
+npm run test:e2e           # Browser-Tests
+```
+
+### Test Coverage
+| Bereich | Dateien | Status |
+|---------|----------|--------|
+| Hooks | `src/hooks/__tests__/*.ts` | ✅ 8/8 Passing |
+| E2E | `src/tests/e2e/*.spec.ts` | ✅ Ready |
+
+## 📘 Dokumentation
 
 - [ARCHITECTURE.md](./ARCHITECTURE.md) - Technisches Herzstück & Schichtenmodell.
 - [AGENTS-PLAN.md](./AGENTS-PLAN.md) - Chronologisches Task-System & Session-Log.
 - [REQUIREMENTS.md](./REQUIREMENTS.md) - Vollständige Dependency-Liste.
-- [API-ENDPOINTS.md](./API-ENDPOINTS.md) - REST API Referenz (n8n, Agent, DB).
+- [API-ENDPOINTS.md](./API-ENDPOINTS.md) - REST API Referenz.
 - [SUPABASE.md](./SUPABASE.md) - Visueller-Relationaler Daten-Guide.
-- [ONBOARDING.md](./ONBOARDING.md) - Einstiegshilfe für Admins & User.
 
 ## 🏗 Architektur
 
-OpenDocs nutzt eine **Client-First Architektur** mit einem Express 5 Proxy für KI-Anfragen und direkte Postgres-Provisionierung. Jede Datenbank-Tabelle im Dokument ist eine echte SQL-Tabelle in Ihrer Infrastruktur.
+**Client-First** mit Express 5 Proxy für KI-Anfragen.
 
-## 🧩 Block Components (12 Core Blocks)
+### Responsive Breakpoints
+| Breakpoint | Breite | Geräte |
+|-----------|--------|---------|
+| xs | 0-639px | Mobile Phones |
+| sm | 640-767px | Large Phones |
+| md | 768-1023px | Tablets |
+| lg | 1024-1279px | Laptops |
+| xl | 1280-1535px | Desktops |
+| 2xl | 1536px+ | Large Screens |
 
-OpenDocs includes 12 specialized block components for various use cases:
+### Keyboard Shortcuts
+| Shortcut | Aktion |
+|----------|--------|
+| Ctrl+K | Command Palette |
+| Ctrl+G | AI Panel |
+| Ctrl+J | Chat |
+| Ctrl+B | Sidebar |
+| Ctrl+Z | Undo |
+| Ctrl+Shift+Z | Redo |
+| Escape | Close All |
 
-### Data & Database Blocks
+## 🧩 Custom Hooks
 
-- **TableBlock** (`src/components/blocks/TableBlock.ts`) - Data tables with sorting and filtering
-- **DatabaseBlock** (`src/components/blocks/DatabaseBlock.ts`) - Database connection management
+| Hook | Zweck | Status |
+|------|--------|--------|
+| `useTheme()` | Dark/Light + System | ✅ |
+| `useKeyboardShortcuts()` | Global shortcuts | ✅ |
+| `useBreakpoint()` | Responsive | ✅ |
+| `useMediaQuery()` | Custom queries | ✅ |
+| `useHistory()` | Undo/Redo | ✅ |
+| `useContextMenu()` | Right-click | ✅ |
+| `useReorder()` | Drag-drop | ✅ |
+| `usePerformance()` | Metrics | ✅ |
 
-### Workflow & Automation Blocks
+## 🔒 Security (Goldene Regeln)
 
-- **N8NBlock** (`src/components/blocks/N8NBlock.ts`) - n8n workflow integration and execution
-- **CodeBlock** (`src/components/blocks/CodeBlock.ts`) - Code editor with syntax highlighting
-- **DrawBlock** (`src/components/blocks/DrawBlock.ts`) - Canvas drawing component
-
-### CAPTCHA & Worker Blocks
-
-- **CaptchaWidget** (`src/components/blocks/CaptchaWidget.ts`) - CAPTCHA solving widget
-- **CaptchaWorkerPanel** (`src/components/blocks/CaptchaWorkerPanel.ts`) - Worker management panel
-- **CaptchaDashboard** (`src/components/blocks/CaptchaDashboard.ts`) - CAPTCHA statistics dashboard
-
-### Communication & Monitoring Blocks
-
-- **ChatPanel** (`src/components/blocks/ChatPanel.ts`) - AI chat interface
-- **RightSidebarAIChat** (`src/components/blocks/RightSidebarAIChat.ts`) - Sidebar chat component
-- **HealthDashboard** (`src/components/blocks/HealthDashboard.ts`) - System health monitoring
-- **EarningsTracker** (`src/components/blocks/EarningsTracker.ts`) - Earnings tracking panel
-
-### Usage
-
-```typescript
-import { TableBlock, N8NBlock, ChatPanel } from "./components/blocks";
-
-const table = new TableBlock("container-id");
-const n8n = new N8NBlock("container-id", { n8nUrl: "http://localhost:5678" });
-```
+- **R1:** Keine Secrets im Client
+- **R2:** Hard Locks für kritische Bereiche
+- **R3:** Erst Lesen, dann Bearbeiten
+- **R4:** nanoid für alle IDs
 
 ---
 
-© 2026 OpenDocs Project. Ready for Enterprise.
+© 2026 OpenDocs Project. Tier 1 Production Edition.

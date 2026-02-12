@@ -326,7 +326,96 @@ useDocsStore
 
 ---
 
-## 14. Security Considerations
+## 14. Custom Hooks Architecture
+
+### 14.1 Hook Registry
+
+| Hook | Purpose | Implementation | Status |
+|------|---------|----------------|--------|
+| **useTheme** | Dark/light theme management | System preference detection + localStorage | ✅ Production |
+| **useKeyboardShortcuts** | Global keyboard shortcuts | Ctrl+K, Ctrl+G, Ctrl+J + custom | ✅ Production |
+| **useBreakpoint** | Responsive breakpoints | Window resize listener | ✅ Production |
+| **useMediaQuery** | Media query matching | matchMedia API | ✅ Production |
+| **useHistory** | Undo/redo state | History stack (50 entries) | ✅ Production |
+| **useContextMenu** | Right-click menus | DOM event handlers | ✅ Production |
+| **useReorder** | Drag-drop reordering | dnd-kit integration | ✅ Production |
+| **usePerformance** | Performance monitoring | Performance API | ✅ Production |
+
+### 14.2 Hook Usage
+
+```typescript
+// Theme with system detection
+const { theme, setTheme, resolvedTheme } = useTheme()
+
+// Keyboard shortcuts
+useKeyboardShortcuts([
+  { key: 'k', ctrl: true, action: () => openPalette() },
+  { key: 'g', ctrl: true, action: () => openAI() }
+])
+
+// Responsive breakpoints
+const breakpoint = useBreakpoint() // xs | sm | md | lg | xl | 2xl
+
+// History for undo/redo
+const { state, undo, redo, canUndo, canRedo } = useHistory(initialState)
+```
+
+### 14.3 Hook Patterns
+
+- **All hooks are SSR-safe** with `typeof window` checks
+- **Cleanup via useEffect** return functions
+- **No memory leaks** with proper unsubscription
+
+---
+
+## 15. Testing Strategy
+
+### 15.1 Unit Tests (Vitest)
+
+| Test File | Coverage | Status |
+|----------|----------|--------|
+| `src/hooks/__tests__/useTheme.test.ts` | Theme switching, localStorage | ✅ Passing |
+| `src/hooks/__tests__/useHistory.test.ts` | Undo/redo, state tracking | ✅ Passing |
+| `src/hooks/__tests__/useResponsive.test.ts` | Breakpoint detection | ✅ Passing |
+
+### 15.2 E2E Tests (Playwright)
+
+| Test File | Coverage | Status |
+|----------|----------|--------|
+| `src/tests/e2e/automation.spec.ts` | Automation builder, shortcuts | ✅ Ready |
+
+### 15.3 Test Commands
+
+```bash
+npm test              # Run all tests
+npm test -- --run    # Run once (CI)
+npm run test:e2e     # E2E tests only
+```
+
+---
+
+## 16. Responsive Design
+
+### 16.1 Breakpoints
+
+| Breakpoint | Width | Usage |
+|-----------|-------|-------|
+| **xs** | 0-639px | Mobile phones |
+| **sm** | 640-767px | Large phones |
+| **md** | 768-1023px | Tablets |
+| **lg** | 1024-1279px | Laptops |
+| **xl** | 1280-1535px | Desktops |
+| **2xl** | 1536px+ | Large screens |
+
+### 16.2 Mobile Features
+
+- **Collapsible sidebar** on xs/sm breakpoints
+- **Touch-friendly** tap targets (44px minimum)
+- **Theme selector** in header for quick switching
+
+---
+
+## 17. Security Considerations
 
 ### 14.1 Client-Side
 - No secrets in React code (R1)
