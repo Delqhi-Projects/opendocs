@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
   ReactFlow,
   Background,
@@ -16,7 +16,6 @@ import {
   Panel,
   ReactFlowProvider,
   NodeTypes,
-  EdgeTypes,
   ConnectionMode
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
@@ -25,7 +24,7 @@ import { TriggerNode } from './nodes/TriggerNode'
 import { LogicNode } from './nodes/LogicNode'
 import { ActionNode } from './nodes/ActionNode'
 import { PropertiesPanel } from './PropertiesPanel'
-import type { Automation, AutomationNode, AutomationEdge, AutomationNodeType } from '@/types/automation'
+import type { Automation, AutomationNode } from '@/types/automation'
 
 const nodeTypes: NodeTypes = {
   trigger: TriggerNode,
@@ -43,6 +42,29 @@ function CanvasContent({ automation, onChange, onExecute }: AutomationCanvasProp
   const [nodes, setNodes, onNodesChange] = useNodesState([])
   const [edges, setEdges, onEdgesChange] = useEdgesState([])
   const [selectedNode, setSelectedNode] = useState<AutomationNode | null>(null)
+
+  // Load automation data into state on mount or when automation changes
+  useEffect(() => {
+    if (automation && automation.nodes.length > 0) {
+      const loadedNodes = automation.nodes.map((n) => ({
+        id: n.id,
+        type: n.type,
+        position: n.position,
+        data: { label: n.data.label, config: n.data.config, subtype: n.subtype }
+      }))
+      const loadedEdges = automation.edges.map((e) => ({
+        id: e.id,
+        source: e.source,
+        target: e.target,
+        sourceHandle: e.sourceHandle,
+        targetHandle: e.targetHandle,
+        label: e.label,
+        animated: true
+      }))
+      setNodes(loadedNodes)
+      setEdges(loadedEdges)
+    }
+  }, [automation, setNodes, setEdges])
 
   const handleConnect = useCallback((params: Connection) => {
     setEdges((eds) => addEdge({ ...params, animated: true }, eds))
