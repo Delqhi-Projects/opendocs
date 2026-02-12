@@ -1,5 +1,16 @@
+import '@testing-library/jest-dom';
 import { cleanup } from '@testing-library/react';
 import { beforeEach, afterEach, vi } from 'vitest';
+
+Object.defineProperty(window, 'localStorage', {
+  writable: true,
+  value: {
+    getItem: vi.fn().mockReturnValue(null),
+    setItem: vi.fn(),
+    removeItem: vi.fn(),
+    clear: vi.fn(),
+  },
+});
 
 Object.defineProperty(window, 'matchMedia', {
   writable: true,

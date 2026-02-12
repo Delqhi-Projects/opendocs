@@ -13,10 +13,9 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { nanoid } from "nanoid";
-import type { Automation, AutomationNode, AutomationEdge as AutomationEdgeType } from "@/types/automation";
+import type { Automation } from "@/types/automation";
 import { AutomationNodePanel } from "./AutomationNodePanel";
 import { AutomationPropertiesPanel } from "./AutomationPropertiesPanel";
-import { AutomationToolbar } from "./AutomationToolbar";
 import { useToast } from "@/store/useToastStore";
 import { Play, Save, Settings2 } from "lucide-react";
 

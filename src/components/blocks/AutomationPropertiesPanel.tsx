@@ -15,12 +15,13 @@ export function AutomationPropertiesPanel({ node, onUpdate, onClose }: Automatio
   
   if (!definition) return null;
   
-  const [typeKey, def] = definition;
+  const [, def] = definition;
   
-  const handleConfigChange = (key: string, value: any) => {
+  const handleConfigChange = (key: string, value: unknown) => {
+    const currentConfig = (node.data.config as Record<string, unknown>) || {};
     onUpdate({
       ...node.data,
-      config: { ...node.data.config, [key]: value },
+      config: { ...currentConfig, [key]: value },
     });
   };
   
@@ -50,7 +51,7 @@ export function AutomationPropertiesPanel({ node, onUpdate, onClose }: Automatio
               </label>
               {field.type === "select" ? (
                 <select
-                  value={node.data.config?.[field.key] || ""}
+                  value={(node.data.config as Record<string, unknown>)?.[field.key] as string || ""}
                   onChange={(e) => handleConfigChange(field.key, e.target.value)}
                   className="w-full px-2 py-1.5 text-xs rounded border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900"
                 >
@@ -61,7 +62,7 @@ export function AutomationPropertiesPanel({ node, onUpdate, onClose }: Automatio
                 </select>
               ) : field.type === "json" ? (
                 <textarea
-                  value={JSON.stringify(node.data.config?.[field.key] || {}, null, 2)}
+                  value={JSON.stringify((node.data.config as Record<string, unknown>)?.[field.key] || {}, null, 2)}
                   onChange={(e) => {
                     try {
                       const parsed = JSON.parse(e.target.value);
@@ -75,7 +76,7 @@ export function AutomationPropertiesPanel({ node, onUpdate, onClose }: Automatio
               ) : (
                 <input
                   type={field.type === "number" ? "number" : "text"}
-                  value={node.data.config?.[field.key] || ""}
+                  value={(node.data.config as Record<string, unknown>)?.[field.key] as string || ""}
                   onChange={(e) => handleConfigChange(field.key, e.target.value)}
                   placeholder={field.placeholder}
                   className="w-full px-2 py-1.5 text-xs rounded border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900"

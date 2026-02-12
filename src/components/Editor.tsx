@@ -15,7 +15,6 @@ import {
   DragEndEvent,
 } from "@dnd-kit/core";
 import {
-  arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
@@ -74,7 +73,7 @@ export function Editor() {
     if (!over || active.id === over.id) return;
     const oldIndex = blocks.findIndex((b) => b.id === active.id);
     const newIndex = blocks.findIndex((b) => b.id === over.id);
-    if (oldIndex === -1 || newIndex === -1) return;
+    if (oldIndex === -1 || newIndex === -1 || !page) return;
     actions.reorderBlocks(page.id, oldIndex, newIndex);
   }
 

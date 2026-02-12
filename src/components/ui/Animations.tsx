@@ -58,7 +58,7 @@ export function Scale({ children, scale = 0.95 }: ScaleProps) {
   )
 }
 
-export function Animate({ children, animation = 'fade' }: { children: ReactNode; animation?: 'fade' | 'slide' | 'scale' }) {
+export function Animate({ children }: { children: ReactNode }) {
   return (
     <AnimatePresence mode="wait">
       {children}

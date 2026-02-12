@@ -1,5 +1,4 @@
 import { Globe, Clock, Database, MousePointerClick, GitBranch, Split, Timer, Mail, Send, Zap, MessageCircle, X } from "lucide-react";
-import type { AutomationNodeType } from "@/types/automation";
 import { AUTOMATION_NODE_DEFINITIONS } from "@/types/automation";
 
 interface AutomationNodePanelProps {

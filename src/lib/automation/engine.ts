@@ -1,4 +1,4 @@
-import type { Automation, AutomationNode, AutomationNodeType } from '@/types/automation'
+import type { Automation, AutomationNode } from '@/types/automation'
 
 export type ExecutionStatus = 'idle' | 'running' | 'completed' | 'failed' | 'cancelled'
 
@@ -152,7 +152,6 @@ export class AutomationEngine {
     if (!this.context) return input
 
     const nodeType = node.subtype
-    const config = node.data.config
 
     this.emit({
       type: 'node_start',

@@ -67,10 +67,13 @@ jobs:
         with:
           name: dist
           path: dist/
-      - name: Deploy to staging
+      - name: Log in to GitHub Container Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Build and push Docker image (staging)
         run: |
-          echo "TODO: Add staging deployment commands"
-          # Examples: docker push, SSH deploy, cloud platform CLI, etc.
+          docker build -t ghcr.io/${{ github.repository }}/opendocs:staging .
+          docker push ghcr.io/${{ github.repository }}/opendocs:staging
 
   deploy-production:
     runs-on: ubuntu-latest
@@ -84,7 +87,12 @@ jobs:
         with:
           name: dist
           path: dist/
-      - name: Deploy to production
+      - name: Log in to GitHub Container Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Build and push Docker image (production)
         run: |
-          echo "TODO: Add production deployment commands"
-          # Examples: docker push, SSH deploy, cloud platform CLI, etc.
+          docker build -t ghcr.io/${{ github.repository }}/opendocs:latest .
+          docker build -t ghcr.io/${{ github.repository }}/opendocs:${{ github.sha }} .
+          docker push ghcr.io/${{ github.repository }}/opendocs:latest
+          docker push ghcr.io/${{ github.repository }}/opendocs:${{ github.sha }}

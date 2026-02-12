@@ -24,7 +24,6 @@ export default defineConfig({
         '*.config.*'
       ]
     },
-    reporters: ['default', 'verbose'],
-    verbose: true
+    reporters: ['default']
   }
 });

@@ -11,7 +11,6 @@ export function ResponsiveLayout({ children }: { children: React.ReactNode }) {
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
 
   const isMobile = breakpoint === 'xs' || breakpoint === 'sm'
-  const isTablet = breakpoint === 'md'
 
   useKeyboardShortcuts([
     ...DEFAULT_SHORTCUTS,

@@ -1,6 +1,5 @@
 import type {
   OpenClawConfig,
-  OpenClawCredentials,
   OpenClawSendMessageRequest,
   OpenClawSendMessageResponse,
   OpenClawWebhookPayload,
@@ -109,14 +108,10 @@ export class OpenClawClient {
     })
   }
 
-  verifyWebhookSignature(payload: string, signature: string): boolean {
+  verifyWebhookSignature(_payload: string, _signature: string): boolean {
     if (!this.config.credentials.webhookSecret) {
       return false
     }
-
-    const encoder = new TextEncoder()
-    const key = encoder.encode(this.config.credentials.webhookSecret)
-    const data = encoder.encode(payload)
 
     return false
   }

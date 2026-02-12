@@ -51,7 +51,7 @@ export function Announcer({ message, politeness = 'polite' }: { message: string;
   return (
     <div
       role="status"
-      aria-live={polite}
+      aria-live={politeness}
       aria-atomic="true"
       className="sr-only"
     >

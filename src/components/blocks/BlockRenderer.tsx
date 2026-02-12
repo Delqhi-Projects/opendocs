@@ -8,7 +8,7 @@ import { N8nBlockView } from "@/components/blocks/N8nBlockView";
 import { AiPromptBlockView } from "@/components/blocks/AiPromptBlockView";
 import { AutomationBlockView } from "@/components/blocks/AutomationBlockView";
 import { AutoResizeTextarea } from "@/components/ui/AutoResizeTextarea";
-import { BotMessageSquare, Lock, Unlock, Trash2, ArrowUp, ArrowDown, Copy, GripVertical, Plus, Columns, Grid3X3 } from "lucide-react";
+import { BotMessageSquare, Lock, Unlock, Trash2, ArrowUp, ArrowDown, Copy, GripVertical, Plus, Columns } from "lucide-react";
 import { BlockChatModal } from "@/components/blocks/BlockChatModal";
 import { useDocsStore } from "@/store/useDocsStore";
 import { nanoid } from "nanoid";
@@ -61,7 +61,12 @@ export function BlockRenderer({
     ? "bg-amber-50/20 dark:bg-amber-950/10"
     : "";
 
-  const embed = useMemo(() => toEmbedUrl(block.url), [block.url]);
+  const embed = useMemo(() => {
+    if ("url" in block && typeof block.url === "string") {
+      return toEmbedUrl(block.url);
+    }
+    return null;
+  }, [block]);
 
   const sideToolbar = (
     <div

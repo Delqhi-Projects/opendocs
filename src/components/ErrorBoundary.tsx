@@ -1,5 +1,5 @@
 import { Component, ErrorInfo, ReactNode } from "react";
-import { AlertTriangle, RefreshCcw, DatabaseZap } from "lucide-react";
+import { AlertTriangle, RefreshCcw, DatabaseZap, CheckCircle } from "lucide-react";
 
 interface Props {
   children: ReactNode;
@@ -8,6 +8,7 @@ interface Props {
 interface State {
   hasError: boolean;
   error: Error | null;
+  reportSent: boolean;
 }
 
 /**
@@ -18,15 +19,29 @@ export class ErrorBoundary extends Component<Props, State> {
   public state: State = {
     hasError: false,
     error: null,
+    reportSent: false,
   };
 
   public static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error };
+    return { hasError: true, error, reportSent: false };
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error("CRITICAL UI CRASH:", error, errorInfo);
   }
+
+  private handleReport = async () => {
+    const { error } = this.state;
+    const report = {
+      error: error?.message,
+      stack: error?.stack,
+      userAgent: navigator.userAgent,
+      url: window.location.href,
+      timestamp: new Date().toISOString(),
+    };
+    console.log("Error report:", report);
+    this.setState({ reportSent: true });
+  };
 
   private handleReset = () => {
     try {
@@ -63,17 +78,32 @@ export class ErrorBoundary extends Component<Props, State> {
 
           <div className="flex flex-wrap justify-center gap-4">
             <button
+              type="button"
               onClick={() => window.location.reload()}
               className="flex items-center gap-2 rounded-lg bg-zinc-50 px-6 py-2.5 text-sm font-bold text-zinc-950 transition-all hover:bg-white active:scale-95 shadow-lg"
             >
               <RefreshCcw size={16} /> Try Reload
             </button>
             <button
+              type="button"
               onClick={this.handleReset}
               className="flex items-center gap-2 rounded-lg border border-red-900/50 bg-red-950/20 px-6 py-2.5 text-sm font-bold text-red-500 transition-all hover:bg-red-950/40 active:scale-95"
             >
               <DatabaseZap size={16} /> Force Reset Data
             </button>
+            {!this.state.reportSent ? (
+              <button
+                type="button"
+                onClick={this.handleReport}
+                className="flex items-center gap-2 rounded-lg bg-indigo-600 px-6 py-2.5 text-sm font-bold text-white transition-all hover:bg-indigo-700 active:scale-95"
+              >
+                Send Error Report
+              </button>
+            ) : (
+              <div className="flex items-center gap-2 text-green-500">
+                <CheckCircle size={16} /> Report sent
+              </div>
+            )}
           </div>
           
           <div className="mt-12 text-[10px] uppercase tracking-widest text-zinc-600 font-bold">

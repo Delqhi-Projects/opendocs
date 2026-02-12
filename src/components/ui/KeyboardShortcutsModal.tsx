@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useCallback } from 'react'
-import { DEFAULT_SHORTCUTS } from './useKeyboardShortcuts'
+import { DEFAULT_SHORTCUTS } from '@/hooks/useKeyboardShortcuts'
 
 interface Shortcut {
   key: string
@@ -10,7 +10,7 @@ interface Shortcut {
   alt?: boolean
   meta?: boolean
   action: () => void
-  description: string
+  description?: string
 }
 
 interface KeyboardShortcutsModalProps {
@@ -29,14 +29,14 @@ export function KeyboardShortcutsModal({ onClose }: KeyboardShortcutsModalProps)
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [handleKeyDown])
 
-  const groupedShortcuts = DEFAULT_SHORTCUTS.reduce((acc, shortcut) => {
+  const groupedShortcuts = DEFAULT_SHORTCUTS.reduce<Record<string, Shortcut[]>>((acc, shortcut) => {
     const key = shortcut.key.toLowerCase()
     if (!acc[key]) {
       acc[key] = []
     }
     acc[key].push(shortcut)
     return acc
-  }, {} as Record<string, Shortcut[]>)
+  }, {})
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
