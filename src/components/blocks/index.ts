@@ -25,3 +25,4 @@ export type { EarningsTrackerProps as EarningsOptions } from './EarningsTracker'
 export { AutomationBlock } from './automation/AutomationBlock';
 export { AutomationCanvas } from './automation/AutomationCanvas';
 export { AutomationProperties } from './automation/AutomationProperties';
+export { CaptchaSolverDemo } from './CaptchaSolverDemo';

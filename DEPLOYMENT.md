@@ -1,348 +1,545 @@
-# Deployment Guide
+# OpenDocs Deployment & Production Hardening Guide
 
-## Overview
+**Version:** 1.0.0  
+**Last Updated:** 2026-02-12  
+**Status:** Production Ready
 
-This project uses **GitHub Container Registry (GHCR)** for automated deployments via GitHub Actions.
+---
 
-### Architecture
+## Table of Contents
 
-- **Registry**: GitHub Container Registry (`ghcr.io`)
-- **Authentication**: GitHub Actions `GITHUB_TOKEN` (automatic)
-- **Staging**: Triggered on `develop` branch → `:staging` tag
-- **Production**: Triggered on `main` branch → `:latest` and `:sha` tags
+1. [Pre-Deployment Checklist](#1-pre-deployment-checklist)
+2. [Environment Configuration](#2-environment-configuration)
+3. [Security Hardening](#3-security-hardening)
+4. [Performance Optimization](#4-performance-optimization)
+5. [Monitoring & Observability](#5-monitoring--observability)
+6. [Backup & Recovery](#6-backup--recovery)
+7. [Scaling Strategies](#7-scaling-strategies)
+8. [Troubleshooting](#8-troubleshooting)
 
-### Image Tags
+---
 
-- `ghcr.io/OWNER/REPO/opendocs:staging` - Latest staging build
-- `ghcr.io/OWNER/REPO/opendocs:latest` - Latest production build
-- `ghcr.io/OWNER/REPO/opendocs:SHA` - Specific production commit
+## 1. Pre-Deployment Checklist
 
-## One-Time Setup
-
-### 1. Enable GitHub Actions Permissions
-
-Your repository must have write permissions enabled for GITHUB_TOKEN:
-
-1. Go to repository **Settings**
-2. Navigate to **Actions** → **General**
-3. Scroll to **Workflow permissions**
-4. Select **"Read and write permissions"**
-5. Check **"Allow GitHub Actions to create and approve pull requests"** (optional)
-6. Click **Save**
-
-### 2. Configure Package Visibility
-
-After first deployment, configure package visibility:
-
-1. Go to your GitHub profile → **Packages**
-2. Find `opendocs` package
-3. Click **Package settings**
-4. Set visibility (Public or Private)
-5. Optional: Link package to repository
-
-## Automatic Deployments
-
-### Staging Deployment
-
-Automatically triggered when code is pushed to `develop` branch:
+### 1.1 Code Quality
 
 ```bash
-git checkout develop
-git add .
-git commit -m "Your changes"
-git push origin develop
+# Run all tests
+npm test
+
+# Run type checking
+npm run typecheck
+
+# Run linting
+npm run lint
+
+# Build production bundle
+npm run build
+
+# Verify build output
+npm run preview
 ```
 
-This will:
-
-1. Run type-check and tests
-2. Build the application
-3. Push Docker image to `ghcr.io/OWNER/REPO/opendocs:staging`
-
-### Production Deployment
-
-Automatically triggered when code is pushed to `main` branch:
+### 1.2 Database Readiness
 
 ```bash
-git checkout main
-git merge develop
-git push origin main
+# Run migrations
+npm run db:migrate
+
+# Verify schema
+npm run db:verify
+
+# Seed test data (optional)
+npm run db:seed
+
+# Backup current state
+npm run db:backup
 ```
 
-This will:
+---
 
-1. Run type-check and tests
-2. Build the application
-3. Push Docker images:
-   - `ghcr.io/OWNER/REPO/opendocs:latest`
-   - `ghcr.io/OWNER/REPO/opendocs:COMMIT_SHA`
+## 2. Environment Configuration
 
-## Manual Deployments
-
-### Pull and Run Staging Image
+### 2.1 Production Environment Variables
 
 ```bash
-docker pull ghcr.io/OWNER/REPO/opendocs:staging
-docker run -p 3000:3000 \
-  -e VITE_SUPABASE_URL=your_supabase_url \
-  -e VITE_SUPABASE_ANON_KEY=your_anon_key \
-  ghcr.io/OWNER/REPO/opendocs:staging
+# .env.production
+
+# Application
+NODE_ENV=production
+PORT=3000
+API_URL=https://api.opendocs.example.com
+WS_URL=wss://api.opendocs.example.com
+
+# Database
+DATABASE_URL=postgresql://user:pass@host:5432/opendocs?sslmode=require
+
+# Authentication
+JWT_SECRET=your-secure-jwt-secret-min-32-chars
+JWT_EXPIRY=24h
+REFRESH_TOKEN_EXPIRY=7d
+
+# Security
+CORS_ORIGIN=https://opendocs.example.com
+RATE_LIMIT_WINDOW=900000
+RATE_LIMIT_MAX=100
+
+# Encryption
+ENCRYPTION_KEY=your-32-char-encryption-key
+ENCRYPTION_ALGORITHM=aes-256-gcm
+
+# Logging
+LOG_LEVEL=info
+LOG_FORMAT=json
+
+# Monitoring
+SENTRY_DSN=https://xxx@sentry.io/xxx
+NEW_RELIC_LICENSE_KEY=xxx
+
+# AI Services
+NVIDIA_API_KEY=your-nvidia-api-key
+OPENAI_API_KEY=your-openai-api-key
 ```
 
-### Pull and Run Production Image
+---
+
+## 3. Security Hardening
+
+### 3.1 HTTP Security Headers
+
+```typescript
+import helmet from 'helmet'
+
+export const securityHeaders = helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+      fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+      imgSrc: ["'self'", 'data:', 'https:'],
+      connectSrc: ["'self'", 'https://api.openai.com', 'https://api.nvidia.com'],
+    },
+  },
+  crossOriginEmbedderPolicy: false,
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+})
+```
+
+### 3.2 Rate Limiting
+
+```typescript
+import rateLimit from 'express-rate-limit'
+
+export const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: {
+    error: 'Too many requests, please try again later.',
+    retryAfter: 60,
+  },
+})
+
+export const authLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 10,
+  message: {
+    error: 'Too many login attempts. Please try again in an hour.',
+  },
+})
+```
+
+### 3.3 Input Validation
+
+```typescript
+import { z } from 'zod'
+
+export const documentSchema = z.object({
+  title: z.string().min(1).max(200),
+  content: z.any().optional(),
+  parentId: z.string().uuid().optional(),
+  isLocked: z.boolean().optional(),
+  metadata: z.record(z.unknown()).optional(),
+})
+```
+
+---
+
+## 4. Performance Optimization
+
+### 4.1 Database Optimization
+
+```sql
+CREATE INDEX idx_documents_user_id ON documents(user_id);
+CREATE INDEX idx_documents_parent_id ON documents(parent_id);
+CREATE INDEX idx_blocks_document_id ON blocks(document_id);
+CREATE INDEX idx_automations_user_id ON automations(user_id);
+CREATE INDEX idx_automations_enabled ON automations(enabled);
+```
+
+### 4.2 Frontend Optimization
+
+```typescript
+// Implement lazy loading
+const Document = lazy(() => import('./pages/Document'))
+const Automations = lazy(() => import('./pages/Automations'))
+
+// Image optimization
+export function useOptimizedImage(url: string) {
+  const cloudinaryUrl = `https://res.cloudinary.com/demo/image/upload/w_400,c_limit,f_auto,q_auto/${url}`
+  
+  return {
+    src: cloudinaryUrl,
+    srcSet: `
+      ${cloudinaryUrl.replace('w_400', 'w_400')} 400w,
+      ${cloudinaryUrl.replace('w_400', 'w_800')} 800w,
+      ${cloudinaryUrl.replace('w_400', 'w_1200')} 1200w
+    `,
+  }
+}
+```
+
+---
+
+## 5. Monitoring & Observability
+
+### 5.1 Logging Configuration
+
+```typescript
+import winston from 'winston'
+
+export const logger = winston.createLogger({
+  level: process.env.LOG_LEVEL || 'info',
+  format: winston.format.combine(
+    winston.format.timestamp(),
+    winston.format.json()
+  ),
+  transports: [
+    new winston.transports.Console(),
+    new winston.transports.File({ filename: 'logs/error.log', level: 'error' }),
+    new winston.transports.File({ filename: 'logs/combined.log' }),
+  ],
+})
+```
+
+### 5.2 Health Checks
+
+```typescript
+export async function healthCheck(req: Request, res: Response) {
+  const checks = {
+    database: false,
+    redis: false,
+  }
+  
+  try {
+    await db.query('SELECT 1')
+    checks.database = true
+  } catch {
+    checks.database = false
+  }
+  
+  const isHealthy = Object.values(checks).every(Boolean)
+  
+  res.status(isHealthy ? 200 : 503).json({
+    status: isHealthy ? 'healthy' : 'unhealthy',
+    timestamp: new Date().toISOString(),
+    services: { ...checks, uptime: process.uptime() },
+  })
+}
+```
+
+### 5.3 Metrics Collection
+
+```typescript
+import client from 'prom-client'
+
+const registry = new client.Registry()
+
+export const httpRequestsTotal = new client.Counter({
+  name: 'http_requests_total',
+  help: 'Total HTTP requests',
+  labelNames: ['method', 'route', 'status'],
+  registers: [registry],
+})
+
+export const httpRequestDuration = new client.Histogram({
+  name: 'http_request_duration_seconds',
+  help: 'Request duration',
+  labelNames: ['method', 'route'],
+  buckets: [0.1, 0.5, 1, 2, 5],
+  registers: [registry],
+})
+```
+
+---
+
+## 6. Backup & Recovery
+
+### 6.1 Database Backup Script
 
 ```bash
-docker pull ghcr.io/OWNER/REPO/opendocs:latest
-docker run -p 3000:3000 \
-  -e VITE_SUPABASE_URL=your_supabase_url \
-  -e VITE_SUPABASE_ANON_KEY=your_anon_key \
-  ghcr.io/OWNER/REPO/opendocs:latest
+#!/bin/bash
+# scripts/backup-db.sh
+
+set -e
+
+BACKUP_DIR="/backups/postgres"
+DATE=$(date +%Y%m%d_%H%M%S)
+BACKUP_FILE="${BACKUP_DIR}/opendocs_${DATE}.sql.gz"
+
+mkdir -p "${BACKUP_DIR}"
+
+echo "Starting database backup..."
+pg_dump "${DATABASE_URL}" | gzip > "${BACKUP_FILE}"
+
+if [ -f "${BACKUP_FILE}" ] && [ -s "${BACKUP_FILE}" ]; then
+  echo "Backup created: ${BACKUP_FILE}"
+  
+  # Upload to cloud storage
+  aws s3 cp "${BACKUP_FILE}" "s3://opendocs-backups/postgres/"
+  
+  # Keep last 7 local backups
+  ls -t "${BACKUP_DIR}"/*.sql.gz | tail -n +8 | xargs rm -f
+  
+  echo "Backup completed"
+else
+  echo "ERROR: Backup failed"
+  exit 1
+fi
 ```
 
-### Pull Specific Version
+### 6.2 Point-in-Time Recovery
 
 ```bash
-# Replace COMMIT_SHA with actual commit hash
-docker pull ghcr.io/OWNER/REPO/opendocs:COMMIT_SHA
-docker run -p 3000:3000 \
-  -e VITE_SUPABASE_URL=your_supabase_url \
-  -e VITE_SUPABASE_ANON_KEY=your_anon_key \
-  ghcr.io/OWNER/REPO/opendocs:COMMIT_SHA
+#!/bin/bash
+# scripts/restore-db.sh
+
+set -e
+
+BACKUP_FILE=$1
+
+if [ -z "${BACKUP_FILE}" ]; then
+  echo "Usage: restore-db.sh <backup_file>"
+  exit 1
+fi
+
+echo "Restoring from backup..."
+gunzip -c "${BACKUP_FILE}" | psql "${DATABASE_URL}"
+
+echo "Restoration completed"
 ```
 
-### Using Docker Compose
+---
 
-Update `docker-compose.yml` to use GHCR images:
+## 7. Scaling Strategies
+
+### 7.1 Horizontal Scaling
 
 ```yaml
 services:
-  app:
-    image: ghcr.io/OWNER/REPO/opendocs:latest
-    # ... rest of configuration
+  opendocs-api:
+    image: opendocs/api:latest
+    deploy:
+      replicas: 3
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+    depends_on:
+      - postgres
+      - redis
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 ```
 
-Then run:
+### 7.2 CDN Configuration
+
+```yaml
+routes:
+  - cache: true
+  - pattern: "/assets/*"
+    cache_level: " Cache Everything"
+  - pattern: "/api/*"
+    cache_level: " Origin-Error if failed"
+  - pattern: "/*"
+    cache_level: " Cacheable"
+    polish: "on"
+    minify:
+      js: true
+      css: true
+      html: true
+```
+
+### 7.3 Auto-Scaling Policy
+
+```yaml
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: opendocs-api
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: opendocs-api
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+```
+
+---
+
+## 8. Troubleshooting
+
+### 8.1 Common Issues
+
+```yaml
+Troubleshooting:
+  high_cpu:
+    symptoms:
+      - High CPU usage on API servers
+      - Slow response times
+    causes:
+      - Infinite loops in automation
+      - Large document queries
+    solutions:
+      - Check automation logs
+      - Review slow query logs
+  
+  database_connection_errors:
+    symptoms:
+      - "Connection refused" errors
+    causes:
+      - Connection pool exhausted
+      - Database server down
+    solutions:
+      - Increase pool size
+      - Check database health
+  
+  authentication_failures:
+    symptoms:
+      - 401 Unauthorized errors
+    causes:
+      - JWT secret mismatch
+      - Expired tokens
+    solutions:
+      - Verify JWT_SECRET
+      - Check token expiry
+```
+
+### 8.2 Log Analysis
 
 ```bash
+# Search for errors
+tail -n 1000 logs/combined.log | \
+  jq 'select(.level == "error" or .level == "warn")'
+
+# Monitor live logs
+tail -f logs/combined.log | jq 'select(.level == "error")'
+```
+
+---
+
+## 9. Post-Deployment Verification
+
+### 9.1 Smoke Tests
+
+```typescript
+test.describe('Post-Deployment Smoke Tests', () => {
+  test('API health endpoint returns 200', async ({ request }) => {
+    const response = await request.get('/health')
+    expect(response.status()).toBe(200)
+    
+    const body = await response.json()
+    expect(body.status).toBe('healthy')
+  })
+
+  test('Database connection is working', async ({ request }) => {
+    const response = await request.get('/health/detailed')
+    expect(response.status()).toBe(200)
+    expect(response.json().checks.database.healthy).toBe(true)
+  })
+
+  test('Can create and retrieve document', async ({ request }) => {
+    const doc = await request.post('/api/documents', {
+      data: { title: 'Smoke Test' },
+    })
+    expect(doc.status()).toBe(201)
+  })
+})
+```
+
+### 9.2 Monitoring Checklist
+
+```yaml
+Immediate Checks:
+  - [ ] Health check returns 200
+  - [ ] No error rate increase
+  - [ ] Database pool healthy
+  - [ ] Response times < 500ms (p95)
+
+1 Hour Later:
+  - [ ] No memory leaks
+  - [ ] CPU stable
+  - [ ] No auth failures spike
+
+24 Hours Later:
+  - [ ] All backups completed
+  - [ ] No data issues
+  - [ ] Performance within SLA
+```
+
+---
+
+## 10. Rollback Procedures
+
+### 10.1 Quick Rollback
+
+```bash
+# Docker rollback
+docker pull opendocs/api:previous-version
+docker tag opendocs/api:previous-version opendocs/api:latest
 docker-compose up -d
+
+# Kubernetes rollback
+kubectl rollout undo deployment/opendocs-api
+kubectl rollout status deployment/opendocs-api
 ```
 
-## Rollback Procedures
-
-### Rollback to Previous Version
-
-1. **Find the commit SHA** of the previous working version:
-
-   ```bash
-   git log --oneline
-   ```
-
-2. **Pull and deploy that specific version**:
-   ```bash
-   docker pull ghcr.io/OWNER/REPO/opendocs:PREVIOUS_SHA
-   docker stop opendocs-container
-   docker run -d --name opendocs-container -p 3000:3000 \
-     -e VITE_SUPABASE_URL=your_supabase_url \
-     -e VITE_SUPABASE_ANON_KEY=your_anon_key \
-     ghcr.io/OWNER/REPO/opendocs:PREVIOUS_SHA
-   ```
-
-### Rollback via Git
-
-If you need to rollback the codebase:
+### 10.2 Database Rollback
 
 ```bash
-# Rollback to previous commit
-git revert HEAD
-git push origin main
+# If migration needs rollback
+npm run db:migrate:down
 
-# Or rollback to specific commit
-git reset --hard COMMIT_SHA
-git push origin main --force
+# Or restore from backup
+./scripts/restore-db.sh /backups/opendocs_pre_migration.sql.gz
 ```
 
-## Environment Variables
+---
 
-### Required Variables
+## Support & Documentation
 
-These must be set when running containers:
+- **Documentation:** docs/USER-GUIDE.md
+- **API Reference:** API-ENDPOINTS.md
+- **Architecture:** ARCHITECTURE.md
+- **GitHub Issues:** Report problems here
 
-- `VITE_SUPABASE_URL` - Your Supabase project URL
-- `VITE_SUPABASE_ANON_KEY` - Your Supabase anonymous key
+---
 
-### Setting Environment Variables
-
-**Docker Run**:
-
-```bash
-docker run -p 3000:3000 \
-  -e VITE_SUPABASE_URL=https://xxx.supabase.co \
-  -e VITE_SUPABASE_ANON_KEY=your_key \
-  ghcr.io/OWNER/REPO/opendocs:latest
-```
-
-**Docker Compose**:
-
-```yaml
-environment:
-  - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
-  - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
-```
-
-**GitHub Actions** (for additional secrets):
-
-1. Go to repository **Settings** → **Secrets and variables** → **Actions**
-2. Click **New repository secret**
-3. Add your secret name and value
-
-## Troubleshooting
-
-### Deployment Fails: "permission denied"
-
-**Problem**: GitHub Actions doesn't have write permissions.
-
-**Solution**: Enable workflow permissions:
-
-1. Settings → Actions → General
-2. Workflow permissions → "Read and write permissions"
-3. Save changes
-
-### Cannot Pull Image: "unauthorized"
-
-**Problem**: You're not authenticated to GHCR.
-
-**Solution**: Login to GHCR:
-
-```bash
-echo $GITHUB_TOKEN | docker login ghcr.io -u YOUR_USERNAME --password-stdin
-```
-
-Generate a Personal Access Token with `read:packages` scope at:
-https://github.com/settings/tokens
-
-### Image Not Found
-
-**Problem**: Package might be private or not yet pushed.
-
-**Solution**:
-
-1. Check workflow logs in Actions tab
-2. Verify package exists in your GitHub profile → Packages
-3. If private, ensure you're authenticated
-
-### Build Fails in CI
-
-**Problem**: Tests or type-check failing.
-
-**Solution**:
-
-1. Check workflow logs for specific error
-2. Run locally: `npm run type-check && npm run test`
-3. Fix errors and push again
-
-### Container Starts But App Doesn't Work
-
-**Problem**: Missing environment variables.
-
-**Solution**: Verify all required environment variables are set:
-
-```bash
-docker logs CONTAINER_ID
-```
-
-## Security Best Practices
-
-### 1. Protect Secrets
-
-- Never commit secrets to repository
-- Use GitHub Secrets for sensitive values
-- Rotate secrets periodically
-
-### 2. Image Access Control
-
-- Set package visibility appropriately (Public/Private)
-- Use GitHub team permissions to control access
-- Review package access regularly
-
-### 3. Dependency Security
-
-- Regularly update dependencies: `npm audit fix`
-- Monitor Dependabot alerts
-- Review security advisories
-
-### 4. Image Scanning
-
-Consider adding security scanning to workflow:
-
-```yaml
-- name: Scan image
-  uses: aquasecurity/trivy-action@master
-  with:
-    image-ref: ghcr.io/${{ github.repository }}/opendocs:latest
-    format: "sarif"
-    output: "trivy-results.sarif"
-```
-
-## Advanced Configuration
-
-### Multi-Stage Production Environments
-
-To deploy to multiple production environments:
-
-1. Create environment-specific branches (`prod-us`, `prod-eu`)
-2. Add environment-specific tags in workflow
-3. Configure separate GitHub Environments with protection rules
-
-### Custom Domain Setup
-
-When deploying to cloud providers:
-
-1. Pull image from GHCR
-2. Deploy to your platform (AWS ECS, GCP Cloud Run, Azure Container Instances)
-3. Configure load balancer and custom domain
-4. Set up SSL/TLS certificates
-
-### Monitoring and Logging
-
-Integrate logging and monitoring:
-
-```yaml
-services:
-  app:
-    image: ghcr.io/OWNER/REPO/opendocs:latest
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-```
-
-## CI/CD Pipeline Details
-
-### Workflow Jobs
-
-1. **type-check**: Validates TypeScript types
-2. **test**: Runs Vitest with coverage, uploads to Codecov
-3. **build**: Compiles application, uploads `dist/` artifact
-4. **deploy-staging**: Pushes to GHCR (develop branch only)
-5. **deploy-production**: Pushes to GHCR (main branch only)
-
-### Job Dependencies
-
-```
-type-check ─┐
-            ├─→ build ─→ deploy-staging (develop)
-test ───────┘           └─→ deploy-production (main)
-```
-
-### Artifact Retention
-
-Build artifacts (`dist/`) are retained for 7 days and can be downloaded from GitHub Actions runs.
-
-## Support
-
-For issues or questions:
-
-- Check [GitHub Issues](https://github.com/OWNER/REPO/issues)
-- Review [GitHub Actions logs](https://github.com/OWNER/REPO/actions)
-- Consult [GHCR documentation](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry)
+**© 2026 OpenDocs Project - Production Edition**
