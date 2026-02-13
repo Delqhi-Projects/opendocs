@@ -68,7 +68,9 @@ export function AutomationPropertiesPanel({ node, onUpdate, onClose }: Automatio
                     try {
                       const parsed = JSON.parse(e.target.value);
                       handleConfigChange(field.key, parsed);
-                    } catch {}
+                    } catch {
+                      // Ignore invalid JSON - input will remain unchanged
+                    }
                   }}
                   placeholder={field.placeholder}
                   rows={4}
