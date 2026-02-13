@@ -1,5 +1,5 @@
 import { useMemo, useState, type ReactNode } from "react";
-import type { DocBlock, TableBlock, ChecklistBlock } from "@/types/docs";
+import type { DocBlock, TableBlock } from "@/types/docs";
 import { MermaidView } from "@/components/blocks/MermaidView";
 import { DatabaseBlockView } from "@/components/blocks/DatabaseBlockView";
 import { WorkflowBlockView } from "@/components/blocks/WorkflowBlockView";
@@ -14,6 +14,12 @@ import { useDocsStore } from "@/store/useDocsStore";
 import { nanoid } from "nanoid";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+
+// Type-safe block update helper - uses simple assertion for discriminated union compatibility
+// This is safe because the caller knows the specific block type they're updating
+function makeBlockPatch(patch: Record<string, unknown>): Partial<DocBlock> {
+  return patch as Partial<DocBlock>;
+}
 
 export function BlockRenderer({
   block,
@@ -37,7 +43,7 @@ export function BlockRenderer({
   onAddBlock: (type: string) => void;
 }) {
   const { state } = useDocsStore();
-  const pageId = state.selectedPageId || "";
+  const pageId = state.selectedPageId ?? "";
   const [chatOpen, setChatOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
@@ -56,7 +62,7 @@ export function BlockRenderer({
     opacity: isDragging ? 0.5 : 1,
   };
 
-  const locked = !!block.locked;
+  const locked = Boolean(block.locked);
   const frame = locked
     ? "bg-amber-50/20 dark:bg-amber-950/10"
     : "";
@@ -154,7 +160,7 @@ export function BlockRenderer({
             <button
               type="button"
               className="rounded px-2 py-0.5 text-[10px] font-medium text-indigo-600 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-950/40 transition-colors"
-              onClick={() => onUpdate({ __convertToDatabase: true } as any)}
+              onClick={() => onUpdate({ __convertToDatabase: true } as Partial<DocBlock>)}
               title="Convert to Database"
             >
               → DB
@@ -176,6 +182,7 @@ export function BlockRenderer({
   const disabled = locked;
   let content: ReactNode;
 
+  // Heading blocks
   if (block.type === "heading1" || block.type === "heading2" || block.type === "heading3") {
     const cls =
       block.type === "heading1"
@@ -198,12 +205,14 @@ export function BlockRenderer({
         <input
           disabled={disabled}
           value={block.text}
-          onChange={(e) => onUpdate({ text: e.target.value } as any)}
+          onChange={(e) => onUpdate(makeBlockPatch({ text: e.target.value }))}
           className={`w-full bg-transparent outline-none ${cls} text-zinc-900 dark:text-zinc-100 disabled:opacity-70`}
         />
       </div>
     );
-  } else if (block.type === "paragraph") {
+  } 
+  // Paragraph block
+  else if (block.type === "paragraph") {
     content = (
       <div
         ref={setNodeRef}
@@ -218,13 +227,15 @@ export function BlockRenderer({
         <AutoResizeTextarea
           disabled={disabled}
           value={block.text}
-          onChange={(value) => onUpdate({ text: value } as any)}
+          onChange={(value) => onUpdate(makeBlockPatch({ text: value }))}
           onSlash={onSlash}
           placeholder="Write… (type / on empty block to insert)"
         />
       </div>
     );
-  } else if (block.type === "code") {
+  } 
+  // Code block
+  else if (block.type === "code") {
     content = (
       <div
         ref={setNodeRef}
@@ -240,7 +251,7 @@ export function BlockRenderer({
           <input
             disabled={disabled}
             value={block.language}
-            onChange={(e) => onUpdate({ language: e.target.value } as any)}
+            onChange={(e) => onUpdate(makeBlockPatch({ language: e.target.value }))}
             className="w-24 rounded-md border border-zinc-200 bg-white px-2 py-1 text-xs text-zinc-700 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200"
           />
           <button
@@ -250,6 +261,7 @@ export function BlockRenderer({
               try {
                 await navigator.clipboard.writeText(block.code);
               } catch {
+                // Silently fail
               }
             }}
             title="Copy"
@@ -260,12 +272,14 @@ export function BlockRenderer({
         <textarea
           disabled={disabled}
           value={block.code}
-          onChange={(e) => onUpdate({ code: e.target.value } as any)}
+          onChange={(e) => onUpdate(makeBlockPatch({ code: e.target.value }))}
           className="min-h-[120px] w-full resize-y rounded-md border border-zinc-200 bg-zinc-50 p-2 font-mono text-sm text-zinc-900 outline-none focus:ring-2 focus:ring-indigo-500 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
         />
       </div>
     );
-  } else if (block.type === "callout") {
+  } 
+  // Callout block
+  else if (block.type === "callout") {
     content = (
       <div
         ref={setNodeRef}
@@ -281,7 +295,7 @@ export function BlockRenderer({
           <select
             disabled={disabled}
             value={block.tone}
-            onChange={(e) => onUpdate({ tone: e.target.value } as any)}
+            onChange={(e) => onUpdate(makeBlockPatch({ tone: e.target.value as "info" | "success" | "warning" | "error" | "tip" }))}
             className="rounded-md border border-zinc-200 bg-white px-2 py-1 text-xs text-zinc-800 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200"
           >
             <option value="info">info</option>
@@ -292,8 +306,8 @@ export function BlockRenderer({
           </select>
           <input
             disabled={disabled}
-            value={block.title || ""}
-            onChange={(e) => onUpdate({ title: e.target.value } as any)}
+            value={block.title ?? ""}
+            onChange={(e) => onUpdate(makeBlockPatch({ title: e.target.value }))}
             placeholder="Title"
             className="flex-1 rounded-md border border-zinc-200 bg-white px-2 py-1 text-xs text-zinc-800 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200"
           />
@@ -301,13 +315,15 @@ export function BlockRenderer({
         <textarea
           disabled={disabled}
           value={block.text}
-          onChange={(e) => onUpdate({ text: e.target.value } as any)}
+          onChange={(e) => onUpdate(makeBlockPatch({ text: e.target.value }))}
           className="min-h-[72px] w-full resize-y rounded-md border border-zinc-200 bg-white p-2 text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
         />
       </div>
     );
-  } else if (block.type === "checklist") {
-    const checklistBlock = block as ChecklistBlock;
+  } 
+  // Checklist block
+  else if (block.type === "checklist") {
+    const checklistBlock = block;
     content = (
       <div
         ref={setNodeRef}
@@ -328,7 +344,7 @@ export function BlockRenderer({
                 checked={it.checked}
                 onChange={(e) => {
                   const items = checklistBlock.items.map((x) => (x.id === it.id ? { ...x, checked: e.target.checked } : x));
-                  onUpdate({ items } as any);
+                  onUpdate(makeBlockPatch({ items }));
                 }}
               />
               <input
@@ -337,7 +353,7 @@ export function BlockRenderer({
                 value={it.text}
                 onChange={(e) => {
                   const items = checklistBlock.items.map((x) => (x.id === it.id ? { ...x, text: e.target.value } : x));
-                  onUpdate({ items } as any);
+                  onUpdate(makeBlockPatch({ items }));
                 }}
                 className="flex-1 rounded-md border border-zinc-200 bg-white px-2 py-1 text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
                 placeholder={idx === 0 ? "Task…" : ""}
@@ -348,7 +364,7 @@ export function BlockRenderer({
             <button
               type="button"
               className="rounded-md px-2 py-1 text-xs text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-900"
-              onClick={() => onUpdate({ items: [...checklistBlock.items, { id: nanoid(), text: "", checked: false }] } as any)}
+              onClick={() => onUpdate(makeBlockPatch({ items: [...checklistBlock.items, { id: nanoid(), text: "", checked: false }] }))}
             >
               + Add item
             </button>
@@ -356,9 +372,13 @@ export function BlockRenderer({
         </div>
       </div>
     );
-  } else if (block.type === "table") {
+  } 
+  // Table block
+  else if (block.type === "table") {
     content = <TableEditor block={block} disabled={disabled} frame={frame} toolbar={toolbar} onUpdate={onUpdate} />;
-  } else if (block.type === "database") {
+  } 
+  // Database block
+  else if (block.type === "database") {
     content = (
       <div ref={setNodeRef} style={style} role="presentation" className={`relative group ${frame} ${isDragging ? "opacity-50" : ""}`} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
         {sideToolbar}
@@ -368,7 +388,9 @@ export function BlockRenderer({
         </div>
       </div>
     );
-  } else if (block.type === "workflow") {
+  } 
+  // Workflow block
+  else if (block.type === "workflow") {
     content = (
       <div ref={setNodeRef} style={style} role="presentation" className={`relative group ${frame} ${isDragging ? "opacity-50" : ""}`} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
         {sideToolbar}
@@ -378,7 +400,9 @@ export function BlockRenderer({
         </div>
       </div>
     );
-  } else if (block.type === "draw") {
+  } 
+  // Draw block
+  else if (block.type === "draw") {
     content = (
       <div ref={setNodeRef} style={style} role="presentation" className={`relative group ${frame} ${isDragging ? "opacity-50" : ""}`} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
         {sideToolbar}
@@ -388,7 +412,9 @@ export function BlockRenderer({
         </div>
       </div>
     );
-  } else if (block.type === "n8n") {
+  } 
+  // N8n block
+  else if (block.type === "n8n") {
     content = (
       <div ref={setNodeRef} style={style} role="presentation" className={`relative group ${frame} ${isDragging ? "opacity-50" : ""}`} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
         {sideToolbar}
@@ -398,7 +424,9 @@ export function BlockRenderer({
         </div>
       </div>
     );
-  } else if (block.type === "aiPrompt") {
+  } 
+  // AI Prompt block
+  else if (block.type === "aiPrompt") {
     content = (
       <div ref={setNodeRef} style={style} role="presentation" className={`relative group ${frame} ${isDragging ? "opacity-50" : ""}`} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
         {sideToolbar}
@@ -408,7 +436,9 @@ export function BlockRenderer({
         </div>
       </div>
     );
-  } else if (block.type === "mermaid") {
+  } 
+  // Mermaid block
+  else if (block.type === "mermaid") {
     content = (
       <div ref={setNodeRef} style={style} role="presentation" className={`relative group ${frame} ${isDragging ? "opacity-50" : ""}`} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
         {sideToolbar}
@@ -417,7 +447,7 @@ export function BlockRenderer({
           <textarea
             disabled={disabled}
             value={block.code}
-            onChange={(e) => onUpdate({ code: e.target.value } as any)}
+            onChange={(e) => onUpdate(makeBlockPatch({ code: e.target.value }))}
             className="min-h-[100px] w-full resize-y rounded-md border border-zinc-200 bg-white p-2 font-mono text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
           />
           <div className="mt-3 rounded-md border border-zinc-200 bg-white p-2 dark:border-zinc-800 dark:bg-zinc-950">
@@ -426,7 +456,9 @@ export function BlockRenderer({
         </div>
       </div>
     );
-  } else if (block.type === "quote") {
+  } 
+  // Quote block
+  else if (block.type === "quote") {
     content = (
       <div ref={setNodeRef} style={style} role="presentation" className={`relative group ${frame} ${isDragging ? "opacity-50" : ""}`} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
         {sideToolbar}
@@ -435,13 +467,15 @@ export function BlockRenderer({
           <textarea
             disabled={disabled}
             value={block.text}
-            onChange={(e) => onUpdate({ text: e.target.value } as any)}
+            onChange={(e) => onUpdate(makeBlockPatch({ text: e.target.value }))}
             className="min-h-[72px] w-full resize-y rounded-md border border-zinc-200 bg-white p-2 text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
           />
         </div>
       </div>
     );
-  } else if (block.type === "divider") {
+  } 
+  // Divider block
+  else if (block.type === "divider") {
     content = (
       <div ref={setNodeRef} style={style} role="presentation" className={`relative group ${frame} ${isDragging ? "opacity-50" : ""}`} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
         {sideToolbar}
@@ -451,7 +485,9 @@ export function BlockRenderer({
         </div>
       </div>
     );
-  } else if (block.type === "image") {
+  } 
+  // Image block
+  else if (block.type === "image") {
     content = (
       <div ref={setNodeRef} style={style} role="presentation" className={`relative group ${frame} ${isDragging ? "opacity-50" : ""}`} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
         {sideToolbar}
@@ -460,12 +496,12 @@ export function BlockRenderer({
           <input
             disabled={disabled}
             value={block.url}
-            onChange={(e) => onUpdate({ url: e.target.value } as any)}
+            onChange={(e) => onUpdate(makeBlockPatch({ url: e.target.value }))}
             placeholder="Image URL"
             className="mb-2 w-full rounded-md border border-zinc-200 bg-white px-2 py-1 text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
           />
           {block.url ? (
-            <img src={block.url} alt={block.alt || ""} className="max-h-[360px] w-full rounded-md object-contain" />
+            <img src={block.url} alt={block.alt ?? ""} className="max-h-[360px] w-full rounded-md object-contain" />
           ) : (
             <div className="rounded-md border border-dashed border-zinc-300 p-6 text-center text-sm text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
               Paste an image URL
@@ -474,7 +510,9 @@ export function BlockRenderer({
         </div>
       </div>
     );
-  } else if (block.type === "video") {
+  } 
+  // Video block
+  else if (block.type === "video") {
     content = (
       <div ref={setNodeRef} style={style} role="presentation" className={`relative group ${frame} ${isDragging ? "opacity-50" : ""}`} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
         {sideToolbar}
@@ -483,7 +521,7 @@ export function BlockRenderer({
           <input
             disabled={disabled}
             value={block.url}
-            onChange={(e) => onUpdate({ url: e.target.value } as any)}
+            onChange={(e) => onUpdate(makeBlockPatch({ url: e.target.value }))}
             placeholder="Video URL (YouTube/Vimeo)"
             className="mb-2 w-full rounded-md border border-zinc-200 bg-white px-2 py-1 text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
           />
@@ -499,7 +537,9 @@ export function BlockRenderer({
         </div>
       </div>
     );
-  } else if (block.type === "link") {
+  } 
+  // Link block
+  else if (block.type === "link") {
     content = (
       <div ref={setNodeRef} style={style} role="presentation" className={`relative group ${frame} ${isDragging ? "opacity-50" : ""}`} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
         {sideToolbar}
@@ -508,14 +548,16 @@ export function BlockRenderer({
           <input
             disabled={disabled}
             value={block.url}
-            onChange={(e) => onUpdate({ url: e.target.value } as any)}
+            onChange={(e) => onUpdate(makeBlockPatch({ url: e.target.value }))}
             placeholder="URL"
             className="w-full rounded-md border border-zinc-200 bg-white px-2 py-1 text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
           />
         </div>
       </div>
     );
-  } else if (block.type === "file") {
+  } 
+  // File block
+  else if (block.type === "file") {
     content = (
       <div ref={setNodeRef} style={style} role="presentation" className={`relative group ${frame} ${isDragging ? "opacity-50" : ""}`} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
         {sideToolbar}
@@ -524,49 +566,51 @@ export function BlockRenderer({
           <input
             disabled={disabled}
             value={block.name}
-            onChange={(e) => onUpdate({ name: e.target.value } as any)}
+            onChange={(e) => onUpdate(makeBlockPatch({ name: e.target.value }))}
             className="flex-1 rounded-md border border-zinc-200 bg-white px-2 py-1 text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
           />
           <input
             disabled={disabled}
-            value={block.url || ""}
-            onChange={(e) => onUpdate({ url: e.target.value } as any)}
+            value={block.url ?? ""}
+            onChange={(e) => onUpdate(makeBlockPatch({ url: e.target.value }))}
             placeholder="URL"
             className="flex-1 rounded-md border border-zinc-200 bg-white px-2 py-1 text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
           />
         </div>
       </div>
     );
-  } else if (block.type === "horizontal") {
-    const horizontalBlock = block as any;
+  } 
+  // Horizontal block
+  else if (block.type === "horizontal") {
+    const horizontalBlock = block;
     content = (
       <div ref={setNodeRef} style={style} role="presentation" className={`relative group ${frame} ${isDragging ? "opacity-50" : ""}`} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
         {sideToolbar}
         <div className="absolute -top-6 left-0 z-10">{toolbar}</div>
         <div className="grid grid-cols-2 gap-4 p-3">
-          {horizontalBlock.blocks?.map((subBlock: any) => (
+          {horizontalBlock.blocks?.map((subBlock) => (
             <div key={subBlock.id} className="p-4 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-sm">
               {subBlock.type === "paragraph" ? (
                 <AutoResizeTextarea
                   disabled={disabled}
-                  value={subBlock.text || ""}
+                  value={subBlock.text}
                   onChange={(value) => {
-                    const updatedBlocks = horizontalBlock.blocks.map((b: any) =>
+                    const updatedBlocks = horizontalBlock.blocks.map((b) =>
                       b.id === subBlock.id ? { ...b, text: value } : b
                     );
-                    onUpdate({ blocks: updatedBlocks } as any);
+                    onUpdate(makeBlockPatch({ blocks: updatedBlocks }));
                   }}
                   placeholder="Type here..."
                 />
               ) : subBlock.type === "heading1" || subBlock.type === "heading2" || subBlock.type === "heading3" ? (
                 <input
                   disabled={disabled}
-                  value={subBlock.text || ""}
+                  value={subBlock.text}
                   onChange={(e) => {
-                    const updatedBlocks = horizontalBlock.blocks.map((b: any) =>
+                    const updatedBlocks = horizontalBlock.blocks.map((b) =>
                       b.id === subBlock.id ? { ...b, text: e.target.value } : b
                     );
-                    onUpdate({ blocks: updatedBlocks } as any);
+                    onUpdate(makeBlockPatch({ blocks: updatedBlocks }));
                   }}
                   className="w-full bg-transparent outline-none font-semibold text-zinc-900 dark:text-zinc-100"
                   style={{ fontSize: subBlock.type === "heading1" ? "1.5rem" : subBlock.type === "heading2" ? "1.25rem" : "1.125rem" }}
@@ -581,7 +625,7 @@ export function BlockRenderer({
             <button
               type="button"
               className="p-4 rounded-lg border border-dashed border-zinc-300 dark:border-zinc-700 hover:border-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-colors text-zinc-400 hover:text-indigo-600 dark:text-zinc-500 dark:hover:text-indigo-400"
-              onClick={() => onUpdate({ blocks: [...(horizontalBlock.blocks || []), { id: nanoid(), type: "paragraph", text: "" }] } as any)}
+              onClick={() => onUpdate(makeBlockPatch({ blocks: [...(horizontalBlock.blocks ?? []), { id: nanoid(), type: "paragraph", text: "" }] }))}
             >
               + Add block
             </button>
@@ -589,25 +633,30 @@ export function BlockRenderer({
         </div>
       </div>
     );
-  } else if (block.type === "automation") {
-    const automationBlock = block as any;
+  } 
+  // Automation block
+  else if (block.type === "automation") {
+    const automationBlock = block;
     content = (
       <div ref={setNodeRef} style={style} role="presentation" className={`relative group ${frame} ${isDragging ? "opacity-50" : ""}`} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
         {sideToolbar}
         <div className="absolute -top-6 left-0 z-10">{toolbar}</div>
         <AutomationBlockView
-          automation={automationBlock.automation || { id: nanoid(), name: "New Automation", enabled: false, nodes: [], edges: [], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), executionCount: 0 }}
-          onUpdate={(automation) => onUpdate({ automation } as any)}
+          automation={automationBlock.automation ?? { id: nanoid(), name: "New Automation", enabled: false, nodes: [], edges: [], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), executionCount: 0 }}
+          onUpdate={(automation) => onUpdate(makeBlockPatch({ automation }))}
           disabled={disabled}
         />
       </div>
     );
-  } else {
+  } 
+  // Fallback for unknown block types
+  else {
+    const unknownBlock = block as { type: string };
     content = (
       <div ref={setNodeRef} style={style} role="presentation" className={`relative group ${frame} ${isDragging ? "opacity-50" : ""}`} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
         {sideToolbar}
         <div className="absolute -top-6 left-0 z-10">{toolbar}</div>
-        <div className="p-3 text-sm text-zinc-600 dark:text-zinc-300">Unsupported block type: {(block as any).type}</div>
+        <div className="p-3 text-sm text-zinc-600 dark:text-zinc-300">Unsupported block type: {unknownBlock.type}</div>
       </div>
     );
   }
@@ -619,6 +668,7 @@ export function BlockRenderer({
     </>
   );
 }
+
 function toEmbedUrl(url: string): string | null {
   if (!url) return null;
   try {
@@ -656,24 +706,24 @@ function TableEditor({
 }) {
   const addRow = () => {
     const rows = [...block.rows, { id: nanoid(), cells: block.columns.map(() => ({ id: nanoid(), value: "" })) }];
-    onUpdate({ rows } as any);
+    onUpdate(makeBlockPatch({ rows }));
   };
   const addCol = () => {
     const colId = nanoid();
     const columns = [...block.columns, { id: colId, name: `Col ${block.columns.length + 1}` }];
     const rows = block.rows.map((r) => ({ ...r, cells: [...r.cells, { id: nanoid(), value: "" }] }));
-    onUpdate({ columns, rows } as any);
+    onUpdate(makeBlockPatch({ columns, rows }));
   };
   const delRow = (rowId: string) => {
     const rows = block.rows.filter((r) => r.id !== rowId);
-    onUpdate({ rows } as any);
+    onUpdate(makeBlockPatch({ rows }));
   };
   const delCol = (colId: string) => {
     const idx = block.columns.findIndex((c) => c.id === colId);
     if (idx < 0) return;
     const columns = block.columns.filter((c) => c.id !== colId);
     const rows = block.rows.map((r) => ({ ...r, cells: r.cells.filter((_, i) => i !== idx) }));
-    onUpdate({ columns, rows } as any);
+    onUpdate(makeBlockPatch({ columns, rows }));
   };
 
   return (
@@ -706,7 +756,7 @@ function TableEditor({
                       value={c.name}
                       onChange={(e) => {
                         const columns = block.columns.map((x) => (x.id === c.id ? { ...x, name: e.target.value } : x));
-                        onUpdate({ columns } as any);
+                        onUpdate(makeBlockPatch({ columns }));
                       }}
                       className="w-40 bg-transparent text-xs outline-none"
                     />
@@ -735,7 +785,7 @@ function TableEditor({
                             ? { ...x, cells: x.cells.map((cc, idx) => (idx === i ? { ...cc, value: e.target.value } : cc)) }
                             : x
                         );
-                        onUpdate({ rows } as any);
+                        onUpdate(makeBlockPatch({ rows }));
                       }}
                       className="w-56 rounded-md border border-zinc-200 bg-white px-2 py-1 text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
                     />

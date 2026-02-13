@@ -49,7 +49,7 @@ export const HealthDashboard: React.FC<HealthDashboardProps> = ({
     return () => clearInterval(interval);
   }, []);
 
-  const renderChart = (data: number[], color: string, maxVal: number = 100) => {
+  const renderChart = (data: number[], color: string, maxVal = 100) => {
     const width = 100;
     const height = 40;
     const points = data

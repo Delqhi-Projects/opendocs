@@ -38,7 +38,7 @@ export function AutomationCanvas({ automation, onChange, readOnly = false }: Aut
     id: n.id,
     type: 'automationNode',
     position: n.position,
-    data: { node: n as AutomationNode },
+    data: { node: n },
   }));
 
   const initialEdges: Edge[] = automation.edges.map(e => ({
@@ -61,8 +61,8 @@ export function AutomationCanvas({ automation, onChange, readOnly = false }: Aut
       
       const newEdge: Edge = {
         id: `e-${nanoid(8)}`,
-        source: params.source!,
-        target: params.target!,
+        source: params.source,
+        target: params.target,
         sourceHandle: params.sourceHandle,
         targetHandle: params.targetHandle,
         type: 'smoothstep',
@@ -72,8 +72,8 @@ export function AutomationCanvas({ automation, onChange, readOnly = false }: Aut
       
       const newAutomationEdge: AutomationEdge = {
         id: newEdge.id,
-        source: params.source!,
-        target: params.target!,
+        source: params.source,
+        target: params.target,
         sourceHandle: params.sourceHandle ?? undefined,
         targetHandle: params.targetHandle ?? undefined,
       };
@@ -88,7 +88,7 @@ export function AutomationCanvas({ automation, onChange, readOnly = false }: Aut
         return updated;
       });
     },
-    [readOnly, automation.edges, nodes, onChange]
+    [readOnly, automation.edges, nodes, onChange, setEdges]
   );
 
   const onNodeClick = useCallback((_: React.MouseEvent, node: Node) => {
@@ -137,7 +137,7 @@ export function AutomationCanvas({ automation, onChange, readOnly = false }: Aut
         return updated;
       });
     },
-    [edges, onChange]
+    [edges, onChange, setNodes]
   );
 
   const nodeTypes = {
@@ -213,6 +213,7 @@ export function AutomationCanvas({ automation, onChange, readOnly = false }: Aut
       
       {selectedNodeId && (
         <AutomationProperties
+          key={selectedNodeId}
           node={nodes.find(n => n.id === selectedNodeId)?.data.node as AutomationNode}
           onClose={() => setSelectedNodeId(null)}
           onUpdate={updateNodeConfig}

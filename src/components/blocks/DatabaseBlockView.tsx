@@ -3,6 +3,11 @@ import { nanoid } from "nanoid";
 import { Trash2, Zap, LayoutGrid, Table as TableIcon, Network, BotMessageSquare, Activity, Calendar, Image as ImageIcon } from "lucide-react";
 import { cn } from "@/utils/cn";
 import type { DatabaseBlock, DocBlock } from "@/types/docs";
+
+// Type-safe helper for database block updates
+function makeDatabasePatch(patch: Partial<Omit<DatabaseBlock, 'id' | 'type'>>): Partial<DocBlock> {
+  return patch as Partial<DocBlock>;
+}
 import type { DbProperty, DbRow } from "@/types/database";
 import { WorkflowBlockView } from "@/components/blocks/WorkflowBlockView";
 import { CalendarView } from "@/components/database/CalendarView";
@@ -56,14 +61,29 @@ export function DatabaseBlockView({
   onUpdate: (patch: Partial<DocBlock>) => void;
 }) {
   const data = block?.data;
-  if (!data) return <div className="p-4 text-xs text-zinc-500 italic">Database configuration missing.</div>;
-  
-  const views = data.views || [];
-  const activeView = views.find((v) => v.id === data.activeViewId) || views[0];
-  const remoteTable = data.remote?.tableName;
-  const provisioning = data.remote?.provisioning;
   const pending = useRef<Record<string, number>>({});
   const [rulesOpen, setRulesOpen] = useState(false);
+
+  const views = data?.views || [];
+  const activeView = views.find((v) => v.id === data?.activeViewId) || views[0];
+  const remoteTable = data?.remote?.tableName;
+  const provisioning = data?.remote?.provisioning;
+
+  const kanban = useMemo(() => {
+    if (!data || activeView?.type !== "kanban") return null;
+    const groupPropId = activeView.groupByPropertyId;
+    const prop = data.properties.find((p) => p.id === groupPropId);
+    if (prop?.type !== "select") return null;
+    const groups = prop.options.map((o) => ({ optionId: o.id, name: o.name, rows: [] as DbRow[] }));
+    for (const r of data.rows) {
+      const v = r.cells[groupPropId];
+      const g = groups.find((x) => x.optionId === v);
+      if (g) g.rows.push(r);
+    }
+    return { groupPropId, prop, groups };
+  }, [data, activeView]);
+
+  if (!data) return <div className="p-4 text-xs text-zinc-500 italic">Database configuration missing.</div>;
 
   const scheduleUpsert = (row: DbRow) => {
     if (!remoteTable) return;
@@ -76,10 +96,10 @@ export function DatabaseBlockView({
   };
 
   const setData = (next: DatabaseBlock["data"]) => {
-    onUpdate({ data: next } as any);
+    onUpdate(makeDatabasePatch({ data: next }));
   };
 
-  const addRow = async (initialCells?: Record<string, any>) => {
+  const addRow = async (initialCells?: Record<string, import("@/types/database").DbCellValue>) => {
     if (disabled) return;
     const rowId = nanoid();
     const row: DbRow = { id: rowId, cells: initialCells || {} };
@@ -108,7 +128,7 @@ export function DatabaseBlockView({
     }
   };
 
-  const updateCell = (rowId: string, propId: string, value: any) => {
+  const updateCell = (rowId: string, propId: string, value: import("@/types/database").DbCellValue) => {
     if (disabled) return;
     const rows = data.rows.map((r) => (r.id === rowId ? { ...r, cells: { ...r.cells, [propId]: value } } : r));
     const next = { ...data, rows };
@@ -123,7 +143,7 @@ export function DatabaseBlockView({
     const dbColumnName = uniqColumnName(data.properties, baseName);
     const prop: DbProperty = type === "select"
       ? { id: nanoid(), name: baseName, type: "select", dbColumnName, options: [{ id: nanoid(), name: "Option", color: "zinc" }] }
-      : ({ id: nanoid(), name: baseName, type, dbColumnName } as any);
+      : { id: nanoid(), name: baseName, type, dbColumnName };
     const next = { ...data, properties: [...data.properties, prop] };
     next.rows = next.rows.map((r) => ({ ...r, cells: { ...r.cells, [prop.id]: type === "checkbox" ? false : null } }));
     setData(next);
@@ -131,20 +151,6 @@ export function DatabaseBlockView({
       await ensureDbColumns({ tableName: remoteTable, columns: [{ name: dbColumnName, type }] });
     }
   };
-
-  const kanban = useMemo(() => {
-    if (!activeView || activeView.type !== "kanban") return null;
-    const groupPropId = activeView.groupByPropertyId;
-    const prop = data.properties.find((p) => p.id === groupPropId);
-    if (!prop || prop.type !== "select") return null;
-    const groups = prop.options.map((o) => ({ optionId: o.id, name: o.name, rows: [] as DbRow[] }));
-    for (const r of data.rows) {
-      const v = r.cells[groupPropId];
-      const g = groups.find((x) => x.optionId === v);
-      if (g) g.rows.push(r);
-    }
-    return { groupPropId, prop, groups };
-  }, [activeView, data.properties, data.rows]);
 
   return (
     <div className="space-y-3 text-zinc-900 dark:text-zinc-100 font-sans">
@@ -160,6 +166,7 @@ export function DatabaseBlockView({
           <div className="flex items-center rounded-md border border-zinc-200 bg-white p-0.5 dark:border-zinc-800 dark:bg-zinc-900">
             {data?.views?.map((v) => (
               <button
+                type="button"
                 key={v.id}
                 disabled={disabled}
                 onClick={() => setData({ ...data, activeViewId: v.id })}
@@ -194,12 +201,14 @@ export function DatabaseBlockView({
           {!disabled && (
             <>
               <button
+                type="button"
                 className="rounded-md border border-zinc-200 bg-white px-2 py-1 text-xs text-zinc-700 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-200 dark:hover:bg-zinc-900 shadow-sm"
                 onClick={() => void addRow()}
               >
                 + Row
               </button>
               <button
+                type="button"
                 className="rounded-md border border-zinc-200 bg-white px-2 py-1 text-xs text-zinc-700 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-200 dark:hover:bg-zinc-900 shadow-sm"
                 onClick={() => setRulesOpen(true)}
                 title="Database Automations"
@@ -245,10 +254,11 @@ export function DatabaseBlockView({
               }
             }}
             disabled={disabled}
-            onUpdate={(patch: any) => {
-              if (patch.data?.nodes) {
+            onUpdate={(patch: Partial<DocBlock>) => {
+              const workflowPatch = patch as { data?: { nodes?: Array<{ id: string; x: number; y: number; color?: string }> } };
+              if (workflowPatch.data?.nodes) {
                 const nextRows = data.rows.map((r) => {
-                  const node = patch.data.nodes.find((n: any) => n.id === r.id);
+                  const node = workflowPatch.data!.nodes!.find((n) => n.id === r.id);
                   if (node) return { ...r, x_pos: node.x, y_pos: node.y, color: node.color ?? r.color };
                   return r;
                 });
@@ -292,8 +302,9 @@ export function DatabaseBlockView({
                         className="flex-1 bg-transparent text-sm font-medium text-zinc-900 outline-none dark:text-zinc-100"
                       />
                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                         <button className="rounded-md p-1 text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100" onClick={() => {}} title="Mini AI Chat"><BotMessageSquare className="h-3 w-3" /></button>
-                        {!disabled && <button className="rounded-md p-1 text-zinc-400 hover:text-red-500" onClick={() => void deleteRow(r.id)} title="Delete item"><Trash2 className="h-3 w-3" /></button>}
+                         <button
+                type="button" className="rounded-md p-1 text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100" onClick={() => {}} title="Mini AI Chat"><BotMessageSquare className="h-3 w-3" /></button>
+                         {!disabled && <button type="button" className="rounded-md p-1 text-zinc-400 hover:text-red-500" onClick={() => void deleteRow(r.id)} title="Delete item"><Trash2 className="h-3 w-3" /></button>}
                       </div>
                     </div>
                     <div className="flex flex-wrap gap-1">
@@ -305,7 +316,7 @@ export function DatabaseBlockView({
                     </div>
                   </div>
                 ))}
-                {!disabled && <button onClick={() => addRow()} className="w-full py-2 rounded-md border border-dashed border-zinc-200 dark:border-zinc-800 text-[10px] text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-900/50 transition-colors">+ Add card</button>}
+                {!disabled && <button type="button" onClick={() => addRow()} className="w-full py-2 rounded-md border border-dashed border-zinc-200 dark:border-zinc-800 text-[10px] text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-900/50 transition-colors">+ Add card</button>}
               </div>
             </div>
           ))}
@@ -333,7 +344,8 @@ export function DatabaseBlockView({
                   ))}
                   {!disabled && (
                     <td className="border-b border-zinc-100 px-3 py-2 dark:border-zinc-900 w-10">
-                      <button className="rounded-md p-1 text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => void deleteRow(r.id)} title="Delete row"><Trash2 className="h-3.5 w-3.5" /></button>
+                      <button
+                type="button" className="rounded-md p-1 text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => void deleteRow(r.id)} title="Delete row"><Trash2 className="h-3.5 w-3.5" /></button>
                     </td>
                   )}
                 </tr>
@@ -347,8 +359,8 @@ export function DatabaseBlockView({
   );
 }
 
-function DbCell({ prop, value, disabled, onChange }: { prop: DbProperty; value: any; disabled: boolean; onChange: (v: any) => void; }) {
-  if (prop.type === "checkbox") return <div className="flex justify-center w-full"><input disabled={disabled} type="checkbox" checked={!!value} onChange={(e) => onChange(e.target.checked)} className="rounded text-indigo-600 focus:ring-indigo-500 h-4 w-4" /></div>;
+function DbCell({ prop, value, disabled, onChange }: { prop: DbProperty; value: import("@/types/database").DbCellValue; disabled: boolean; onChange: (v: import("@/types/database").DbCellValue) => void; }) {
+  if (prop.type === "checkbox") return <div className="flex justify-center w-full"><input disabled={disabled} type="checkbox" checked={Boolean(value)} onChange={(e) => onChange(e.target.checked)} className="rounded text-indigo-600 focus:ring-indigo-500 h-4 w-4" /></div>;
   if (prop.type === "select") return <select disabled={disabled} value={(typeof value === "string" ? value : "") || ""} onChange={(e) => onChange(e.target.value || null)} className="w-full bg-transparent text-sm text-zinc-800 dark:text-zinc-200 outline-none cursor-pointer"><option value="">—</option>{prop.options.map((o) => (<option key={o.id} value={o.id}>{o.name}</option>))}</select>;
   if (prop.type === "number") return <input disabled={disabled} type="number" value={typeof value === "number" ? value : value == null ? "" : String(value)} onChange={(e) => onChange(e.target.value === "" ? null : Number(e.target.value))} className="w-full bg-transparent text-sm text-zinc-900 outline-none dark:text-zinc-100" />;
   if (prop.type === "date") return <input disabled={disabled} type="datetime-local" value={typeof value === "string" ? value : ""} onChange={(e) => onChange(e.target.value || null)} className="w-full bg-transparent text-xs text-zinc-900 outline-none dark:text-zinc-100" />;

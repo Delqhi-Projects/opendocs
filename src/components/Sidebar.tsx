@@ -8,7 +8,7 @@ export function Sidebar() {
   const { state, actions } = useDocsStore();
   const [filter, setFilter] = useState("");
 
-  if (!state || !state.folders || !state.pages) {
+  if (!state?.folders || !state?.pages) {
     return <aside className="flex h-full w-[320px] flex-col border-r border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950 p-4 text-xs italic text-zinc-500">Initializing structure…</aside>;
   }
 
@@ -76,15 +76,15 @@ export function Sidebar() {
 
 function FolderNode({ folderId, depth, filter }: { folderId: string; depth: number; filter: string }) {
   const { state, actions } = useDocsStore();
+  const [showPicker, setShowPicker] = useState(false);
   
   // Defensive check for state existence
   if (!state.folders) return null;
   
   const folder = state.folders[folderId];
-  const [showPicker, setShowPicker] = useState(false);
   if (!folder) return null;
 
-  const expanded = state.expandedFolderIds[folderId] ?? false;
+  const expanded = state.expandedFolderIds.includes(folderId);
 
   return (
     <div className="relative">
@@ -143,12 +143,12 @@ function FolderNode({ folderId, depth, filter }: { folderId: string; depth: numb
 
 function PageNode({ pageId, depth, filter }: { pageId: string; depth: number; filter: string }) {
   const { state, actions } = useDocsStore();
+  const [showPicker, setShowPicker] = useState(false);
   
   // Defensive check for state existence
   if (!state.pages) return null;
   
   const page = state.pages[pageId];
-  const [showPicker, setShowPicker] = useState(false);
   if (!page) return null;
   
   if (filter && !page.title.toLowerCase().includes(filter)) return null;
@@ -160,10 +160,10 @@ function PageNode({ pageId, depth, filter }: { pageId: string; depth: number; fi
       <button
         onClick={() => actions.selectPage(pageId)}
         className={
-          "group flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-sm " +
-          (active
+          `group flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-sm ${ 
+          active
             ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-950/30 dark:text-indigo-200"
-            : "text-zinc-700 hover:bg-zinc-50 dark:text-zinc-200 dark:hover:bg-zinc-900")
+            : "text-zinc-700 hover:bg-zinc-50 dark:text-zinc-200 dark:hover:bg-zinc-900"}`
         }
         style={{ paddingLeft: 24 + depth * 12 }}
       >

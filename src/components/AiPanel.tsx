@@ -2,9 +2,9 @@ import { useMemo, useState } from "react";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { useDocsStore } from "@/store/useDocsStore";
-import { generateFromGitHub, generateFromTopic, generateFromWebsite } from "@/services/nvidia";
-import type { GeneratedDocs } from "@/services/nvidia";
+import { generateFromGitHub, generateFromTopic, generateFromWebsite, type GeneratedDocs } from "@/services/nvidia";
 import type { DocBlock, BlockType } from "@/types/docs";
+import { getErrorMessage } from "@/utils/blockHelpers";
 import { Minus, X } from "lucide-react";
 
 type Mode = "topic" | "github" | "website";
@@ -14,10 +14,15 @@ const ALLOWED: BlockType[] = [
   "checklist", "mermaid", "quote", "divider", "image", "video", "link", "file",
 ];
 
-function normalizeBlock(b: any): { type: BlockType; payload: Partial<DocBlock> } {
+interface AIGeneratedBlock {
+  type?: string;
+  [key: string]: unknown;
+}
+
+function normalizeBlock(b: AIGeneratedBlock): { type: BlockType; payload: Partial<DocBlock> } {
   const t = (b?.type || "paragraph") as BlockType;
   const type: BlockType = ALLOWED.includes(t) ? t : "paragraph";
-  return { type, payload: b };
+  return { type, payload: b as Partial<DocBlock> };
 }
 
 export function AiPanel({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -49,7 +54,7 @@ export function AiPanel({ open, onClose }: { open: boolean; onClose: () => void 
         for (const raw of page.blocks || []) {
           const { type, payload } = normalizeBlock(raw);
           const bid = actions.addBlockAfter(pageId, after, type);
-          actions.updateBlock(pageId, bid, payload as any);
+          actions.updateBlock(pageId, bid, payload);
           after = bid;
         }
       }
@@ -68,7 +73,7 @@ export function AiPanel({ open, onClose }: { open: boolean; onClose: () => void 
       await applyGenerated(gen);
       onClose();
     } catch (e) {
-      setError(String((e as any)?.message || e));
+      setError(getErrorMessage(e));
     } finally {
       setBusy(false);
     }

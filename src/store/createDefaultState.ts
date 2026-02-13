@@ -6,7 +6,7 @@ function now() {
 }
 
 function page(title: string, blocks: DocBlock[]): DocPage {
-  return { id: nanoid(), title, blocks, updatedAt: now() };
+  return { id: nanoid(), title, blocks, createdAt: now(), updatedAt: now() };
 }
 
 export function createDefaultState(): DocsState {
@@ -33,6 +33,7 @@ export function createDefaultState(): DocsState {
   const root: DocFolder = {
     id: rootFolderId,
     name: "OpenDocs",
+    children: [welcome.id],
     folderIds: [],
     pageIds: [welcome.id],
   };
@@ -44,7 +45,7 @@ export function createDefaultState(): DocsState {
     folders,
     pages,
     selectedPageId: welcome.id,
-    expandedFolderIds: { [rootFolderId]: true },
+    expandedFolderIds: [rootFolderId],
     theme: "light",
   };
 }

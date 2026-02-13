@@ -4,6 +4,7 @@ import { createHash } from 'crypto';
 interface CDPConnection {
   ws: WebSocket;
   id: number;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   pending: Map<number, (result: any) => void>;
 }
 
@@ -57,6 +58,7 @@ export class HighPerformanceCaptchaSolver {
     });
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private async sendCDP(connId: string, method: string, params?: any): Promise<any> {
     const conn = this.connections.get(connId);
     if (!conn) throw new Error(`Connection ${connId} not found`);
@@ -164,7 +166,7 @@ export class HighPerformanceCaptchaSolver {
     return "unknown";
   }
 
-  private async analyzeImageWithAI(imageData: Buffer): Promise<string> {
+  private async analyzeImageWithAI(_imageData: Buffer): Promise<string> {
     // In production: Call Mistral API or Ollama for vision analysis
     // For now, return placeholder
     return "ABCD1234";

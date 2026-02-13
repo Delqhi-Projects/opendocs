@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import type { DatabaseBlock } from "@/types/docs";
+import type { DbCellValue } from "@/types/database";
 import { ChevronLeft, ChevronRight, Plus, Calendar } from "lucide-react";
 import { cn } from "@/utils/cn";
 
@@ -11,8 +12,8 @@ export function CalendarView({
 }: {
   data: DatabaseBlock["data"];
   disabled: boolean;
-  addRow: (initialCells?: Record<string, any>) => void;
-  updateCell: (rowId: string, propId: string, value: any) => void;
+  addRow: (initialCells?: Record<string, DbCellValue>) => void;
+  updateCell: (rowId: string, propId: string, value: DbCellValue) => void;
 }) {
   const dateProp = useMemo(() => {
     return data.properties.find((p) => p.type === "date") || data.properties[0];
@@ -54,7 +55,7 @@ export function CalendarView({
   }, [currentDate]);
 
   const onAddForDate = (d: Date) => {
-    if (disabled || !dateProp || !dateProp.id) return;
+    if (disabled || !dateProp?.id) return;
     const iso = d.toISOString().slice(0, 16);
     addRow({ [dateProp.id]: iso });
   };

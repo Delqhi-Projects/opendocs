@@ -1,5 +1,15 @@
 import { useEffect, useRef } from 'react';
 
+// Type definitions for Web Performance APIs - Best Practices 2026
+interface LayoutShiftEntry extends PerformanceEntry {
+  value: number;
+  hadRecentInput: boolean;
+}
+
+interface EventTimingEntry extends PerformanceEntry {
+  processingStart: number;
+}
+
 export interface PerformanceMetrics {
   fcp: number;
   lcp: number;
@@ -25,23 +35,29 @@ export function usePerformanceMonitor() {
               metricsRef.current.lcp = entry.startTime;
             }
             break;
-          case 'first-input':
-            metricsRef.current.fid = (entry as PerformanceEventTiming).processingStart - entry.startTime;
+          case 'first-input': {
+            const eventEntry = entry as EventTimingEntry;
+            metricsRef.current.fid = eventEntry.processingStart - eventEntry.startTime;
             break;
-          case 'layout-shift':
-            if (!(entry as any).hadRecentInput) {
-              metricsRef.current.cls = (metricsRef.current.cls || 0) + (entry as any).value;
+          }
+          case 'layout-shift': {
+            const layoutEntry = entry as LayoutShiftEntry;
+            if (!layoutEntry.hadRecentInput) {
+              metricsRef.current.cls = (metricsRef.current.cls ?? 0) + layoutEntry.value;
             }
             break;
+          }
         }
       }
     });
 
     observer.observe({ entryTypes: ['web-vitals', 'first-input', 'layout-shift'] });
 
-    if (performance.timing) {
-      const timing = performance.timing;
-      metricsRef.current.ttfb = timing.responseStart - timing.requestStart;
+    // Use PerformanceNavigationTiming for modern browsers
+    const navigationEntries = performance.getEntriesByType('navigation');
+    if (navigationEntries.length > 0) {
+      const navEntry = navigationEntries[0] as PerformanceNavigationTiming;
+      metricsRef.current.ttfb = navEntry.responseStart - navEntry.requestStart;
     }
 
     return () => observer.disconnect();
@@ -50,16 +66,16 @@ export function usePerformanceMonitor() {
   return metricsRef;
 }
 
-export function reportWebVitals(metric: string, value: number) {
+export function reportWebVitals(metric: string, value: number): void {
   if (process.env.NODE_ENV === 'production') {
     console.log(`[Web Vitals] ${metric}: ${value}`);
   }
 }
 
-export function measureRenderTime(componentName: string) {
+export function measureRenderTime(componentName: string): () => void {
   const start = performance.now();
   
-  return function endRender() {
+  return function endRender(): void {
     const duration = performance.now() - start;
     if (duration > 16) {
       console.warn(`[Performance] ${componentName} render took ${duration.toFixed(2)}ms`);
@@ -67,17 +83,25 @@ export function measureRenderTime(componentName: string) {
   };
 }
 
-export function debounce<T extends (...args: any[]) => void>(fn: T, ms: number) {
-  let timeoutId: ReturnType<typeof setTimeout>;
-  return function (this: ThisParameterType<T>, ...args: Parameters<T>) {
-    clearTimeout(timeoutId);
+// Type-safe debounce implementation
+type AnyFunction = (...args: readonly unknown[]) => void;
+
+export function debounce<T extends AnyFunction>(fn: T, ms: number): (...args: Parameters<T>) => void {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  
+  return function debounced(this: ThisParameterType<T>, ...args: Parameters<T>): void {
+    if (timeoutId !== undefined) {
+      clearTimeout(timeoutId);
+    }
     timeoutId = setTimeout(() => fn.apply(this, args), ms);
   };
 }
 
-export function throttle<T extends (...args: any[]) => void>(fn: T, ms: number) {
+// Type-safe throttle implementation
+export function throttle<T extends AnyFunction>(fn: T, ms: number): (...args: Parameters<T>) => void {
   let lastTime = 0;
-  return function (this: ThisParameterType<T>, ...args: Parameters<T>) {
+  
+  return function throttled(this: ThisParameterType<T>, ...args: Parameters<T>): void {
     const now = Date.now();
     if (now - lastTime >= ms) {
       lastTime = now;

@@ -36,7 +36,7 @@ export class AutomationEngine {
     this.status = 'idle'
   }
 
-  async execute(triggerType: string = 'manual', triggerData: Record<string, unknown> = {}): Promise<ExecutionContext> {
+  async execute(triggerType = 'manual', triggerData: Record<string, unknown> = {}): Promise<ExecutionContext> {
     if (!this.automation) {
       throw new Error('No automation loaded')
     }

@@ -7,14 +7,24 @@ import {
   useNodesState,
   useEdgesState,
   addEdge,
-  Connection,
-  Edge,
-  Node,
   BackgroundVariant,
+  type Connection,
+  type Edge,
+  type Node,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 
 import type { WorkflowBlock, DocBlock } from "@/types/docs";
+
+// Type-safe helper for workflow block updates
+function makeWorkflowPatch(patch: Partial<Omit<WorkflowBlock, 'id' | 'type'>>): Partial<DocBlock> {
+  return patch as Partial<DocBlock>;
+}
+
+// Node data type for React Flow - must extend Record for React Flow compatibility
+interface WorkflowNodeData extends Record<string, unknown> {
+  label: string;
+}
 
 export function WorkflowBlockView({
   block,
@@ -32,9 +42,9 @@ export function WorkflowBlockView({
     data.nodes.map((n) => ({
       id: n.id,
       position: { x: n.x, y: n.y },
-      data: { label: n.label },
+      data: { label: n.label } as WorkflowNodeData,
       style: n.color ? { backgroundColor: n.color } : undefined,
-    })) as Node[]
+    }))
   );
 
   const [edges, setEdges, onEdgesChange] = useEdgesState(
@@ -43,71 +53,73 @@ export function WorkflowBlockView({
       source: e.source,
       target: e.target,
       label: e.label,
-    })) as Edge[]
+    }))
   );
 
   const onConnect = useCallback(
     (params: Connection) => {
-      const newEdge: Edge = { ...params, id: `e-${Date.now()}` };
-      setEdges((eds) => addEdge(newEdge, eds));
+      const newEdge = { ...params, id: `e-${Date.now()}` } as Edge;
+      setEdges((eds) => addEdge(newEdge, eds) as typeof eds);
 
       // Persist to store
-      onUpdate({
+      onUpdate(makeWorkflowPatch({
         data: {
           ...data,
           edges: [
             ...data.edges,
             {
-              id: newEdge.id,
+              id: newEdge.id ?? `edge-${Date.now()}`,
               source: newEdge.source,
               target: newEdge.target,
               label: "",
             },
           ],
         },
-      } as any);
+      }));
     },
     [data, onUpdate, setEdges]
   );
 
   const onSaveLayout = useCallback(() => {
-    onUpdate({
+    onUpdate(makeWorkflowPatch({
       data: {
         ...data,
-        nodes: nodes.map((n) => ({
-          id: n.id,
-          x: n.position.x,
-          y: n.position.y,
-          label: (n.data as any).label,
-          // @ts-ignore
-          color: n.style?.backgroundColor,
-        })),
+        nodes: nodes.map((n) => {
+          const nodeData = n.data;
+          return {
+            id: n.id,
+            x: n.position.x,
+            y: n.position.y,
+            label: nodeData.label,
+            color: n.style?.backgroundColor,
+          };
+        }),
         edges: edges.map((e) => ({
           id: e.id,
           source: e.source,
           target: e.target,
-          label: e.label as string,
+          label: e.label,
         })),
       },
-    } as any);
+    }));
   }, [data, edges, nodes, onUpdate]);
 
   const addNode = () => {
     if (disabled) return;
     const id = `node-${Date.now()}`;
-    const newNode: Node = {
+    const newNode = {
       id,
       position: { x: 100, y: 100 },
-      data: { label: "New Task" },
-    };
-    setNodes((nds) => [...nds, newNode]);
+      data: { label: "New Task" } as WorkflowNodeData,
+    } as Node;
+    setNodes((nds) => [...nds, newNode] as typeof nds);
     // The save will trigger on the next drag/interaction or manually here
-    onUpdate({
+    onUpdate(makeWorkflowPatch({
       data: {
         ...data,
         nodes: [...data.nodes, { id, x: 100, y: 100, label: "New Task" }],
       },
-    } as any);
+    }));
   };
 
   return (
@@ -116,12 +128,13 @@ export function WorkflowBlockView({
         <input
           disabled={disabled}
           value={data.title}
-          onChange={(e) => onUpdate({ data: { ...data, title: e.target.value } } as any)}
+          onChange={(e) => onUpdate(makeWorkflowPatch({ data: { ...data, title: e.target.value } }))}
           className="w-[260px] rounded-md border border-zinc-200 bg-white px-2 py-1 text-sm text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100 outline-none"
         />
         <div className="flex items-center gap-2">
           {!disabled && (
             <button
+              type="button"
               onClick={addNode}
               className="rounded-md bg-white px-2 py-1 text-xs font-medium text-zinc-700 shadow-sm border border-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-700 hover:bg-zinc-50"
             >

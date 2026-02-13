@@ -43,7 +43,7 @@ export const RightSidebarAIChat: React.FC<RightSidebarAIChatProps> = ({
       text: input,
       sender: "user",
       timestamp: new Date().toLocaleTimeString(),
-      context: context,
+      context,
     };
 
     setMessages((prev) => [...prev, userMsg]);
@@ -72,7 +72,7 @@ export const RightSidebarAIChat: React.FC<RightSidebarAIChatProps> = ({
           setIsThinking(false);
         }, 1500);
       }
-    } catch (error) {
+    } catch {
       const errorMsg: AIMessage = {
         id: (Date.now() + 1).toString(),
         text: "Error analyzing request.",

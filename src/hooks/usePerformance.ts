@@ -3,25 +3,32 @@ import { useEffect, useState, useCallback, useRef } from 'react'
 export function useIdle(timeout = 30000) {
   const [isIdle, setIsIdle] = useState(false)
   const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const mountedRef = useRef(false)
 
-  const reset = useCallback(() => {
-    setIsIdle(false)
+  const startTimer = useCallback(() => {
     if (timerRef.current) {
       clearTimeout(timerRef.current)
     }
     timerRef.current = setTimeout(() => setIsIdle(true), timeout)
   }, [timeout])
 
-  useEffect(() => {
-    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart']
+  const reset = useCallback(() => {
+    setIsIdle(false)
+    startTimer()
+  }, [startTimer])
 
+  useEffect(() => {
+    if (!mountedRef.current) {
+      mountedRef.current = true
+      startTimer()
+    }
+
+    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart']
     const handleEvent = () => reset()
 
     events.forEach(event => {
       window.addEventListener(event, handleEvent)
     })
-
-    reset()
 
     return () => {
       events.forEach(event => {
@@ -31,7 +38,7 @@ export function useIdle(timeout = 30000) {
         clearTimeout(timerRef.current)
       }
     }
-  }, [reset])
+  }, [reset, startTimer])
 
   return isIdle
 }
@@ -50,12 +57,14 @@ export function useDebounce<T>(value: T, delay: number): T {
 export function useThrottle<T extends (...args: unknown[]) => void>(callback: T, delay: number): T {
   const lastRanRef = useRef<number>(0)
 
-  return useCallback(((...args: Parameters<T>) => {
+  const throttled = useCallback((...args: Parameters<T>) => {
     if (Date.now() - lastRanRef.current >= delay) {
       callback(...args)
       lastRanRef.current = Date.now()
     }
-  }) as T, [callback, delay])
+  }, [callback, delay])
+
+  return throttled as T
 }
 
 export function useLocalStorage<T>(key: string, initialValue: T) {

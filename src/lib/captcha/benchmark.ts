@@ -47,7 +47,7 @@ export async function runCaptchaBenchmark(): Promise<BenchmarkResult[]> {
   
   for (const question of testQuestions) {
     const start = performance.now();
-    const result = await captchaSolver.solveTextCaptcha(question);
+    await captchaSolver.solveTextCaptcha(question);
     warmStartTimes.push(performance.now() - start);
   }
   

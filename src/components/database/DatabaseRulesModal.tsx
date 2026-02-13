@@ -4,6 +4,7 @@ import { Modal } from "@/components/ui/Modal";
 import { Zap, AlertCircle } from "lucide-react";
 import { createAutomationRule, installAutomations, syncAutomationRules } from "@/services/dbProvisioning";
 import { Button } from "@/components/ui/Button";
+import { getErrorMessage } from "@/utils/blockHelpers";
 
 export function DatabaseRulesModal({
   open,
@@ -50,7 +51,7 @@ export function DatabaseRulesModal({
       onClose();
       alert("Automation rule created and synced to database.");
     } catch (e) {
-      setError(String((e as any)?.message || e));
+      setError(getErrorMessage(e));
     } finally {
       setBusy(false);
     }

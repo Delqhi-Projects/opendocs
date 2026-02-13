@@ -170,6 +170,7 @@ export function useOnboardingTour() {
       const timer = setTimeout(() => setIsTourVisible(true), 1000);
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, []);
 
   const completeTour = () => setIsTourVisible(false);

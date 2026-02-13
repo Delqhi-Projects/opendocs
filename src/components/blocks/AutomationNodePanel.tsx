@@ -1,4 +1,4 @@
-import { Globe, Clock, Database, MousePointerClick, GitBranch, Split, Timer, Mail, Send, Zap, MessageCircle, X } from "lucide-react";
+import { Globe, Clock, Database, MousePointerClick, GitBranch, Split, Timer, Mail, Send, Zap, MessageCircle, X, type LucideIcon } from "lucide-react";
 import { AUTOMATION_NODE_DEFINITIONS } from "@/types/automation";
 
 interface AutomationNodePanelProps {
@@ -6,7 +6,7 @@ interface AutomationNodePanelProps {
   onClose: () => void;
 }
 
-const iconMap: Record<string, any> = {
+const iconMap: Record<string, LucideIcon> = {
   Globe, Clock, Database, MousePointerClick, GitBranch, Split, Timer, Mail, Send, Zap, MessageCircle,
 };
 

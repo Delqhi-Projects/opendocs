@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import mermaid from "mermaid";
+import DOMPurify from "dompurify";
 
 export function MermaidView({ code, dark }: { code: string; dark: boolean }) {
   const [svg, setSvg] = useState<string>("");
-
-  const id = useMemo(() => `mmd-${Math.random().toString(16).slice(2)}`, []);
+  const reactId = useId();
+  const id = `mmd-${reactId.replace(/:/g, "-")}`;
 
   useEffect(() => {
     mermaid.initialize({ startOnLoad: false, theme: dark ? "dark" : "default" });
@@ -22,5 +23,11 @@ export function MermaidView({ code, dark }: { code: string; dark: boolean }) {
     };
   }, [code, dark, id]);
 
-  return <div className="overflow-x-auto" dangerouslySetInnerHTML={{ __html: svg }} />;
+  return (
+    /* eslint-disable-next-line react/no-danger */
+    <div 
+      className="overflow-x-auto" 
+      dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(svg) }} 
+    />
+  );
 }

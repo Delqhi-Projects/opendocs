@@ -6,6 +6,7 @@ interface LazyLoadOptions {
   delay?: number;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function lazyLoad<T extends ComponentType<any>>(
   factory: () => Promise<{ default: T }>,
   options: LazyLoadOptions = {}
@@ -27,6 +28,7 @@ export function lazyLoad<T extends ComponentType<any>>(
   };
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function lazyLoadWithRetry<T extends ComponentType<any>>(
   factory: () => Promise<{ default: T }>,
   retries = 3

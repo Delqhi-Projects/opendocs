@@ -6,6 +6,7 @@ import { executeOpenDocsCommand } from "@/commands/executeCommand";
 import type { OpenDocsCommand } from "@/commands/commandTypes";
 import type { DocBlock } from "@/types/docs";
 import { Wand2, Zap, AlignLeft, ShieldCheck, Languages, Minus, ArrowRight, X } from "lucide-react";
+import { getErrorMessage } from "@/utils/blockHelpers";
 
 type Msg = { role: "user" | "assistant"; content: string; commands?: OpenDocsCommand[] };
 
@@ -124,12 +125,12 @@ export function BlockChatModal({
         setMsgs((m) => [...m, { role: "assistant", content: plan.reply, commands: plan.commands }]);
       } else {
         const reply = await nvidiaChatText(text, {
-          system: `You are OpenDocs. Answer based only on this block context.\n\nBlock type: ${(block as DocBlock).type}\nBlock summary:\n${context}`,
+          system: `You are OpenDocs. Answer based only on this block context.\n\nBlock type: ${(block).type}\nBlock summary:\n${context}`,
         });
         setMsgs((m) => [...m, { role: "assistant", content: reply }]);
       }
     } catch (e) {
-      setMsgs((m) => [...m, { role: "assistant", content: `Error: ${String((e as any)?.message || e)}` }]);
+      setMsgs((m) => [...m, { role: "assistant", content: `Error: ${getErrorMessage(e)}` }]);
     } finally {
       setBusy(false);
     }
@@ -201,10 +202,10 @@ export function BlockChatModal({
                 <div key={idx} className={m.role === "user" ? "text-right" : "text-left"}>
                   <div
                     className={
-                      "inline-block max-w-[92%] rounded-lg px-3 py-2 text-sm " +
-                      (m.role === "user"
+                      `inline-block max-w-[92%] rounded-lg px-3 py-2 text-sm ${ 
+                      m.role === "user"
                         ? "bg-indigo-600 text-white"
-                        : "bg-zinc-100 text-zinc-900 dark:bg-zinc-900 dark:text-zinc-100")
+                        : "bg-zinc-100 text-zinc-900 dark:bg-zinc-900 dark:text-zinc-100"}`
                     }
                   >
                     {m.content}
@@ -278,10 +279,10 @@ export function BlockChatModal({
                 <div key={idx} className={m.role === "user" ? "text-right" : "text-left"}>
                   <div
                     className={
-                      "inline-block max-w-[92%] rounded-lg px-3 py-2 text-sm " +
-                      (m.role === "user"
+                      `inline-block max-w-[92%] rounded-lg px-3 py-2 text-sm ${ 
+                      m.role === "user"
                         ? "bg-indigo-600 text-white"
-                        : "bg-zinc-100 text-zinc-900 dark:bg-zinc-900 dark:text-zinc-100")
+                        : "bg-zinc-100 text-zinc-900 dark:bg-zinc-900 dark:text-zinc-100"}`
                     }
                   >
                     {m.content}

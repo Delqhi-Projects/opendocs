@@ -47,7 +47,7 @@ export const CaptchaWidget: React.FC<CaptchaWidgetProps> = ({ onSolve }) => {
         setResult("X7K9P");
       }
       setStatus("success");
-    } catch (error) {
+    } catch {
       setStatus("error");
     }
   };

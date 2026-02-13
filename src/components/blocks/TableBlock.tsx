@@ -114,9 +114,9 @@ export const TableBlock: React.FC<TableBlockProps> = ({
         const bVal = b[sortColumn];
 
         if (aVal === null || aVal === undefined)
-          return sortDirection === "asc" ? -1 : 1;
+          {return sortDirection === "asc" ? -1 : 1;}
         if (bVal === null || bVal === undefined)
-          return sortDirection === "asc" ? 1 : -1;
+          {return sortDirection === "asc" ? 1 : -1;}
 
         if (typeof aVal === "number" && typeof bVal === "number") {
           return sortDirection === "asc" ? aVal - bVal : bVal - aVal;

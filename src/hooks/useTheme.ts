@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useMemo } from 'react'
 
 type Theme = 'light' | 'dark' | 'system'
 
@@ -11,22 +11,24 @@ interface UseThemeReturn {
 
 const STORAGE_KEY = 'opendocs-theme'
 
+function getSystemTheme(): 'light' | 'dark' {
+  if (typeof window === 'undefined') return 'light'
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+}
+
 export function useTheme(): UseThemeReturn {
   const [theme, setThemeState] = useState<Theme>(() => {
     if (typeof window === 'undefined') return 'system'
     return (localStorage.getItem(STORAGE_KEY) as Theme) ?? 'system'
   })
 
-  const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('light')
+  const resolvedTheme = useMemo<'light' | 'dark'>(() => {
+    return theme === 'system' ? getSystemTheme() : theme
+  }, [theme])
 
   useEffect(() => {
-    const root = document.documentElement
-    const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-
-    const resolved = theme === 'system' ? (systemDark ? 'dark' : 'light') : theme
-    setResolvedTheme(resolved)
-    root.setAttribute('data-theme', resolved)
-  }, [theme])
+    document.documentElement.setAttribute('data-theme', resolvedTheme)
+  }, [resolvedTheme])
 
   const setTheme = useCallback((newTheme: Theme) => {
     localStorage.setItem(STORAGE_KEY, newTheme)

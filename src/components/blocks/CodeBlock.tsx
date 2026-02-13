@@ -1,4 +1,5 @@
 import React, { useState, useRef } from "react";
+import DOMPurify from "dompurify";
 
 export interface CodeBlockProps {
   initialCode?: string;
@@ -143,6 +144,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
           </span>
         </div>
         <button
+          type="button"
           onClick={handleCopy}
           style={{
             background: "transparent",
@@ -233,7 +235,8 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
               pointerEvents: "none",
               overflow: "hidden",
             }}
-            dangerouslySetInnerHTML={{ __html: highlightCode(code) }}
+            /* eslint-disable-next-line react/no-danger */
+            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(highlightCode(code)) }}
           />
         </div>
       </div>

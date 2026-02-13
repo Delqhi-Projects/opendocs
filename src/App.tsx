@@ -34,7 +34,9 @@ export function App() {
   const [chatOpen, setChatOpen] = useState(false);
   const [auditOpen, setAuditOpen] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(() => {
+    return breakpoint !== "xs" && breakpoint !== "sm";
+  });
 
   const selectedTitle = useMemo(() => {
     if (!state.selectedPageId) return "";
@@ -81,15 +83,9 @@ export function App() {
 
   useEffect(() => {
     if (state.theme !== theme && theme !== "system") {
-      actions.setTheme(theme as "light" | "dark");
+      actions.setTheme(theme);
     }
-  }, [theme, actions]);
-
-  useEffect(() => {
-    if (breakpoint === "xs" || breakpoint === "sm") {
-      setSidebarOpen(false);
-    }
-  }, [breakpoint]);
+  }, [theme, actions, state.theme]);
 
   return (
     <ErrorBoundary>

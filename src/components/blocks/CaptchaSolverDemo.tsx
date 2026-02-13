@@ -26,7 +26,6 @@ export function CaptchaSolverDemo() {
 
   const solveCaptcha = useCallback(async (question: string) => {
     setIsSolving(true);
-    const start = performance.now();
     
     try {
       const result = await captchaSolver.solveTextCaptcha(question);
@@ -43,7 +42,7 @@ export function CaptchaSolverDemo() {
       if (result.success) {
         toast.success(`Captcha solved in ${result.duration.toFixed(0)}ms!`);
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to solve captcha');
     } finally {
       setIsSolving(false);

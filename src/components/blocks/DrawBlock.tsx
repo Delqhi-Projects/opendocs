@@ -14,8 +14,8 @@ export const DrawBlock: React.FC<DrawBlockProps> = ({
   onSave,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const contextRef = useRef<CanvasRenderingContext2D | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
-  const [context, setContext] = useState<CanvasRenderingContext2D | null>(null);
   const [tool, setTool] = useState<Tool>("pen");
   const [color, setColor] = useState("#00ff9d");
   const [lineWidth, setLineWidth] = useState(2);
@@ -30,17 +30,18 @@ export const DrawBlock: React.FC<DrawBlockProps> = ({
       if (ctx) {
         ctx.lineCap = "round";
         ctx.lineJoin = "round";
-        setContext(ctx);
+        contextRef.current = ctx;
       }
     }
   }, []);
 
   useEffect(() => {
+    const context = contextRef.current;
     if (context) {
       context.strokeStyle = tool === "eraser" ? "#000000" : color;
       context.lineWidth = tool === "eraser" ? lineWidth * 5 : lineWidth;
     }
-  }, [context, tool, color, lineWidth]);
+  }, [tool, color, lineWidth]);
 
   const getMousePos = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (!canvasRef.current) return { x: 0, y: 0 };
@@ -52,6 +53,7 @@ export const DrawBlock: React.FC<DrawBlockProps> = ({
   };
 
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const context = contextRef.current;
     if (!context || !canvasRef.current) return;
     const { x, y } = getMousePos(e);
     setStartPos({ x, y });
@@ -73,6 +75,7 @@ export const DrawBlock: React.FC<DrawBlockProps> = ({
   };
 
   const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const context = contextRef.current;
     if (!isDrawing || !context || !canvasRef.current || !startPos) return;
     const { x, y } = getMousePos(e);
 
@@ -97,6 +100,7 @@ export const DrawBlock: React.FC<DrawBlockProps> = ({
   };
 
   const stopDrawing = () => {
+    const context = contextRef.current;
     if (context) {
       context.closePath();
       setIsDrawing(false);
@@ -106,6 +110,7 @@ export const DrawBlock: React.FC<DrawBlockProps> = ({
   };
 
   const clearCanvas = () => {
+    const context = contextRef.current;
     if (context && canvasRef.current) {
       context.fillStyle = "#000000";
       context.fillRect(0, 0, canvasRef.current.width, canvasRef.current.height);

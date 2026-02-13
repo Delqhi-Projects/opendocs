@@ -4,6 +4,8 @@ import type { AiPromptBlock } from "@/types/docs";
 import { agentPlan } from "@/services/nvidia";
 import { executeOpenDocsCommand } from "@/commands/executeCommand";
 import { Button } from "@/components/ui/Button";
+import { getErrorMessage } from "@/utils/blockHelpers";
+import type { OpenDocsCommand } from "@/commands/commandTypes";
 
 export function AiPromptBlockView({
   pageId,
@@ -34,9 +36,13 @@ export function AiPromptBlockView({
 
       if (plan.commands && plan.commands.length > 0) {
         for (const cmd of plan.commands) {
-          const safeCmd = { ...cmd } as any;
-          if (safeCmd.pageId === undefined) safeCmd.pageId = pageId;
-          await executeOpenDocsCommand(safeCmd);
+          // Only add pageId if the command type supports it
+          if ('pageId' in cmd) {
+            const commandWithPageId = { ...cmd, pageId: cmd.pageId ?? pageId } as OpenDocsCommand;
+            await executeOpenDocsCommand(commandWithPageId);
+          } else {
+            await executeOpenDocsCommand(cmd);
+          }
         }
         // If the AI didn't delete the prompt block itself, we do it here.
         onDelete();
@@ -44,7 +50,7 @@ export function AiPromptBlockView({
         setError("AI couldn't generate a valid block for this prompt. Try being more specific.");
       }
     } catch (e) {
-      setError(String((e as any)?.message || e));
+      setError(getErrorMessage(e));
     } finally {
       setBusy(false);
     }

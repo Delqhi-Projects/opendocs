@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback } from 'react'
 
 interface UseHistoryReturn<T> {
   state: T
@@ -11,14 +11,9 @@ interface UseHistoryReturn<T> {
   clear: () => void
 }
 
-export function useHistory<T>(initialState: T, maxHistory: number = 50): UseHistoryReturn<T> {
-  const [history, setHistory] = useState<T[]>([initialState])
+export function useHistory<T>(initialState: T, maxHistory = 50): UseHistoryReturn<T> {
+  const [history, setHistory] = useState<T[]>(() => [initialState])
   const [index, setIndex] = useState(0)
-
-  useEffect(() => {
-    setHistory([initialState])
-    setIndex(0)
-  }, [initialState])
 
   const setState = useCallback((newState: T | ((prev: T) => T)) => {
     setHistory(prev => {

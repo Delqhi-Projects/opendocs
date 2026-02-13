@@ -3,10 +3,11 @@ import type { BlockType } from "@/types/docs";
 import { 
   Heading1, Heading2, Heading3, Type, Code, Table, Database, 
   Network, PencilLine, ListChecks, Info, Activity, Image, 
-  Video, Link, Quote, Minus, File, Sparkles, Zap
+  Video, Link, Quote, Minus, File, Sparkles, Zap,
+  type LucideIcon
 } from "lucide-react";
 
-const ITEMS: { type: BlockType; label: string; hint: string; icon: any }[] = [
+const ITEMS: { type: BlockType; label: string; hint: string; icon: LucideIcon }[] = [
   { type: "heading1", label: "Heading 1", hint: "Big title", icon: Heading1 },
   { type: "heading2", label: "Heading 2", hint: "Section", icon: Heading2 },
   { type: "heading3", label: "Heading 3", hint: "Subsection", icon: Heading3 },

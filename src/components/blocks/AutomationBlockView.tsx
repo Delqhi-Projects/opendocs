@@ -31,7 +31,12 @@ const nodeTypes = {
   action: ActionNode,
 };
 
-function TriggerNode({ data, selected }: { data: any; selected?: boolean }) {
+interface NodeData {
+  label: string;
+  config?: Record<string, unknown>;
+}
+
+function TriggerNode({ data, selected }: { data: NodeData; selected?: boolean }) {
   return (
     <div className={`px-4 py-2 rounded-lg border-2 ${selected ? "border-blue-500" : "border-blue-400"} bg-blue-50 dark:bg-blue-950/30`}>
       <div className="text-xs font-bold text-blue-600 uppercase tracking-tight">Trigger</div>
@@ -40,7 +45,7 @@ function TriggerNode({ data, selected }: { data: any; selected?: boolean }) {
   );
 }
 
-function LogicNode({ data, selected }: { data: any; selected?: boolean }) {
+function LogicNode({ data, selected }: { data: NodeData; selected?: boolean }) {
   return (
     <div className={`px-4 py-2 rounded-lg border-2 ${selected ? "border-indigo-500" : "border-indigo-400"} bg-indigo-50 dark:bg-indigo-950/30`}>
       <div className="text-xs font-bold text-indigo-600 uppercase tracking-tight">Logic</div>
@@ -49,7 +54,7 @@ function LogicNode({ data, selected }: { data: any; selected?: boolean }) {
   );
 }
 
-function ActionNode({ data, selected }: { data: any; selected?: boolean }) {
+function ActionNode({ data, selected }: { data: NodeData; selected?: boolean }) {
   return (
     <div className={`px-4 py-2 rounded-lg border-2 ${selected ? "border-pink-500" : "border-pink-400"} bg-pink-50 dark:bg-pink-950/30`}>
       <div className="text-xs font-bold text-pink-600 uppercase tracking-tight">Action</div>
@@ -85,8 +90,8 @@ export function AutomationBlockView({ automation, onUpdate, disabled }: Automati
       if (disabled) return;
       const edge: Edge = { 
         id: nanoid(),
-        source: connection.source!,
-        target: connection.target!,
+        source: connection.source,
+        target: connection.target,
         sourceHandle: connection.sourceHandle ?? undefined,
         targetHandle: connection.targetHandle ?? undefined,
       };

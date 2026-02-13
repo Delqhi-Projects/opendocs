@@ -76,7 +76,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
           setIsTyping(false);
         }, 1000);
       }
-    } catch (error) {
+    } catch {
       const errorMsg: Message = {
         id: (Date.now() + 1).toString(),
         text: "Error processing command.",

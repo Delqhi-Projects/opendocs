@@ -1,8 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import type { AutomationNode } from '@/types/automation';
-import { AUTOMATION_NODE_DEFINITIONS } from '@/types/automation';
+import { useState } from 'react';
+import { type AutomationNode, AUTOMATION_NODE_DEFINITIONS } from '@/types/automation';
 import { propertiesStyles } from './AutomationCanvas.styles';
 
 interface AutomationPropertiesProps {
@@ -13,13 +12,8 @@ interface AutomationPropertiesProps {
 
 export function AutomationProperties({ node, onClose, onUpdate }: AutomationPropertiesProps) {
   const definition = AUTOMATION_NODE_DEFINITIONS[node.subtype];
-  const [config, setConfig] = useState<Record<string, unknown>>(node.data.config || {});
-  const [label, setLabel] = useState(node.data.label);
-
-  useEffect(() => {
-    setConfig(node.data.config || {});
-    setLabel(node.data.label);
-  }, [node]);
+  const [config, setConfig] = useState<Record<string, unknown>>(() => node.data.config || {});
+  const [label, setLabel] = useState(() => node.data.label);
 
   const handleChange = (key: string, value: unknown) => {
     const newConfig = { ...config, [key]: value };

@@ -3,8 +3,9 @@ import { useDocsStore } from "@/store/useDocsStore";
 import { BlockRenderer } from "@/components/blocks/BlockRenderer";
 import { SlashMenu } from "@/components/SlashMenu";
 import { PageHeader } from "@/components/PageHeader";
-import type { BlockType, DocBlock } from "@/types/docs";
+import type { BlockType, DocBlock, HeadingBlock } from "@/types/docs";
 import { Sparkles, Grid3X3 } from "lucide-react";
+import { hasConvertToDatabaseMarker, isValidBlockType } from "@/utils/blockHelpers";
 import {
   DndContext,
   closestCenter,
@@ -12,7 +13,7 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
-  DragEndEvent,
+  type DragEndEvent,
 } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -114,8 +115,7 @@ export function Editor() {
                               dark={dark}
                               dragId={b.id}
                               onUpdate={(patch) => {
-                                const anyPatch = patch as any;
-                                if (anyPatch?.__convertToDatabase) {
+                                if (hasConvertToDatabaseMarker(patch)) {
                                   actions.convertTableToDatabase(page.id, b.id);
                                   return;
                                 }
@@ -128,8 +128,8 @@ export function Editor() {
                               onAddBlock={(type) => {
                                 if (type === "grid") {
                                   actions.addBlockAfter(page.id, b.id, "paragraph", { layout: "grid" });
-                                } else {
-                                  actions.addBlockAfter(page.id, b.id, type as BlockType);
+                                } else if (isValidBlockType(type)) {
+                                  actions.addBlockAfter(page.id, b.id, type);
                                 }
                               }}
                             />
@@ -138,7 +138,7 @@ export function Editor() {
                                 onClose={() => setSlashBlockId(null)}
                                 onSelect={(t: BlockType) => {
                                   const id = actions.addBlockAfter(page.id, b.id, t);
-                                  if (t === "heading2") actions.updateBlock(page.id, id, { text: "New section" } as any);
+                                  if (t === "heading2") actions.updateBlock(page.id, id, { text: "New section" } as Partial<HeadingBlock>);
                                   setSlashBlockId(null);
                                 }}
                               />
@@ -159,8 +159,7 @@ export function Editor() {
                         dark={dark}
                         dragId={b.id}
                         onUpdate={(patch) => {
-                          const anyPatch = patch as any;
-                          if (anyPatch?.__convertToDatabase) {
+                          if (hasConvertToDatabaseMarker(patch)) {
                             actions.convertTableToDatabase(page.id, b.id);
                             return;
                           }
@@ -173,8 +172,8 @@ export function Editor() {
                         onAddBlock={(type) => {
                           if (type === "grid") {
                             actions.addBlockAfter(page.id, b.id, "paragraph", { layout: "grid" });
-                          } else {
-                            actions.addBlockAfter(page.id, b.id, type as BlockType);
+                          } else if (isValidBlockType(type)) {
+                            actions.addBlockAfter(page.id, b.id, type);
                           }
                         }}
                       />
@@ -183,7 +182,7 @@ export function Editor() {
                           onClose={() => setSlashBlockId(null)}
                           onSelect={(t: BlockType) => {
                             const id = actions.addBlockAfter(page.id, b.id, t);
-                            if (t === "heading2") actions.updateBlock(page.id, id, { text: "New section" } as any);
+                            if (t === "heading2") actions.updateBlock(page.id, id, { text: "New section" } as Partial<HeadingBlock>);
                             setSlashBlockId(null);
                           }}
                         />

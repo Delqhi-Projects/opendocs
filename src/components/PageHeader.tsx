@@ -11,7 +11,7 @@ export function PageHeader() {
 
   if (!page) return null;
 
-  const hasCover = !!page.cover;
+  const hasCover = Boolean(page.cover);
 
   return (
     <div className="group relative mb-8">

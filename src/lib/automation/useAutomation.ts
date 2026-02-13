@@ -31,7 +31,7 @@ export function useAutomation(automation: Automation | null, options: UseAutomat
           break
         case 'node_complete':
           setCurrentNode(null)
-          options.onNodeComplete?.(event.nodeId!, event.output!)
+          options.onNodeComplete?.(event.nodeId!, event.output)
           break
         case 'node_error':
           setCurrentNode(null)
@@ -54,7 +54,7 @@ export function useAutomation(automation: Automation | null, options: UseAutomat
     }
   }, [automation, options])
 
-  const execute = useCallback(async (triggerType: string = 'manual', triggerData: Record<string, unknown> = {}) => {
+  const execute = useCallback(async (triggerType = 'manual', triggerData: Record<string, unknown> = {}) => {
     if (!engineRef.current) return null
 
     setStatus('running')

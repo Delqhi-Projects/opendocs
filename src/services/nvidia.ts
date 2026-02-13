@@ -1,6 +1,15 @@
-import type { DocBlock, BlockType } from "@/types/docs";
+import type { DocBlock, BlockType, HeadingBlock, ParagraphBlock } from "@/types/docs";
 import { postJson } from "@/services/apiClient";
 import type { OpenDocsCommand } from "@/commands/commandTypes";
+
+// Type-safe block factory functions
+function createHeadingBlock(text: string): Partial<HeadingBlock> {
+  return { type: "heading1" as const, text };
+}
+
+function createParagraphBlock(text: string): Partial<ParagraphBlock> {
+  return { type: "paragraph" as const, text };
+}
 
 export type GeneratedDocs = {
   rootName?: string;
@@ -49,7 +58,7 @@ export async function nvidiaChatText(prompt: string, opts?: { system?: string; t
 }
 
 function docsSystem(language: string, depth: "simple" | "standard" | "deep") {
-  return `You are OpenDocs. Create ultra-simple documentation best practices Feb 2026.\n\nOutput STRICT JSON only.\nSchema:\n{\n  \"rootName\": string,\n  \"folders\": [{\n    \"name\": string,\n    \"pages\": [{\n      \"title\": string,\n      \"blocks\": [{ \"type\": \"heading1\"|\"heading2\"|\"heading3\"|\"paragraph\"|\"code\"|\"table\"|\"callout\"|\"checklist\"|\"mermaid\"|\"quote\"|\"divider\"|\"image\"|\"video\"|\"link\"|\"file\", ... }]\n    }]\n  }]\n}\n\nRules:\n- Language: ${language}\n- Depth: ${depth}\n- Prefer few blocks, no overload.\n- Provide safe, correct links.\n- Include at least: Overview, Setup, Step-by-step, Troubleshooting, Best Practices 2026.\n`;
+  return `You are OpenDocs. Create ultra-simple documentation best practices Feb 2026.\n\nOutput STRICT JSON only.\nSchema:\n{\n  "rootName": string,\n  "folders": [{\n    "name": string,\n    "pages": [{\n      "title": string,\n      "blocks": [{ "type": "heading1"|"heading2"|"heading3"|"paragraph"|"code"|"table"|"callout"|"checklist"|"mermaid"|"quote"|"divider"|"image"|"video"|"link"|"file", ... }]\n    }]\n  }]\n}\n\nRules:\n- Language: ${language}\n- Depth: ${depth}\n- Prefer few blocks, no overload.\n- Provide safe, correct links.\n- Include at least: Overview, Setup, Step-by-step, Troubleshooting, Best Practices 2026.\n`;
 }
 
 export async function generateFromTopic(topic: string, opts?: { language?: string; depth?: "simple" | "standard" | "deep" }): Promise<GeneratedDocs> {
@@ -69,8 +78,8 @@ export async function generateFromTopic(topic: string, opts?: { language?: strin
           {
             title: `Guide: ${topic}`,
             blocks: [
-              { type: "heading1", text: `Guide: ${topic}` } as any,
-              { type: "paragraph", text: content } as any,
+              createHeadingBlock(`Guide: ${topic}`),
+              createParagraphBlock(content),
             ],
           },
         ],
@@ -86,7 +95,7 @@ export async function generateFromGitHub(url: string): Promise<GeneratedDocs> {
   if (parsed?.folders?.length) return parsed;
   return {
     rootName: "GitHub Repo",
-    folders: [{ name: "Repo", pages: [{ title: "Overview", blocks: [{ type: "paragraph", text: content } as any] }] }],
+    folders: [{ name: "Repo", pages: [{ title: "Overview", blocks: [createParagraphBlock(content)] }] }],
   };
 }
 
@@ -97,7 +106,7 @@ export async function generateFromWebsite(url: string): Promise<GeneratedDocs> {
   if (parsed?.folders?.length) return parsed;
   return {
     rootName: "Website",
-    folders: [{ name: "Website", pages: [{ title: "Summary", blocks: [{ type: "paragraph", text: content } as any] }] }],
+    folders: [{ name: "Website", pages: [{ title: "Summary", blocks: [createParagraphBlock(content)] }] }],
   };
 }
 

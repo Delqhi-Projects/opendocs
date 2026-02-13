@@ -24,8 +24,14 @@ export type BlockType =
 
 import type { DatabaseBlockData } from "@/types/database";
 import type { N8nBlockData } from "@/types/n8n";
+import type { DocIcon } from "@/types/icons";
 
 export type CalloutTone = "info" | "success" | "warning" | "error" | "tip";
+
+// Re-export commonly used types
+export type { N8nBlockData } from "@/types/n8n";
+export type { DatabaseBlockData } from "@/types/database";
+export type { DocIcon } from "@/types/icons";
 
 export type DocBlockBase = {
   id: string;
@@ -45,7 +51,16 @@ export type ImageBlock = DocBlockBase & { type: "image"; url: string; alt?: stri
 export type VideoBlock = DocBlockBase & { type: "video"; url: string; caption?: string };
 export type LinkBlock = DocBlockBase & { type: "link"; url: string; title?: string; description?: string };
 export type FileBlock = DocBlockBase & { type: "file"; name: string; url?: string };
-export type AiPromptBlock = DocBlockBase & { type: "aiPrompt"; prompt: string; result?: any };
+export type AiPromptResult = 
+  | { status: "pending" }
+  | { status: "success"; content: string }
+  | { status: "error"; message: string };
+
+export type AiPromptBlock = DocBlockBase & { 
+  type: "aiPrompt"; 
+  prompt: string; 
+  result?: AiPromptResult;
+};
 
 export type ChecklistItem = { id: string; text: string; checked: boolean };
 export type ChecklistBlock = DocBlockBase & { type: "checklist"; items: ChecklistItem[] };
@@ -72,12 +87,17 @@ export type WorkflowBlock = DocBlockBase & {
   };
 };
 
+// Excalidraw types - using Record for flexibility while maintaining type safety
+export type ExcalidrawElement = Record<string, unknown>;
+export type ExcalidrawAppState = Record<string, unknown>;
+export type ExcalidrawFiles = Record<string, unknown>;
+
 export type DrawBlock = DocBlockBase & {
   type: "draw";
   data: {
-    elements: any[];
-    appState: any;
-    files: any;
+    elements: ExcalidrawElement[];
+    appState: ExcalidrawAppState;
+    files: ExcalidrawFiles;
   };
 };
 
@@ -86,43 +106,62 @@ export type N8nBlock = DocBlockBase & {
   data: N8nBlockData;
 };
 
-export type CalloutBlock = DocBlockBase & { type: "callout"; tone: CalloutTone; title?: string; text: string };
-export type MermaidBlock = DocBlockBase & { type: "mermaid"; code: string };
-export type HorizontalBlock = DocBlockBase & { type: "horizontal"; blocks: DocBlock[] };
+export type CalloutBlock = DocBlockBase & {
+  type: "callout";
+  text: string;
+  title?: string;
+  tone: CalloutTone;
+};
 
-import type { Automation } from "./automation";
-export type AutomationBlock = DocBlockBase & { type: "automation"; automation: Automation };
+export type MermaidBlock = DocBlockBase & {
+  type: "mermaid";
+  code: string;
+  caption?: string;
+};
 
-export type DocBlock =
-  | HeadingBlock
-  | ParagraphBlock
-  | CodeBlock
-  | TableBlock
-  | DatabaseBlock
-  | WorkflowBlock
+export type HorizontalBlock = DocBlockBase & {
+  type: "horizontal";
+  blocks: DocBlock[];
+};
+
+// Re-export Automation type for use in AutomationBlock
+export type { Automation, AutomationNode, AutomationEdge } from "@/types/automation";
+
+export type AutomationBlock = DocBlockBase & {
+  type: "automation";
+  automation: import("@/types/automation").Automation;
+};
+
+export type DocBlock = 
+  | HeadingBlock 
+  | ParagraphBlock 
+  | CodeBlock 
+  | QuoteBlock 
+  | DividerBlock 
+  | ImageBlock 
+  | VideoBlock 
+  | LinkBlock 
+  | FileBlock 
+  | AiPromptBlock 
+  | ChecklistBlock 
+  | TableBlock 
+  | DatabaseBlock 
+  | WorkflowBlock 
   | DrawBlock
   | N8nBlock
   | CalloutBlock
-  | ChecklistBlock
   | MermaidBlock
   | HorizontalBlock
-  | QuoteBlock
-  | DividerBlock
-  | ImageBlock
-  | VideoBlock
-  | LinkBlock
-  | FileBlock
-  | AiPromptBlock
   | AutomationBlock;
 
-import type { DocIcon } from "@/types/icons";
-
+// Page and Folder types
 export type DocPage = {
   id: string;
   title: string;
   icon?: DocIcon;
   cover?: string;
   blocks: DocBlock[];
+  createdAt: string;
   updatedAt: string;
 };
 
@@ -130,15 +169,19 @@ export type DocFolder = {
   id: string;
   name: string;
   icon?: DocIcon;
-  folderIds: string[];
-  pageIds: string[];
+  children: string[]; // Page IDs or subfolder IDs
+  folderIds: string[]; // Subfolder IDs
+  pageIds: string[]; // Page IDs
+  collapsed?: boolean;
 };
 
+export type Theme = "light" | "dark";
+
 export type DocsState = {
-  rootFolderId: string;
   folders: Record<string, DocFolder>;
   pages: Record<string, DocPage>;
-  selectedPageId?: string;
-  expandedFolderIds: Record<string, boolean>;
-  theme: "light" | "dark";
+  rootFolderId: string;
+  selectedPageId: string | null;
+  theme: Theme;
+  expandedFolderIds: string[];
 };

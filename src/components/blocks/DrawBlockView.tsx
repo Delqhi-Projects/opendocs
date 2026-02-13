@@ -1,9 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { DrawBlock, DocBlock } from "@/types/docs";
 
+// Type-safe helper for draw block updates
+function makeDrawPatch(data: DrawBlock["data"]): Partial<DocBlock> {
+  return { data } as Partial<DocBlock>;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ExcalidrawComponent = React.ComponentType<any>;
+
 declare global {
   interface Window {
-    ExcalidrawLib?: { Excalidraw: React.ComponentType<any> };
+    ExcalidrawLib?: { Excalidraw: ExcalidrawComponent };
   }
 }
 
@@ -61,10 +69,9 @@ export function DrawBlockView({
   );
 
   const onChange = useCallback(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (elements: any, appState: any, files: any) => {
+    (elements: DrawBlock["data"]["elements"], appState: DrawBlock["data"]["appState"], files: DrawBlock["data"]["files"]) => {
       if (disabled) return;
-      onUpdate({ data: { elements, appState, files } } as any);
+      onUpdate(makeDrawPatch({ elements, appState, files }));
     },
     [disabled, onUpdate]
   );

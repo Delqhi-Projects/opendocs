@@ -4,7 +4,7 @@ export function apiBase(): string {
 }
 
 export function authHeaders(): Record<string, string> {
-  const token = import.meta.env.VITE_API_AUTH_TOKEN as string | undefined;
+  const token = import.meta.env.VITE_API_AUTH_TOKEN;
   return token ? { "X-OpenDocs-Token": token } : {};
 }
 

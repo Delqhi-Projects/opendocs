@@ -1,4 +1,4 @@
-import { Component, ErrorInfo, ReactNode } from "react";
+import { Component, type ErrorInfo, type ReactNode } from "react";
 import { AlertTriangle, RefreshCcw, DatabaseZap, CheckCircle } from "lucide-react";
 
 interface Props {
@@ -16,7 +16,7 @@ interface State {
  * Best Practices Feb 2026: Visual debugging and recovery for runtime crashes.
  */
 export class ErrorBoundary extends Component<Props, State> {
-  public state: State = {
+  public override state: State = {
     hasError: false,
     error: null,
     reportSent: false,
@@ -26,7 +26,7 @@ export class ErrorBoundary extends Component<Props, State> {
     return { hasError: true, error, reportSent: false };
   }
 
-  public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+  public override componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error("CRITICAL UI CRASH:", error, errorInfo);
   }
 
@@ -52,7 +52,7 @@ export class ErrorBoundary extends Component<Props, State> {
     }
   };
 
-  public render() {
+  public override render() {
     if (this.state.hasError) {
       return (
         <div className="flex h-screen w-screen flex-col items-center justify-center bg-zinc-950 p-6 font-sans text-zinc-50 antialiased">

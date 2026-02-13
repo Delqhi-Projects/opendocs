@@ -19,7 +19,7 @@ export interface AutomationNode {
   position: { x: number; y: number };
   data: {
     label: string;
-    config: Record<string, any>;
+    config: Record<string, unknown>;
     description?: string;
   };
 }
@@ -54,7 +54,7 @@ export interface AutomationExecution {
   nodeResults: {
     nodeId: string;
     status: "success" | "error" | "skipped";
-    output?: any;
+    output?: unknown;
     error?: string;
     duration: number;
   }[];

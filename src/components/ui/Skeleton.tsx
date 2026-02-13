@@ -28,8 +28,8 @@ export function Skeleton({
   };
 
   const style: React.CSSProperties = {
-    width: width,
-    height: height,
+    width,
+    height,
   };
 
   return (

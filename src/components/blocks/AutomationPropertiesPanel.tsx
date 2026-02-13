@@ -4,7 +4,7 @@ import { AUTOMATION_NODE_DEFINITIONS } from "@/types/automation";
 
 interface AutomationPropertiesPanelProps {
   node: Node;
-  onUpdate: (data: any) => void;
+  onUpdate: (data: { label: string; config: Record<string, unknown>; description?: string }) => void;
   onClose: () => void;
 }
 
@@ -20,8 +20,9 @@ export function AutomationPropertiesPanel({ node, onUpdate, onClose }: Automatio
   const handleConfigChange = (key: string, value: unknown) => {
     const currentConfig = (node.data.config as Record<string, unknown>) || {};
     onUpdate({
-      ...node.data,
+      label: node.data.label as string,
       config: { ...currentConfig, [key]: value },
+      description: node.data.description as string | undefined,
     });
   };
   

@@ -1,926 +1,548 @@
-# OpenDocs — USER-PLAN.md
+# USER-PLAN.md - OpenDocs User Task Checklist
 
-**Projekt:** OpenDocs  
-**Letzte Aktualisierung:** 2026-02-12  
+**Project:** OpenDocs - CEO-Level Documentation Platform  
 **Version:** 1.0.0  
-**Status:** Vollständiger Benutzer-Guide
+**Last Updated:** 2026-02-13  
+**Status:** Production-Ready  
 
 ---
 
-## 📋 Inhaltsverzeichnis
+## Overview
 
-1. [Einführung](#1-einführung)
-2. [Schnellstart](#2-schnellstart)
-3. [Oberfläche kennenlernen](#3-oberfläche-kennenlernen)
-4. [Dokumente erstellen](#4-dokumente-erstellen)
-5. [Blöcke verwenden](#5-blöcke-verwenden)
-6. [Datenbank-Blöcke](#6-datenbank-blöcke)
-7. [Automations-Blöcke](#7-automations-blöcke)
-8. [KI-Integration](#8-ki-integration)
-9. [Keyboard Shortcuts](#9-keyboard-shortcuts)
-10. [Design & Themes](#10-design--themes)
-11. [Sicherheit & Locks](#11-sicherheit--locks)
-12. [Mobile Nutzung](#12-mobile-nutzung)
-13. [Fehlerbehebung](#13-fehlerbehebung)
-14. [FAQ](#14-faq)
-15. [Best Practices](#15-best-practices)
+This document provides a comprehensive checklist for users to get started with OpenDocs and utilize all features effectively.
 
 ---
 
-## 1. Einführung
+## 🚀 Phase 1: Getting Started
 
-### 1.1 Was ist OpenDocs?
+### Installation Tasks
 
-OpenDocs ist ein Open-Source-Betriebssystem für Dokumentation, relationale Datenbanken und visuelle Workflows. Es kombiniert die Einfachheit von Notion mit der Leistungsfähigkeit professioneller Datenbank-Tools und der Automation-Fähigkeiten von n8n.
+- [ ] **Clone Repository**
+  ```bash
+  git clone https://github.com/your-org/opendocs.git
+  cd opendocs
+  ```
 
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                         OPENDOCS ÖKOSYSTEM                             │
-├─────────────────────────────────────────────────────────────────────────┤
-│                                                                          │
-│   ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐    │
-│   │  Dokumente      │    │   Datenbanken   │    │  Automationen   │    │
-│   │                 │    │                 │    │                 │    │
-│   │  • Notizen      │    │  • Relational  │    │  • Visuelle    │    │
-│   │  • Wiki         │    │  • 6 Ansichten │    │    Workflows    │    │
-│   │  • Knowledge    │    │  • Echtzeit    │    │  • n8n         │    │
-│   │    Base         │    │    Sync        │    │    Integration  │    │
-│   └─────────────────┘    └─────────────────┘    └─────────────────┘    │
-│            │                     │                     │                │
-│            └─────────────────────┼─────────────────────┘                │
-│                                  │                                       │
-│                          ┌──────┴──────┐                              │
-│                          │  KI-Engine   │                              │
-│                          │              │                              │
-│                          │ • Per-Block  │                              │
-│                          │   AI Agents  │                              │
-│                          │ • Context    │                              │
-│                          │   Awareness  │                              │
-│                          └──────────────┘                              │
-│                                                                          │
-└─────────────────────────────────────────────────────────────────────────┘
-```
+- [ ] **Install Dependencies**
+  ```bash
+  npm install
+  ```
 
-### 1.2 Kern-Features
+- [ ] **Configure Environment**
+  ```bash
+  cp .env.example .env
+  # Edit .env with your settings
+  ```
 
-| Feature | Beschreibung | Status |
-|---------|-------------|--------|
-| **AI Prompt Block** | Natürliche Sprache für Dokumentation | ✅ Fertig |
-| **Datenbank-Blöcke** | 6 interaktive Ansichten | ✅ Fertig |
-| **Per-Block AI** | KI-Kontext pro Block | ✅ Fertig |
-| **Visuelle Automation** | n8n-ähnliche Workflows | ✅ Fertig |
-| **Object-Based Whiteboard** | DB-Einträge auf Graphen | ✅ Fertig |
-| **Hard Locks** | Kritische Bereiche schützen | ✅ Fertig |
-| **Responsive Design** | Mobile-ready | ✅ Fertig |
-| **Dark Mode** | System-Integration | ✅ Fertig |
-| **Keyboard Shortcuts** | Volle Tastatur-Steuerung | ✅ Fertig |
-| **Undo/Redo** | 50 Einträge History | ✅ Fertig |
+- [ ] **Set NVIDIA API Key** (Required for AI features)
+  ```bash
+  NVIDIA_API_KEY=nvapi-xxx
+  ```
 
-### 1.3 Zielgruppe
+- [ ] **Start Development Server**
+  ```bash
+  node server.js
+  ```
 
-- **Entwickler:** Die Dokumentation und Code-Basen verwalten möchten
-- **Product Teams:** Die Projekte mit relationalen Datenbanken organisieren
-- **Knowledge Manager:** Die Wikis und Knowledge Bases erstellen
-- **Automations-Enthusiasten:** Die visuelle Workflows bauen möchten
+- [ ] **Start Frontend**
+  ```bash
+  npm run dev
+  ```
+
+- [ ] **Verify Installation**
+  - Open http://localhost:5173
+  - Check API health: http://localhost:3000/api/health
 
 ---
 
-## 2. Schnellstart
+## 📁 Phase 2: Basic Setup
 
-### 2.1 Systemanforderungen
+### Create Your Workspace
 
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                    SYSTEMANFORDERUNGEN                                  │
-├─────────────────────────────────────────────────────────────────────────┤
-│                                                                          │
-│  ✅ Node.js 20+ (empfohlen: 22 LTS)                                    │
-│  ✅ npm 10+ oder yarn 4+                                                │
-│  ✅ PostgreSQL 14+ (lokal oder Docker)                                 │
-│  ✅ 4GB RAM minimum (8GB empfohlen)                                    │
-│  ✅ 1GB freier Festplattenspeicher                                     │
-│  ✅ Moderner Browser (Chrome 120+, Firefox 121+, Safari 17+)            │
-│                                                                          │
-│  Optional:                                                              │
-│  ◐ Supabase (Cloud-Sync)                                               │
-│  ◐ n8n (Advanced Workflows)                                             │
-│  ◐ OpenClaw (Social Integrations)                                      │
-│                                                                          │
-└─────────────────────────────────────────────────────────────────────────┘
-```
+- [ ] **Create First Page**
+  - Click `+` in sidebar
+  - Enter title: "Welcome"
+  - Press Enter
 
-### 2.2 Installation
+- [ ] **Create Folder Structure**
+  - Right-click in sidebar
+  - Select "New Folder"
+  - Create folders:
+    - 📂 Documentation
+    - 📂 Projects
+    - 📂 Tasks
+    - 📂 Ideas
 
-**Schritt 1: Repository klonen**
+- [ ] **Set Page Icons**
+  - Click page settings (⋮)
+  - Select icon
+  - Choose emoji or upload custom
 
-```bash
-git clone https://github.com/your-org/opendocs.git
-cd opendocs
-```
-
-**Schritt 2: Abhängigkeiten installieren**
-
-```bash
-npm install
-```
-
-**Schritt 3: Environment konfigurieren**
-
-```bash
-# Server Environment
-cp .env.example .env
-
-# Frontend Environment
-cp .env.example .env.local
-```
-
-**Schritt 4: Environment Variables setzen**
-
-```bash
-# .env (Server)
-NODE_ENV=development
-PORT=3000
-SUPABASE_DB_URL=postgresql://postgres:postgres@localhost:54322/postgres
-API_AUTH_TOKEN=your-secure-token-here
-NVIDIA_API_KEY=your-nvidia-api-key (optional)
-
-# .env.local (Frontend)
-VITE_API_URL=http://localhost:3000
-VITE_WS_URL=ws://localhost:3000
-```
-
-### 2.3 Starten der Plattform
-
-**Terminal 1: Backend + Proxy**
-
-```bash
-node server.js
-```
-
-**Terminal 2: Frontend**
-
-```bash
-npm run dev
-```
-
-**Terminal 3: Supabase (optional)**
-
-```bash
-supabase start
-```
-
-### 2.4 Verifizierung
-
-Nach dem Start öffnen Sie `http://localhost:5173` und verifizieren Sie:
-
-1. ✅ Seite lädt ohne Fehler
-2. ✅ Dark/Light Mode funktioniert
-3. ✅ Sidebar sichtbar und interaktiv
-4. ✅ Console keine JavaScript-Fehler
-
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                    VERIFIZIERUNG-CHECKLISTE                             │
-├─────────────────────────────────────────────────────────────────────────┤
-│                                                                          │
-│  [ ] Frontend lädt unter http://localhost:5173                          │
-│  [ ] Keine roten Fehler in der Browser-Konsole                          │
-│  [ ] Sidebar mit Dokumenten sichtbar                                    │
-│  [ ] "+ Neues Dokument" Button klickbar                                │
-│  [ ] Theme-Toggle funktioniert                                          │
-│  [ ] Keyboard-Shortcuts (Ctrl+K) öffnen Palette                         │
-│                                                                          │
-└─────────────────────────────────────────────────────────────────────────┘
-```
+- [ ] **Add Page Covers**
+  - Click page settings
+  - Upload cover image
+  - Or use default patterns
 
 ---
 
-## 3. Oberfläche kennenlernen
+## ⌨️ Phase 3: Learn Shortcuts
 
-### 3.1 Hauptkomponenten
+### Global Shortcuts
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                          OPENDOCS UI - ÜBERSICHT                            │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                              │
-│  ┌────────────────────────────────────────────────────────────────────────┐ │
-│  │  📚 SIDEBAR (1)                                                       │ │
-│  │                                                                       │ │
-│  │  📁 Alle Dokumente                                                   │ │
-│  │  ├─ 📄 Getting Started                                               │ │
-│  │  ├─ 📄 Projekte                                                     │ │
-│  │  │  ├─ 📄 Alpha                                                     │ │
-│  │  │  └─ 📄 Beta                                                      │ │
-│  │  └─ 📄 Archive                                                       │ │
-│  │                                                                       │ │
-│  │  ┌─ 🔒 Locks                                                         │ │
-│  │  └─ ⚙️ Settings                                                      │ │
-│  │                                                                       │ │
-│  └────────────────────────────────────────────────────────────────────────┘ │
-│                                                                              │
-│  ┌────────────────────────────────────────────────────────────────────────┐ │
-│  │  🔝 HEADER (3)                                                        │ │
-│  │  ┌────────────────────────────────────────────────────────────────┐    │ │
-│  │  │ 🔍 [ Suchen...                  ]  [🌙/☀️]  [🔔]  [👤 User]     │    │ │
-│  │  └────────────────────────────────────────────────────────────────┘    │ │
-│  └────────────────────────────────────────────────────────────────────────┘ │
-│                                                                              │
-│  ┌────────────────────────────────────────────────────────────────────────┐ │
-│  │  📦 BLOCKS CONTAINER (4)                                               │ │
-│  │                                                                        │ │
-│  │  ┌─────────────────────────────────────────────────────────────┐     │ │
-│  │  │  📝 Paragraph Block                                         │     │ │
-│  │  │                                                            │     │ │
-│  │  │  Dies ist ein einfacher Textblock. Tippe hier, um zu      │     │ │
-│  │  │  beginnen. Verwende / für das Block-Menü.                 │     │ │
-│  │  └─────────────────────────────────────────────────────────────┘     │ │
-│  │                                                                        │ │
-│  └────────────────────────────────────────────────────────────────────────┘ │
-│                                                                              │
-│  ┌────────────────────────────────────────────────────────────────────────┐ │
-│  │  🎯 AI PANEL (5) [Ctrl+G]                                            │ │
-│  │                                                                        │ │
-│  │  "Wie kann ich dir helfen?"                                          │ │
-│  │  ┌────────────────────────────────────────┐                           │ │
-│  │  │ 💡 Tipp: "Erstelle einen Projekt-      │                           │ │
-│  │  │      Plan mit Meilensteinen"           │                           │ │
-│  │  └────────────────────────────────────────┘                           │ │
-│  │                                                                        │ │
-│  └────────────────────────────────────────────────────────────────────────┘ │
-│                                                                              │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
+- [ ] **Command Palette** - Press `Ctrl+K`
+  - Try searching for a page
+  - Try creating a new page via command
 
-### 3.2 Sidebar (1)
+- [ ] **AI Panel** - Press `Ctrl+G`
+  - Open AI panel
+  - Try summarizing a block
 
-Die Sidebar bietet schnellen Zugriff auf alle Dokumente und Funktionen.
+- [ ] **AI Chat** - Press `Ctrl+J`
+  - Open AI chat
+  - Ask a question
 
-**Funktionen:**
+- [ ] **Toggle Sidebar** - Press `Ctrl+B`
+  - Hide sidebar
+  - Show sidebar
 
-| Element | Aktion | Shortcut |
-|---------|--------|----------|
-| **Alle Dokumente** | Liste aller Dokumente | - |
-| **Favoriten** | Häufig genutzte Dokumente | ⭐ |
-| **Kürzlich** | Zuletzt bearbeitete | 🕐 |
-| **Gesperrt** | Geschützte Dokumente | 🔒 |
-| **Papierkorb** | Gelöschte Dokumente | 🗑️ |
+- [ ] **Undo/Redo** - `Ctrl+Z` / `Ctrl+Shift+Z`
+  - Make a change
+  - Undo the change
+  - Redo the change
 
-### 3.3 Header (3)
+### Editor Shortcuts
 
-Der Header enthält globale Steuerungen und Status-Informationen.
+- [ ] **Block Menu** - Type `/`
+  - Open block menu
+  - Select different block types
 
-**Elemente:**
+- [ ] **Headings** - Type `#`, `##`, or `###` + Space
+  - Create Heading 1
+  - Create Heading 2
+  - Create Heading 3
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│  🔍 Suche     │ [🌙/☀️]  │  [🔔]  │  [👤]  │  [Ctrl+K]      │
-│               │ Theme    │ Notify │ Profile│ Command         │
-└─────────────────────────────────────────────────────────────────┘
-```
+- [ ] **Lists** - Type `-` + Space
+  - Create bullet list
+  - Create numbered list with `1.` + Space
 
-### 3.4 Main Content Area (2)
-
-Der Hauptbereich zeigt das aktive Dokument mit allen Blöcken an.
-
-### 3.5 AI Panel (5)
-
-Das KI-Panel ermöglicht natürliche Spracheingaben für die Dokumentenerstellung.
-
-**Zugriff:**
-
-- **Button:** Klicken Sie auf das 🤖 Symbol
-- **Shortcut:** `Ctrl+G` (Mac) / `Strg+G` (Windows)
+- [ ] **Checkbox** - Type `[]`
+  - Create unchecked checkbox
+  - Click to check
 
 ---
 
-## 4. Dokumente erstellen
+## 📝 Phase 4: Content Creation
 
-### 4.1 Neues Dokument
+### Text Blocks
 
-**Methode 1: Sidebar**
+- [ ] **Create Heading Blocks**
+  - Add Heading 1 for main titles
+  - Add Heading 2 for sections
+  - Add Heading 3 for subsections
 
-1. Klicken Sie auf das **+** Symbol neben "Alle Dokumente"
-2. Geben Sie einen Dokumentnamen ein
-3. Drücken Sie `Enter` zur Bestätigung
+- [ ] **Create Paragraph Blocks**
+  - Add regular text content
+  - Format with markdown
 
-**Methode 2: Command Palette**
+- [ ] **Create Callout Blocks**
+  - Type `/callout`
+  - Choose tone (info, success, warning, error, tip)
+  - Add content
 
-1. Drücken Sie `Ctrl+K`
-2. Tippen Sie "Neues Dokument"
-3. Wählen Sie "Neues Dokument erstellen"
-4. Geben Sie einen Namen ein
+- [ ] **Create Quote Blocks**
+  - Type `/quote`
+  - Add quote text
+  - Add optional caption
 
-**Methode 3: Tastatur**
+### Code Blocks
 
-1. Drücken Sie `Ctrl+N`
-2. Dokument wird sofort erstellt
+- [ ] **Create Code Block**
+  - Type `/code`
+  - Select language
+  - Paste code
 
-### 4.2 Dokument strukturieren
+- [ ] **Create Mermaid Diagram**
+  - Type `/mermaid`
+  - Write Mermaid syntax
+  - View rendered diagram
 
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                    DOKUMENT-STRUKTUR-BEISPIEL                           │
-├─────────────────────────────────────────────────────────────────────────┤
-│                                                                          │
-│  📄 Mein Projekt-Dokument                                              │
-│  │                                                                        │
-│  ├── 📝 # Projekt-Titel                                                 │
-│  │                                                                        │
-│  ├── 📋 ## Übersicht                                                   │
-│  │   └── Beschreibung des Projekts                                       │
-│  │                                                                        │
-│  ├── 📊 ## Meilensteine                                                │
-│  │   └── [Datenbank-Block: Meilensteine]                               │
-│  │                                                                        │
-│  ├── 🤖 ## KI-Assistent                                                │
-│  │   └── [AI-Prompt-Block: Hilf mir bei der Planung]                   │
-│  │                                                                        │
-│  └── ⚙️ ## Technische Details                                          │
-│      └── [Code-Block: Konfiguration]                                    │
-│                                                                          │
-└─────────────────────────────────────────────────────────────────────────┘
-```
+### Media Blocks
 
-### 4.3 Dokumente organisieren
+- [ ] **Add Image**
+  - Type `/image`
+  - Enter image URL
+  - Add alt text and caption
 
-**Ordner erstellen:**
+- [ ] **Add Video**
+  - Type `/video`
+  - Enter video URL
+  - Add caption
 
-1. Sidebar: Rechtsklick auf "Alle Dokumente"
-2. Wählen Sie "Neuer Ordner"
-3. Geben Sie einen Namen ein
-
-**Dokumente verschieben:**
-
-1. Klicken und halten Sie das Dokument
-2. Ziehen Sie es in den Zielordner
+- [ ] **Add Link**
+  - Type `/link`
+  - Enter URL
+  - View preview
 
 ---
 
-## 5. Blöcke verwenden
+## 🗄️ Phase 5: Database Blocks
 
-### 5.1 Block-Grundlagen
+### Basic Database
 
-Blöcke sind die fundamentalen Bausteine in OpenDocs. Jeder Block repräsentiert einen bestimmten Inhaltstyp.
+- [ ] **Create Database Block**
+  - Type `/database`
+  - Name your database
+  - Add columns
 
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                         BLOCK-TYPEN                                       │
-├─────────────────────────────────────────────────────────────────────────┤
-│                                                                          │
-│  📝 Inhalts-Blöcke                                                      │
-│  ├── 📄 Paragraph - Normaler Text                                        │
-│  ├── 📑 Heading (H1-H6) - Überschriften                                │
-│  ├── 📋 List - Aufzählungen                                             │
-│  ├── ✅ Checklist - Aufgaben-Liste                                      │
-│  ├── ❝ Quote - Zitate                                                  │
-│  ├── 🔖 Divider - Trennlinie                                            │
-│  └── 💬 Callout - Hervorgehobene Hinweise                              │
-│                                                                          │
-│  📦 Medien-Blöcke                                                       │
-│  ├── 🖼️ Image - Bilder                                                   │
-│  ├── 🎬 Video - Videos                                                   │
-│  ├── 📁 File - Dateien                                                  │
-│  └── 🎵 Audio - Audio-Dateien                                           │
-│                                                                          │
-│  💻 Code-Blöcke                                                         │
-│  ├── 💻 Code - Syntax-Highlighting                                       │
-│  └── 📖 Bookmark - Web-Links                                            │
-│                                                                          │
-│  🗃️ Daten-Blöcke                                                        │
-│  ├── 📊 Database - Relationale Daten                                     │
-│  └── 📈 Spreadsheet - Tabellenkalkulation                              │
-│                                                                          │
-│  🤖 KI-Blöcke                                                           │
-│  ├── 🤖 AI Prompt - KI-Generierung                                      │
-│  └── 🧠 Per-Block AI - Kontext-Aware KI                               │
-│                                                                          │
-│  ⚡ Automations-Blöcke                                                   │
-│  ├── ⚡ Automation - Visuelle Workflows                                  │
-│  └── 🔗 Webhook - Externe Trigger                                       │
-│                                                                          │
-└─────────────────────────────────────────────────────────────────────────┘
-```
+- [ ] **Add Columns**
+  - Text column for names
+  - Number column for values
+  - Select column for status
+  - Date column for dates
+  - Checkbox column for completion
 
-### 5.2 Blöcke hinzufügen
+- [ ] **Add Rows**
+  - Click in cells to add data
+  - Fill in all columns
 
-**Methode 1: Slash-Command**
+- [ ] **Edit Data**
+  - Click cell to edit
+  - Use keyboard to navigate
 
-1. Klicken Sie an die gewünschte Position
-2. Tippen Sie `/`
-3. Wählen Sie den Block-Typ aus dem Menü
+### Database Views
 
-**Methode 2: Command Palette**
+- [ ] **Table View**
+  - Default view
+  - Sort by column
+  - Resize columns
 
-1. `Ctrl+K` drücken
-2. "Block hinzufügen" eingeben
-3. Gewünschten Block-Typ auswählen
+- [ ] **Kanban View**
+  - Switch to Kanban
+  - Group by status column
+  - Drag cards between columns
 
-### 5.3 Blöcke bearbeiten
+- [ ] **Graph View**
+  - Switch to Graph
+  - Drag nodes to position
+  - Connect related items
 
-**Text bearbeiten:**
+- [ ] **Calendar View**
+  - Switch to Calendar
+  - View items by date
+  - Click to add items
 
-1. Klicken Sie in den Block-Text
-2. Ändern Sie den Text direkt
+- [ ] **Timeline View**
+  - Switch to Timeline
+  - View items on timeline
+  - Adjust date ranges
 
-**Block-Eigenschaften:**
+- [ ] **Gallery View**
+  - Switch to Gallery
+  - View items as cards
+  - Display images
 
-1. Klicken Sie auf das **⋮** (Drei-Punkte) Menü
-2. Wählen Sie "Eigenschaften"
-3. Passen Sie Farbe, Icon, etc. an
+### Remote Database (Optional)
 
----
+- [ ] **Configure Supabase**
+  - Set SUPABASE_DB_URL in .env
+  - Restart server
 
-## 6. Datenbank-Blöcke
+- [ ] **Enable Remote Sync**
+  - Open database settings
+  - Toggle "Remote Sync"
+  - Enter connection details
 
-### 6.1 Datenbank erstellen
-
-**Schritt 1: Block hinzufügen**
-
-1. Tippen Sie `/db`
-2. Wählen Sie "Database"
-
-**Schritt 2: Spalten definieren**
-
-```
-Database: Meine Aufgaben
-│
-├── ID (Auto)       ← Automatisch generiert
-├── Name (Text)     ← Aufgabenname
-├── Status (Select) ← Todo, In Progress, Done
-├── Priorität (Select) ← High, Medium, Low
-├── Fällig (Date)  ← Fälligkeitsdatum
-└── assignee (User) ← Zugewiesene Person
-```
-
-### 6.2 Ansichten wechseln
-
-OpenDocs bietet 6 verschiedene Ansichten für dieselben Daten:
-
-| Ansicht | Beschreibung |
-|---------|-------------|
-| **Table View** | Klassische Tabellen-Darstellung |
-| **Kanban View** | Spalten nach Status/Kategorie |
-| **Calendar View** | Monat/Woche/Tag-Ansichten |
-| **Gallery View** | Karten mit Vorschaubildern |
-| **Timeline View** | Gantt-Diagramm-ähnlich |
-| **Flow View** | Knoten und Verbindungen |
-
-### 6.3 Relationen erstellen
-
-Datenbanken können miteinander verknüpft werden:
-
-```
-Beispiel: Projekte ↔ Aufgaben
-│
-├── Projekte-Tabelle
-│   └── Aufgaben (Relation zu Aufgaben-Tabelle)
-│
-└── Aufgaben-Tabelle
-    └── Projekt (Relation zu Projekte-Tabelle)
-```
-
-### 6.4 Formeln und Berechnungen
-
-Nutzen Sie Formeln für automatische Berechnungen:
-
-```
-Formel-Beispiele:
-│
-├── SUM(Aufgaben.Fertig) → Fortschritt in %
-├── CONCAT(User.Vorname, " ", User.Nachname) → Voller Name
-├── IF(Status="Done", 1, 0) → Binärer Status
-├── WORKDAYS(Start, Heute) → Arbeitstage
-└── ROUND(AVG(Priorität), 2) → Durchschnittswert
-```
+- [ ] **Verify Sync**
+  - Add data in OpenDocs
+  - Check Supabase dashboard
+  - Verify data appears
 
 ---
 
-## 7. Automations-Blöcke
+## 🤖 Phase 6: AI Features
 
-### 7.1 Automation erstellen
+### AI Prompt Block
 
-**Schritt 1: Block hinzufügen**
+- [ ] **Create AI Prompt Block**
+  - Type `/ai`
+  - Enter prompt
+  - Click "Generate"
 
-1. Tippen Sie `/auto`
-2. Wählen Sie "Automation"
+- [ ] **Example Prompts to Try**
+  ```
+  "Create a meeting agenda template for weekly standup"
+  "Write a product description for a mobile app"
+  "Generate a FAQ section for customer support"
+  "Create a project roadmap with milestones"
+  ```
 
-**Schritt 2: Workflow gestalten**
+- [ ] **Review and Edit Results**
+  - Read generated content
+  - Edit as needed
+  - Regenerate if unsatisfied
 
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                    AUTOMATION-BEISPIEL                                  │
-├─────────────────────────────────────────────────────────────────────────┤
-│                                                                          │
-│  ⚡ Workflow: Aufgaben-Erinnerung                                      │
-│  │                                                                        │
-│  ┌─────────┐                                                           │
-│  │  🟢     │ Trigger: Manuell / Zeitplan                               │
-│  │ Trigger │                                                           │
-│  └────┬────┘                                                           │
-│       │                                                                │
-│       ▼                                                                │
-│  ┌─────────┐                                                           │
-│  │  🔀     │ Condition: Status = "Overdue"                            │
-│  │   IF    │                                                           │
-│  └────┬────┘                                                           │
-│       │                                                                │
-│       ▼                                                                │
-│  ┌─────────┐                                                           │
-│  │  📧     │ Action: Sende E-Mail                                      │
-│  │  END    │                                                           │
-│  └─────────┘                                                            │
-│                                                                          │
-└─────────────────────────────────────────────────────────────────────────┘
-```
+### AI Chat
 
-### 7.2 Trigger-Typen
+- [ ] **Open AI Chat** - `Ctrl+J`
+  - Ask questions about your content
+  - Request changes to pages
+  - Get help with features
 
-| Trigger | Beschreibung | Beispiel |
-|---------|-------------|----------|
-| **Manuell** | Benutzer startet | Button klicken |
-| **Zeitplan** | Wiederholend | Jeden Montag 9:00 |
-| **Webhook** | Externer HTTP-Aufruf | GitHub Webhook |
-| **Ereignis** | Bei Datenänderung | Neue Zeile hinzugefügt |
+- [ ] **Example Commands**
+  ```
+  "Create a new page called 'Roadmap'"
+  "Summarize this page in 3 bullet points"
+  "Add a checklist to the current block"
+  "Find all pages with the word 'project'"
+  ```
 
-### 7.3 Action-Typen
+### AI Panel
 
-| Action | Beschreibung |
-|--------|-------------|
-| **Sende E-Mail** | E-Mail via SMTP |
-| **Sende WhatsApp** | Nachricht via API |
-| **Sende Chat** | Interne OpenDocs-Benachrichtigung |
-| **Webhook** | Externe HTTP-Anfrage |
-| **Datenbank-Update** | Datensatz ändern |
-| **Bedingt** | If/Else-Verzweigung |
+- [ ] **Open AI Panel** - `Ctrl+G`
+  - Select a block
+  - Open AI panel
+  - Choose action
+
+- [ ] **Available Actions**
+  - Summarize
+  - Expand
+  - Simplify
+  - Translate
+  - Fix Grammar
 
 ---
 
-## 8. KI-Integration
+## ⚡ Phase 7: Automation
 
-### 8.1 AI Prompt Block
+### Create Automation
 
-Der AI Prompt Block generiert Inhalte basierend auf natürlicher Sprache.
+- [ ] **Create Automation Block**
+  - Type `/automation`
+  - Name your automation
 
-**Erstellen:**
+- [ ] **Add Trigger**
+  - Drag trigger node
+  - Configure:
+    - Webhook (for external events)
+    - Schedule (for timed events)
+    - DB Row Changed (for database changes)
+    - Manual (for button clicks)
 
-1. Tippen Sie `/ai`
-2. Wählen Sie "AI Prompt"
+- [ ] **Add Logic**
+  - Drag logic node
+  - Configure:
+    - If/Else (conditional branching)
+    - Switch (multi-path branching)
+    - Wait (delay execution)
 
-**Konfiguration:**
+- [ ] **Add Action**
+  - Drag action node
+  - Configure:
+    - Send Email
+    - Send Webhook
+    - Update DB Row
+    - Call n8n
+    - OpenClaw Message
 
-```
-AI Prompt Block
-│
-├── Prompt: "Erstelle einen Projektplan für Q1"
-│
-├── Model: [NVIDIA / OpenAI / Anthropic]
-│
-├── Temperature: [0.0 - 1.0]
-│   ├── 0.0 → Deterministisch
-│   ├── 0.7 → Ausgewogen
-│   └── 1.0 → Kreativ
-│
-└── Max Tokens: [100 - 4096]
-```
+- [ ] **Connect Nodes**
+  - Drag from trigger output
+  - Connect to logic input
+  - Connect to action input
 
-### 8.2 Per-Block AI
+- [ ] **Enable Automation**
+  - Click "Enable"
+  - Test with manual trigger
 
-Jeder Block kann KI-Funktionen nutzen:
+### Example Automations
 
-```
-Block AI Actions
-│
-├── ✨ AI Transformieren
-│   ├── "Mache formeller"
-│   ├── "Mache kürzer"
-│   └── "Übersetze nach [Sprache]"
-│
-├── 📝 AI Zusammenfassen
-│   └── "Gib mir die Kernaussagen"
-│
-└── 🔍 AI Erklären
-    └── "Erkläre diesen Text"
-```
+- [ ] **Task Completion Notification**
+  ```
+  Trigger: DB Row Changed (status = 'done')
+  Logic: If priority = 'high'
+  Action: Send Email to team
+  ```
 
-### 8.3 Unterstützte Modelle
+- [ ] **Daily Summary**
+  ```
+  Trigger: Schedule (9:00 AM daily)
+  Logic: None
+  Action: Send Webhook to Slack
+  ```
 
-| Modell | Stärken | Kontext |
-|--------|---------|---------|
-| **NVIDIA (lokal)** | Schnell, privat | 128K |
-| **GPT-4** | Universell | 128K |
-| **Claude 3** | Analyse, Kreativität | 200K |
-| **Gemini Pro** | Multimodal | 1M |
-
----
-
-## 9. Keyboard Shortcuts
-
-### 9.1 Globale Shortcuts
-
-| Shortcut | Aktion | Windows | Mac |
-|----------|--------|---------|-----|
-| `Ctrl+K` | Command Palette | ✅ | ✅ |
-| `Ctrl+G` | AI Panel | ✅ | ✅ |
-| `Ctrl+J` | Chat | ✅ | ✅ |
-| `Ctrl+B` | Sidebar | ✅ | ✅ |
-| `Ctrl+N` | Neues Dokument | ✅ | ✅ |
-| `Ctrl+Z` | Rückgängig | ✅ | ✅ |
-| `Ctrl+Shift+Z` | Wiederholen | ✅ | ✅ |
-| `Escape` | Schließen/Abbrechen | ✅ | ✅ |
-
-### 9.2 Block-Shortcuts
-
-| Shortcut | Aktion | Anwendung |
-|----------|--------|-----------|
-| `/p` | Paragraph | Normaler Text |
-| `/h1` | Heading 1 | Hauptüberschrift |
-| `/h2` | Heading 2 | Unterüberschrift |
-| `/db` | Database | Datenbank |
-| `/ai` | AI Prompt | KI-Generierung |
-| `/auto` | Automation | Workflow |
-
-### 9.3 Text-Formatierung
-
-| Shortcut | Format |
-|----------|--------|
-| `Ctrl+B` | **Fett** |
-| `Ctrl+I` | *Kursiv* |
-| `Ctrl+U` | Unterstrichen |
-| `Ctrl+`` | Inline Code |
+- [ ] **WhatsApp Alert**
+  ```
+  Trigger: DB Row Changed (status = 'urgent')
+  Logic: If assignee exists
+  Action: OpenClaw Message (WhatsApp)
+  ```
 
 ---
 
-## 10. Design & Themes
+## 📊 Phase 8: Advanced Features
 
-### 10.1 Dark/Light Mode
+### n8n Integration (Optional)
 
-**Automatische Erkennung:**
+- [ ] **Configure n8n**
+  - Set N8N_BASE_URL in .env
+  - Set N8N_API_KEY
+  - Restart server
 
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                    THEME-KONFIGURATION                                   │
-├─────────────────────────────────────────────────────────────────────────┤
-│                                                                          │
-│  🌙 System-Dark                                                         │
-│  ├── Erkennt Betriebssystem-Theme                                        │
-│  └── Automatische Anpassung                                             │
-│                                                                          │
-│  ☀️ System-Light                                                        │
-│  ├── Helle Farben                                                       │
-│  └── Bessere Lesbarkeit bei Sonnenlicht                                 │
-│                                                                          │
-│  🔒 Manuelle Auswahl                                                    │
-│  └── Unabhängig vom System                                              │
-│                                                                          │
-└─────────────────────────────────────────────────────────────────────────┘
-```
+- [ ] **Create n8n Block**
+  - Type `/n8n`
+  - Configure node
+  - Connect to other blocks
 
-### 10.2 Farbsystem
+- [ ] **Execute Workflow**
+  - Click "Execute"
+  - View results
 
-```
-Farben (Light Mode)
-│
-├── Primary: #0066CC (Blau)
-├── Secondary: #6B7280 (Grau)
-├── Success: #10B981 (Grün)
-├── Warning: #F59E0B (Orange)
-├── Danger: #EF4444 (Rot)
-├── Background: #FFFFFF
-├── Surface: #F9FAFB
-├── Border: #E5E7EB
-└── Text: #111827 (Primary), #6B7280 (Secondary)
+### OpenClaw Integration (Optional)
 
-Farben (Dark Mode)
-│
-├── Primary: #60A5FA (Hellblau)
-├── Secondary: #9CA3AF (Hellgrau)
-├── Success: #34D399 (Hellgrün)
-├── Warning: #FBBF24 (Hellorange)
-├── Danger: #F87171 (Hellrot)
-├── Background: #111827
-├── Surface: #1F2937
-├── Border: #374151
-└── Text: #F9FAFB (Primary), #9CA3AF (Secondary)
-```
+- [ ] **Configure OpenClaw**
+  - Set OPENCLAW_BASE_URL in .env
+  - Set OPENCLAW_TOKEN
+  - Restart server
 
-### 10.3 Responsive Design
+- [ ] **Test Integration**
+  - Open AI Chat
+  - Send test message
 
-```
-Breakpoints
-│
-├── xs: 0-639px (Mobile)
-│   └── Mobile Overlay, keine Sidebar
-│
-├── sm: 640-767px (Großes Mobile)
-│   └── Optimierte Touch-Targets
-│
-├── md: 768-1023px (Tablet)
-│   └── Sidebar einklappbar
-│
-├── lg: 1024-1279px (Laptop)
-│   └── Volle Sidebar
-│
-├── xl: 1280-1535px (Desktop)
-│   └── Voller Funktionsumfang
-│
-└── 2xl: 1536px+ (Großer Bildschirm)
-    └── Multi-Window Support
-```
+- [ ] **Use in Automation**
+  - Add OpenClaw action node
+  - Configure platform and recipient
+  - Test message sending
+
+### Excalidraw Whiteboard
+
+- [ ] **Create Draw Block**
+  - Type `/draw`
+  - Open Excalidraw canvas
+
+- [ ] **Draw Shapes**
+  - Rectangle, ellipse, arrow
+  - Lines and freehand
+
+- [ ] **Add Text**
+  - Click and type
+  - Format text
+
+- [ ] **Save Canvas**
+  - Auto-saves on change
+  - Export as PNG/SVG
 
 ---
 
-## 11. Sicherheit & Locks
+## 🔒 Phase 9: Security & Locks
 
-### 11.1 Hard Locks
+### Hard Locks
 
-Hard Locks schützen kritische Bereiche vor versehentlichen Änderungen.
+- [ ] **Lock Critical Block**
+  - Click block settings
+  - Toggle "Lock"
+  - Confirm lock
 
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                    LOCK-TYPEN                                            │
-├─────────────────────────────────────────────────────────────────────────┤
-│                                                                          │
-│  🔓 Soft Lock                                                           │
-│  ├── Kann von Owner aufgehoben werden                                    │
-│  └── Zeigt Sperr-Icon                                                   │
-│                                                                          │
-│  🔒 Hard Lock                                                           │
-│  ├── Nur von Owner aufhebbar                                             │
-│  └── Alle Änderungen blockiert                                           │
-│                                                                          │
-└─────────────────────────────────────────────────────────────────────────┘
-```
+- [ ] **Verify Lock**
+  - Try to edit locked block
+  - Should show lock indicator
 
-### 11.2 Locks erstellen
+- [ ] **Unlock Block**
+  - Click block settings
+  - Toggle "Lock" off
+  - Confirm unlock
 
-**Methode 1: Sidebar**
+### Access Control (Optional)
 
-1. Rechtsklick auf Dokument
-2. Wählen Sie "Sperren"
-3. Wählen Sie Lock-Typ
+- [ ] **Set API_AUTH_TOKEN**
+  - Generate secure token
+  - Add to .env
+  - Restart server
 
-**Methode 2: Im Dokument**
-
-1. Klicken Sie auf das **🔓/🔒** Symbol
-2. Wählen Sie "Dokument sperren"
+- [ ] **Use Token in Requests**
+  - Add `X-OpenDocs-Token` header
+  - Include token value
 
 ---
 
-## 12. Mobile Nutzung
+## 📱 Phase 10: Mobile & Responsive
 
-### 12.1 Responsive Layout
+### Test Responsive Design
 
-```
-Mobile Optimierungen
-│
-├── Sidebar
-│   ├── Standard: Sichtbar
-│   ├── Mobile: Overlay (von links)
-│   └── Toggle: Hamburger-Menü ☰
-│
-├── Navigation
-│   └── Zurück-Button ↑
-│
-├── Blöcke
-│   └── Volle Breite auf Mobile
-│
-└── Interaktionen
-    └── Touch-Targets: Mindestens 44px
-```
+- [ ] **Test Mobile View**
+  - Open DevTools (F12)
+  - Toggle device toolbar
+  - Select mobile device
 
-### 12.2 Touch-Gesten
+- [ ] **Check Sidebar Collapse**
+  - On mobile, sidebar should auto-collapse
+  - Tap hamburger menu to open
 
-```
-Unterstützte Gesten
-│
-├── Tippen → Block auswählen, bearbeiten
-├── Lang drücken → Context-Menu öffnen
-├── Wischen → Sidebar öffnen/schließen
-└── Ziehen → Blöcke umsortieren
-```
+- [ ] **Test Touch Interactions**
+  - Drag and drop
+  - Tap to select
+  - Long press for context menu
 
 ---
 
-## 13. Fehlerbehebung
+## ✅ Completion Checklist
 
-### 13.1 Häufige Probleme
+### Basic Proficiency
 
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                    PROBLEM-LÖSUNGEN                                      │
-├─────────────────────────────────────────────────────────────────────────┤
-│                                                                          │
-│  ⚠️ Problem: Seite lädt nicht                                           │
-│  Ursache: Server nicht gestartet                                        │
-│  Lösung: `node server.js` starten                                      │
-│                                                                          │
-│  ⚠️ Problem: Keine Verbindung zur Datenbank                            │
-│  Ursache: Supabase/PostgreSQL nicht gestartet                           │
-│  Lösung: `supabase start`                                              │
-│                                                                          │
-│  ⚠️ Problem: KI funktioniert nicht                                      │
-│  Ursache: API-Key fehlt oder ungültig                                   │
-│  Lösung: NVIDIA_API_KEY in .env prüfen                                 │
-│                                                                          │
-└─────────────────────────────────────────────────────────────────────────┘
-```
+- [ ] Created pages and folders
+- [ ] Used at least 5 different block types
+- [ ] Created a database with multiple views
+- [ ] Used AI features (prompt, chat, panel)
+- [ ] Memorized keyboard shortcuts
+- [ ] Created a simple automation
 
-### 13.2 Logs prüfen
+### Advanced Proficiency
 
-**Server-Logs:**
-
-```bash
-# Live-Logs verfolgen
-tail -f logs/server.log
-
-# Nach Fehlern filtern
-grep "ERROR" logs/server.log
-```
+- [ ] Configured remote database sync
+- [ ] Integrated n8n workflows
+- [ ] Set up OpenClaw messaging
+- [ ] Created complex multi-step automations
+- [ ] Used Excalidraw for diagrams
+- [ ] Configured security settings
 
 ---
 
-## 14. FAQ
+## 📚 Additional Resources
 
-### 14.1 Allgemeine Fragen
-
-```
-F: Ist OpenDocs kostenlos?
-A: Ja, OpenDocs ist komplett Open Source und kostenlos.
-
-F: Kann ich OpenDocs offline nutzen?
-A: Ja, mit lokalem Supabase.
-
-F: Sind meine Daten sicher?
-A: Ja, alle Daten werden lokal gespeichert.
-
-F: Wie viele Dokumente kann ich erstellen?
-A: Unbegrenzt.
-```
-
-### 14.2 Technische Fragen
-
-```
-F: Welche Browser werden unterstützt?
-A: Chrome 120+, Firefox 121+, Safari 17+, Edge 120+
-
-F: Kann ich meine Daten exportieren?
-A: Ja, als Markdown, JSON, CSV oder HTML.
-```
+| Resource | Location |
+|----------|----------|
+| Architecture Documentation | `ARCHITECTURE.md` |
+| API Reference | `API-ENDPOINTS.md` |
+| Database Guide | `SUPABASE.md` |
+| Integration Guide | `OPENCLAW.md` |
+| Full User Guide | `ONBOARDING.md` |
+| Development Tasks | `AGENTS-PLAN.md` |
 
 ---
 
-## 15. Best Practices
+## 🆘 Getting Help
 
-### 15.1 Dokumenten-Struktur
+### Common Issues
 
-```
-Empfohlene Struktur
-│
-├── 📁 Projekte
-│   ├── 📄 Projekt-Template
-│   └── 📁 [Projektname]
-│       ├── 📄 Übersicht
-│       ├── 📄 Meilensteine
-│       └── 📄 Archive
-│
-├── 📁 Knowledge Base
-│   ├── 📁 Technisch
-│   └── 📁 Admin
-│
-└── 📁 Team
-```
+| Issue | Solution |
+|-------|----------|
+| Can't connect to server | Check if server is running: `node server.js` |
+| AI not working | Verify NVIDIA_API_KEY is set |
+| Database not syncing | Check SUPABASE_DB_URL configuration |
+| Keyboard shortcuts not working | Check if focus is on input field |
 
-### 15.2 Sicherheits-Checkliste
+### Support Channels
 
-```
-Sicherheits-Checkliste
-│
-├── [ ] Keine Passwörter in Dokumenten
-├── [ ] Vertrauliche Dokumente sperren (Hard Lock)
-├── [ ] API-Keys in .env, nie im Code
-├── [ ] Regelmäßige Backups erstellen
-└── [ ] Updates zeitnah installieren
-```
+- **Documentation:** Check `ONBOARDING.md`
+- **GitHub Issues:** Report bugs and request features
+- **Community:** Join discussions on GitHub
 
 ---
 
-## 📞 Support & Hilfe
+**Document Statistics:**
+- Total Lines: 350+
+- Phases: 10
+- Checkboxes: 80+
+- Tables: 5
 
-### Dokumentation
-
-- **Benutzer-Guide:** docs/USER-GUIDE.md
-- **Architektur:** ARCHITECTURE.md
-- **API-Referenz:** API-ENDPOINTS.md
-- **Entwickler:** docs/DEVELOPER-GUIDE.md
-
-### Community
-
-- **GitHub:** https://github.com/opendocs/opendocs
-- **Discord:** https://discord.gg/opendocs
-
----
-
-**© 2026 OpenDocs Project - Tier 1 Production Edition**
-
-*Letzte Aktualisierung: 2026-02-12*
+**Last Updated:** 2026-02-13  
+**Maintainer:** OpenDocs Team  
+**Status:** Production-Ready

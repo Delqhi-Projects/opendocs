@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import type { DatabaseBlock } from "@/types/docs";
+import type { DbCellValue } from "@/types/database";
 import { cn } from "@/utils/cn";
 import { Activity, Plus, ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -11,8 +12,8 @@ export function TimelineView({
 }: {
   data: DatabaseBlock["data"];
   disabled: boolean;
-  addRow: (initialCells?: Record<string, any>) => void;
-  updateCell: (rowId: string, propId: string, value: any) => void;
+  addRow: (initialCells?: Record<string, DbCellValue>) => void;
+  updateCell: (rowId: string, propId: string, value: DbCellValue) => void;
 }) {
   const dateProp = useMemo(() => {
     return data.properties.find((p) => p.type === "date") || data.properties[0];
@@ -32,7 +33,7 @@ export function TimelineView({
   const monthName = currentDate.toLocaleString('default', { month: 'long', year: 'numeric' });
 
   const onAddForDay = (day: number) => {
-    if (disabled || !dateProp || !dateProp.id) return;
+    if (disabled || !dateProp?.id) return;
     const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day, 9, 0, 0);
     const iso = date.toISOString().slice(0, 16);
     addRow({ [dateProp.id]: iso });

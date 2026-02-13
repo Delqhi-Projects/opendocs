@@ -1,4 +1,4 @@
-import { createClient, RealtimeChannel } from "@supabase/supabase-js";
+import { createClient, RealtimeChannel, type Session } from "@supabase/supabase-js";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || "";
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || "";
@@ -35,7 +35,7 @@ export async function getSession() {
   return data.session;
 }
 
-export function onAuthStateChange(callback: (session: any) => void) {
+export function onAuthStateChange(callback: (session: Session | null) => void) {
   if (!supabase) return () => {};
   const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
     callback(session);

@@ -1,11 +1,23 @@
 import { create } from "zustand";
 import { nanoid } from "nanoid";
-import type { DocsState, DocFolder, DocPage, DocBlock, BlockType } from "@/types/docs";
+import type { DocsState, DocFolder, DocPage, DocBlock, BlockType, DatabaseBlock } from "@/types/docs";
 import type { DatabaseBlockData } from "@/types/database";
 import { STORAGE_KEYS } from "@/store/storageKeys";
 import { createDefaultState } from "@/store/createDefaultState";
 import { buildDatabaseTableName } from "@/utils/dbNames";
 import { createDbTable, dropDbTable } from "@/services/dbProvisioning";
+
+// Type-safe helper for error message extraction
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (typeof error === "string") return error;
+  return String(error);
+}
+
+// Type-safe helper for database block updates
+function makeDatabasePatch(data: DatabaseBlockData): Partial<DatabaseBlock> {
+  return { data } as Partial<DatabaseBlock>;
+}
 
 function now() {
   return new Date().toISOString();
@@ -39,7 +51,7 @@ function loadFromStorage(): DocsState {
     // Try migrating legacy keys
     for (const k of STORAGE_KEYS.stateLegacy) {
       const legacy = safeParse<Partial<DocsState>>(localStorage.getItem(k));
-      if (legacy && legacy.folders && legacy.pages && legacy.rootFolderId) {
+      if (legacy?.folders && legacy.pages && legacy.rootFolderId) {
         const merged = { ...defaults, ...legacy } as DocsState;
         localStorage.setItem(STORAGE_KEYS.state, JSON.stringify(merged));
         return merged;
@@ -238,32 +250,26 @@ async function provisionDatabaseTable(pageId: string, blockId: string) {
     { name: "color", type: "text" as const },
   ];
 
-  useDocsStore.getState().actions.updateBlock(pageId, blockId, {
-    data: { ...blk.data, remote: { ...blk.data.remote, tableName, provisioning: "creating" } },
-  } as any);
+  useDocsStore.getState().actions.updateBlock(pageId, blockId, makeDatabasePatch({ ...blk.data, remote: { ...blk.data.remote, tableName, provisioning: "creating" } }));
 
   try {
     await createDbTable({ tableName, columns });
     const again = useDocsStore.getState().state.pages[pageId]?.blocks.find((b) => b.id === blockId);
     if (again?.type === "database") {
-      useDocsStore.getState().actions.updateBlock(pageId, blockId, {
-        data: { ...again.data, remote: { ...again.data.remote, tableName, provisioning: "ready" } },
-      } as any);
+      useDocsStore.getState().actions.updateBlock(pageId, blockId, makeDatabasePatch({ ...again.data, remote: { ...again.data.remote, tableName, provisioning: "ready" } }));
     }
   } catch (e) {
     const again = useDocsStore.getState().state.pages[pageId]?.blocks.find((b) => b.id === blockId);
     if (again?.type === "database") {
-      useDocsStore.getState().actions.updateBlock(pageId, blockId, {
-        data: {
-          ...again.data,
-          remote: {
-            ...again.data.remote,
-            tableName,
-            provisioning: "error",
-            lastError: String((e as any)?.message || e),
-          },
+      useDocsStore.getState().actions.updateBlock(pageId, blockId, makeDatabasePatch({
+        ...again.data,
+        remote: {
+          ...again.data.remote,
+          tableName,
+          provisioning: "error",
+          lastError: getErrorMessage(e),
         },
-      } as any);
+      }));
     }
   }
 }
@@ -293,14 +299,14 @@ export const useDocsStore = create<DocsStore>()((set) => {
       createPage: (folderId, title = "Untitled") => {
         const id = nanoid();
         set((s) => {
-          const page: DocPage = { id, title, blocks: [{ id: nanoid(), type: "paragraph", text: "" }], updatedAt: now() };
+          const page: DocPage = { id, title, blocks: [{ id: nanoid(), type: "paragraph", text: "" }], createdAt: now(), updatedAt: now() };
           const folder = s.state.folders[folderId];
           if (!folder) return s;
 
           const nextState: DocsState = {
             ...s.state,
             pages: { ...s.state.pages, [id]: page },
-            folders: { ...s.state.folders, [folderId]: { ...folder, pageIds: [...folder.pageIds, id] } },
+            folders: { ...s.state.folders, [folderId]: { ...folder, pageIds: [...folder.pageIds, id], children: [...folder.children, id] } },
             selectedPageId: id,
           };
           persist(nextState);
@@ -377,15 +383,15 @@ export const useDocsStore = create<DocsStore>()((set) => {
           const parent = s.state.folders[parentFolderId];
           if (!parent) return s;
 
-          const nextFolder: DocFolder = { id, name, folderIds: [], pageIds: [] };
+          const nextFolder: DocFolder = { id, name, children: [], folderIds: [], pageIds: [] };
           const nextState: DocsState = {
             ...s.state,
             folders: {
               ...s.state.folders,
               [id]: nextFolder,
-              [parentFolderId]: { ...parent, folderIds: [...parent.folderIds, id] },
+              [parentFolderId]: { ...parent, folderIds: [...parent.folderIds, id], children: [...parent.children, id] },
             },
-            expandedFolderIds: { ...s.state.expandedFolderIds, [parentFolderId]: true, [id]: true },
+            expandedFolderIds: [...new Set([...s.state.expandedFolderIds, parentFolderId, id])],
           };
           persist(nextState);
           return { state: nextState };
@@ -444,9 +450,12 @@ export const useDocsStore = create<DocsStore>()((set) => {
 
       toggleFolderExpanded: (folderId) => {
         set((s) => {
+          const isExpanded = s.state.expandedFolderIds.includes(folderId);
           const nextState: DocsState = {
             ...s.state,
-            expandedFolderIds: { ...s.state.expandedFolderIds, [folderId]: !s.state.expandedFolderIds[folderId] },
+            expandedFolderIds: isExpanded
+              ? s.state.expandedFolderIds.filter(id => id !== folderId)
+              : [...s.state.expandedFolderIds, folderId],
           };
           persist(nextState);
           return { state: nextState };
@@ -622,7 +631,7 @@ export const useDocsStore = create<DocsStore>()((set) => {
         set((s) => {
           const p = s.state.pages[pageId];
           if (!p) return s;
-          const blocks = p.blocks.map((b) => (b.id === blockId ? ({ ...b, type: "database", data } as any) : b));
+          const blocks = p.blocks.map((b) => (b.id === blockId ? { id: b.id, type: "database" as const, data, locked: b.locked, lockedAt: b.lockedAt, lockedBy: b.lockedBy, layout: b.layout } : b));
           const nextState: DocsState = { ...s.state, pages: { ...s.state.pages, [pageId]: { ...p, blocks, updatedAt: now() } } };
           persist(nextState);
           return { state: nextState };
@@ -658,13 +667,13 @@ export const useDocsStore = create<DocsStore>()((set) => {
   // Detect system preference if no stored theme
   let initialTheme: "light" | "dark" = "light";
   if (storedTheme === "dark" || storedTheme === "light") {
-    initialTheme = storedTheme as "light" | "dark";
+    initialTheme = storedTheme;
   } else if (typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: dark)").matches) {
     initialTheme = "dark";
   }
   
   if (storedTheme === "dark" || storedTheme === "light") {
-    store.state = { ...store.state, theme: storedTheme as "light" | "dark" };
+    store.state = { ...store.state, theme: storedTheme };
   } else {
     store.state = { ...store.state, theme: initialTheme };
   }

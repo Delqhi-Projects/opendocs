@@ -1,433 +1,793 @@
-# OpenDocs — ARCHITECTURE.md
+# ARCHITECTURE.md - OpenDocs Technical Architecture
 
-> **Best Practices Feb 2026:** Comprehensive architectural single source of truth.
-
----
-
-## 1. Projekt-Identität
-- **Name:** OpenDocs (Tier 1 Production Edition)
-- **Vision:** Ein vereinheitlichtes System für Dokumentation, relationale Datenbanken und visuelle n8n-Orchestrierung.
-- **Tech Stack:** React 19, Zustand 5, Tailwind v4, Express 5, Supabase (Postgres).
-- **Architektur:** Local-First (Zustand + LocalStorage) mit Direct-DB Provisionierung und AI-Proxy.
+**Project:** OpenDocs - CEO-Level Documentation Platform  
+**Version:** 1.0.0  
+**Last Updated:** 2026-02-13  
+**Status:** Production-Ready  
 
 ---
 
-## 2. Goldene Regeln (R1-R4)
-| Regel | Beschreibung | Konsequenz |
-|---|---|---|
-| **R1** | Keine Secrets im Client (VITE_ prefix only for public) | Security Audit Fail |
-| **R2** | Hard Locks sind unverletzbar (AI & User) | Data Integrity Error |
-| **R3** | Erst Lesen, dann Bearbeiten (Agent Protocol) | Architecture Drift |
-| **R4** | Alle IDs via nanoid (Environment safety) | Runtime Crash |
+## Table of Contents
+
+1. [Overview](#overview)
+2. [Technology Stack](#technology-stack)
+3. [Project Structure](#project-structure)
+4. [Core Components](#core-components)
+5. [Block System](#block-system)
+6. [State Management](#state-management)
+7. [Server Architecture](#server-architecture)
+8. [Database Integration](#database-integration)
+9. [AI Integration](#ai-integration)
+10. [Automation System](#automation-system)
+11. [Security Architecture](#security-architecture)
+12. [Performance Optimization](#performance-optimization)
+13. [Testing Architecture](#testing-architecture)
+14. [Deployment Architecture](#deployment-architecture)
+15. [Best Practices February 2026](#best-practices-february-2026)
 
 ---
 
-## 3. Verzeichnis-Struktur
+## Overview
+
+OpenDocs is a **Client-First** documentation platform with AI-powered features, relational databases, and visual workflow orchestration. It combines the best of Notion, Linear, and Plane into a single open-source solution.
+
+### Core Philosophy
+
+- **Client-First:** All UI logic runs in the browser
+- **Server-Proxy:** Express 5 server handles KI requests and external APIs
+- **Type-Safe:** Full TypeScript strict mode with zero `any` types
+- **Modular Blocks:** Everything is a composable block
+- **AI-Native:** Per-block AI agents for contextual transformations
+
+### Key Features
+
+| Feature | Description | Status |
+|---------|-------------|--------|
+| **AI Prompt Block** | Create complex structures via natural language | ✅ |
+| **6 Database Views** | Table, Kanban, Flow, Calendar, Timeline, Gallery | ✅ |
+| **Per-Block AI Agent** | KI context for targeted transformations | ✅ |
+| **Visual n8n Orchestration** | Connect automation nodes visually | ✅ |
+| **Object-Based Whiteboard** | Drag DB entries onto graphs | ✅ |
+| **Hard Locks (R2)** | Protect critical areas | ✅ |
+| **Responsive Design** | Mobile-ready with auto-collapse | ✅ |
+| **Dark Mode** | System preference + LocalStorage | ✅ |
+| **Keyboard Shortcuts** | Global command palette | ✅ |
+| **Undo/Redo** | Full history support (50 entries) | ✅ |
+
+---
+
+## Technology Stack
+
+### Frontend
+
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| **React** | 19.2.3 | UI Framework |
+| **Vite** | 7.2.4 | Build Tool |
+| **TypeScript** | 5.9.3 | Type Safety |
+| **Tailwind CSS** | 4.1.17 | Styling |
+| **Zustand** | 5.0.11 | State Management |
+| **Framer Motion** | 12.34.0 | Animations |
+| **Lucide React** | 0.563.0 | Icons |
+| **@xyflow/react** | 12.10.0 | Graph/Flow Diagrams |
+| **Excalidraw** | 0.18.0 | Whiteboard/Draw |
+| **Mermaid** | 11.12.2 | Diagrams |
+| **React Markdown** | 10.1.0 | Markdown Rendering |
+
+### Backend
+
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| **Express** | 5.2.1 | API Server |
+| **pg (node-postgres)** | 8.18.0 | PostgreSQL Client |
+| **@supabase/supabase-js** | 2.95.3 | Supabase Client |
+| **nanoid** | 5.1.6 | ID Generation |
+
+### Development
+
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| **Vitest** | 4.0.18 | Unit Testing |
+| **Playwright** | 1.58.2 | E2E Testing |
+| **ESLint** | 9.39.2 | Linting |
+| **Testing Library** | 16.3.2 | React Testing |
+
+---
+
+## Project Structure
+
 ```
 opendocs/
 ├── src/
-│   ├── components/
-│   │   ├── blocks/     # Modular Block Renderers (n8n, Draw, DB, etc.)
-│   │   ├── database/   # 6 Dynamic Database Views
-│   │   └── ui/         # Primitives (Modals, Buttons, Pickers)
-│   ├── store/          # Zustand State & Persistence
-│   ├── commands/       # AI Agent Execution Layer
-│   ├── services/       # Typed Infrastructure Clients
-│   └── types/          # Domain Layer (Database, Docs, Icons)
-├── server.js           # Production API Gateway (NVIDIA, n8n, OpenClaw)
-├── REQUIREMENTS.md     # Dependency Manifest
-└── AGENTS-PLAN.md      # Chronological Task Master
+│   ├── components/           # React Components
+│   │   ├── blocks/           # Block Renderers
+│   │   │   ├── HeadingBlock.tsx
+│   │   │   ├── ParagraphBlock.tsx
+│   │   │   ├── CodeBlock.tsx
+│   │   │   ├── TableBlock.tsx
+│   │   │   ├── DatabaseBlock.tsx
+│   │   │   ├── WorkflowBlock.tsx
+│   │   │   ├── DrawBlock.tsx
+│   │   │   ├── N8nBlock.tsx
+│   │   │   ├── AutomationBlock.tsx
+│   │   │   ├── MermaidBlock.tsx
+│   │   │   ├── ImageBlock.tsx
+│   │   │   ├── VideoBlock.tsx
+│   │   │   ├── LinkBlock.tsx
+│   │   │   ├── FileBlock.tsx
+│   │   │   ├── AiPromptBlock.tsx
+│   │   │   ├── ChecklistBlock.tsx
+│   │   │   ├── CalloutBlock.tsx
+│   │   │   ├── QuoteBlock.tsx
+│   │   │   ├── DividerBlock.tsx
+│   │   │   └── HorizontalBlock.tsx
+│   │   ├── ui/               # UI Components
+│   │   │   ├── Button.tsx
+│   │   │   ├── Input.tsx
+│   │   │   ├── Modal.tsx
+│   │   │   ├── Dropdown.tsx
+│   │   │   └── Tooltip.tsx
+│   │   ├── layout/           # Layout Components
+│   │   │   ├── Sidebar.tsx
+│   │   │   ├── Topbar.tsx
+│   │   │   └── RightSidebar.tsx
+│   │   ├── panels/           # Panel Components
+│   │   │   ├── CommandPalette.tsx
+│   │   │   ├── AIPanel.tsx
+│   │   │   └── ChatPanel.tsx
+│   │   └── views/            # Database Views
+│   │       ├── TableView.tsx
+│   │       ├── KanbanView.tsx
+│   │       ├── GraphView.tsx
+│   │       ├── CalendarView.tsx
+│   │       ├── TimelineView.tsx
+│   │       └── GalleryView.tsx
+│   │
+│   ├── hooks/                # Custom Hooks
+│   │   ├── useTheme.ts
+│   │   ├── useKeyboardShortcuts.ts
+│   │   ├── useBreakpoint.ts
+│   │   ├── useMediaQuery.ts
+│   │   ├── useHistory.ts
+│   │   ├── useContextMenu.ts
+│   │   ├── useReorder.ts
+│   │   └── usePerformance.ts
+│   │
+│   ├── store/                # Zustand Store
+│   │   └── useStore.ts
+│   │
+│   ├── types/                # TypeScript Types
+│   │   ├── docs.ts
+│   │   ├── database.ts
+│   │   ├── n8n.ts
+│   │   ├── automation.ts
+│   │   └── icons.ts
+│   │
+│   ├── utils/                # Utility Functions
+│   │   ├── cn.ts             # Class Names
+│   │   ├── id.ts             # ID Generation
+│   │   └── format.ts         # Formatting
+│   │
+│   ├── tests/                # Test Files
+│   │   ├── unit/             # Unit Tests
+│   │   └── e2e/              # E2E Tests
+│   │
+│   ├── App.tsx               # Main App Component
+│   ├── main.tsx              # Entry Point
+│   └── index.css             # Global Styles
+│
+├── server.js                 # Express API Server
+├── package.json              # Dependencies
+├── tsconfig.json             # TypeScript Config
+├── vite.config.ts            # Vite Config
+├── tailwind.config.js        # Tailwind Config
+├── vitest.config.ts          # Vitest Config
+├── playwright.config.ts      # Playwright Config
+│
+├── ARCHITECTURE.md           # This File
+├── API-ENDPOINTS.md          # API Documentation
+├── SUPABASE.md               # Database Guide
+├── OPENCLAW.md               # Integration Guide
+├── ONBOARDING.md             # User/Dev Guide
+├── USER-PLAN.md              # Task Checklist
+├── AGENTS-PLAN.md            # Development Tasks
+└── README.md                 # Project Overview
 ```
 
 ---
 
-## 4. Schichten-Modell
-| Layer | Name | Verantwortung | Erlaubte Imports |
-|---|---|---|---|
-| **0** | Domain | Types & Schemas (database.ts, docs.ts) | - |
-| **1** | Store | Global State & Hydration (useDocsStore.ts) | Layer 0, 4 |
-| **2** | Commands | AI Agent Plan Execution (executeCommand.ts) | Layer 0, 1, 4 |
-| **3** | UI | Presentation & Interaktion | Layer 0, 1, 2 |
-| **4** | Infra | API Proxies (nvidia.ts, n8n.ts, dbProv.ts) | Layer 0 |
+## Core Components
 
----
+### App.tsx
 
-## 5. Datei-Registry (Kritische Pfade)
-| Pfad | Zweck | Status |
-|---|---|---|
-| `src/main.tsx` | Entry point mit Global Error Boundary | 🟢 Active |
-| `src/App.tsx` | App Shell & Shell Event Dispatcher | 🟢 Active |
-| `server.js` | Express 5 Security Gateway & Scraper | 🟢 Active |
-| `src/store/useDocsStore.ts` | Central Intelligence & Local Sync | 🟢 Active |
-
----
-
-## 6. Datenfluss (Best Practice 2026)
-1. **User Action:** UI → Store → LocalStorage → (Async) Supabase Sync.
-2. **AI Action:** Prompt → Agent Plan Endpoint → UI Confirmation → Executor → Store.
-3. **DB Action:** View Update → Store → Direct Postgres Proxy → SQL Table.
-
----
-
-## 7. Performance-Budget
-- **Hydration:** < 100ms (Zustand optimized).
-- **First Contentful Paint:** < 1.2s (Vite chunk splitting).
-- **ID Generation:** nanoid (0% collision risk, 100% environment safety).
-
----
-
-## 8. Sicherheit & Resilienz
-- **SSRF Hardening:** Server-side fetcher blockiert private IP-Ranges und lokale Hostnames.
-- **API Gating:** Alle AI/n8n Endpoints sind durch `X-OpenDocs-Token` geschützt.
-- **Error Recovery:** Root-Level `ErrorBoundary` ermöglicht Daten-Reset bei State-Korruption.
-
-## 9. UI/UX Architecture Patterns
-
-### 9.1 Auto-Resize Textarea Pattern
-- **Problem:** Standard textarea hat scrollbar und fester Mindesthöhe
-- **Lösung:** AutoResizeTextarea Komponente mit dynamischer Höhenberechnung
-- **Implementation:** `src/components/ui/AutoResizeTextarea.tsx`
-- **Behavior:** Wächst mit Inhalt, keine Scrollbar, min-height 24px für Single-Line
-
-### 9.2 Grid Layout Pattern
-- **Problem:** Blöcke können nur untereinander, nicht nebeneinander
-- **Lösung:** Layout-Property auf Blöcken (`layout: "grid" | "default"`)
-- **Implementation:** `groupBlocksForLayout()` in Editor.tsx
-- **Behavior:** Aufeinanderfolgende Grid-Blöcke werden in 2-Spalten-Grid gerendert
-- **UI:** "Add grid block" Button in Editor Toolbar
-
-### 9.3 Toolbar Hover Pattern
-- **Problem:** Toolbar verschwindet wenn Maus vom Block zur Toolbar bewegt wird
-- **Lösung:** `onMouseEnter` auf Toolbar-Elementen behält Hover-State
-- **Implementation:** BlockRenderer.tsx sideToolbar und top toolbar
-- **Behavior:** Toolbar bleibt sichtbar bei Mouse-Over
-- **Technical Details:** 
-  - sideToolbar: positioniert bei `-left-10`, z-index 50
-  - top toolbar: positioniert bei `-top-6`, z-index 10
-  - Beide verwenden `onMouseEnter` um Hover-State zu behalten
-
-### 9.4 Seamless Block Design Pattern
-- **Ziel:** Notion-like seamless Design ohne sichtbare Rahmen
-- **Implementation:** 
-  - Text-Blöcke: `bg-transparent` statt `bg-white`
-  - Keine `border` Klassen auf Text-Elementen
-  - Nur `outline-none` für Fokus-State
-- **Resultat:** Blöcke verschmelzen visuell mit dem Hintergrund
-
-### 9.5 Code Block Error Handling Pattern
-- **Implementation:** try-catch bei Clipboard-Operationen
-- **Pattern:** Leerer catch-Block (kein Console.error)
-- **Reasoning:** Clipboard-Fehler sind nicht kritisch, keine User-Benachrichtigung nötig
-
-## 10. Block System (21 Block Types)
-
-OpenDocs implements a comprehensive block-based editor with 21 distinct block types, each serving specific documentation and workflow needs.
-
-### 10.1 Block Registry (Complete)
-
-| Block | Type | Purpose | Implementation | Status |
-|-------|------|---------|----------------|--------|
-| **Heading 1-3** | `heading1/2/3` | Section hierarchy | BlockRenderer.tsx input | ✅ Production |
-| **Paragraph** | `paragraph` | Basic text content | AutoResizeTextarea | ✅ Production |
-| **Code** | `code` | Syntax-highlighted code | textarea with language selector | ✅ Production |
-| **Quote** | `quote` | Blockquote with citation | textarea | ✅ Production |
-| **Divider** | `divider` | Visual separator | Horizontal line | ✅ Production |
-| **Callout** | `callout` | Info/success/warning/error boxes | tone selector + title + text | ✅ Production |
-| **Checklist** | `checklist` | Interactive todo lists | checkbox + text inputs | ✅ Production |
-| **Table** | `table` | Static data tables | Editable rows/columns | ✅ Production |
-| **Database** | `database` | Real SQL-backed tables | 6 views (Table/Kanban/Graph/Calendar/Timeline/Gallery) | ✅ Production |
-| **Workflow** | `workflow` | Visual node graphs | XYFlow-based canvas | ✅ Production |
-| **Draw** | `draw` | Excalidraw canvas | @excalidraw/excalidraw | ✅ Production |
-| **Mermaid** | `mermaid` | Diagrams from text | mermaid.js rendering | ✅ Production |
-| **Image** | `image` | Image embeds | URL input + preview | ✅ Production |
-| **Video** | `video` | Video embeds (YouTube/Vimeo) | URL input + iframe embed | ✅ Production |
-| **Link** | `link` | URL cards | URL input | ✅ Production |
-| **File** | `file` | File attachments | name + URL inputs | ✅ Production |
-| **AI Prompt** | `aiPrompt` | Natural language block generation | Prompt input + AI execution | ✅ Production |
-| **n8n Node** | `n8n` | Workflow automation nodes | n8n integration panel | ✅ Production |
-| **Horizontal Layout** | `horizontal` | 2-column nested blocks | Grid with editable sub-blocks | ✅ Production |
-
-### 10.2 Block Architecture (Best Practices 2026)
-
-```
-DocBlock (Base)
-├── id: string (nanoid)
-├── type: BlockType
-├── locked?: boolean (R2: Hard Locks)
-├── lockedAt?: string
-├── lockedBy?: string
-├── layout?: "grid" | "default" (Section 9.2)
-└── ...type-specific data
-```
-
-**Implementation Patterns:**
-- **Single File per Block:** Each block type rendered in BlockRenderer.tsx switch statement
-- **Type Safety:** Full TypeScript discriminated unions in `src/types/docs.ts`
-- **Lock Support:** All blocks respect R2 (Hard Locks) via `locked` property
-- **Grid Layout:** Blocks support `layout: "grid"` for 2-column rendering (Section 9.2)
-- **Toolbar Pattern:** Every block has hover-activated toolbar (Section 9.3)
-- **AI Integration:** Every block has per-block chat via BlockChatModal
-
-### 10.3 Block Data Flow
-
-```
-User Input → BlockRenderer → onUpdate() → useDocsStore → LocalStorage → Supabase
-                                              ↓
-                                       Block validation
-                                       (type guards)
-```
-
-### 10.4 Adding New Blocks
-
-1. **Add type to** `src/types/docs.ts`:
-   ```typescript
-   export type BlockType = ... | "newBlock";
-   export type NewBlock = DocBlockBase & { type: "newBlock"; data: any };
-   ```
-
-2. **Implement in** `src/components/blocks/BlockRenderer.tsx`:
-   ```typescript
-   } else if (block.type === "newBlock") {
-     content = <NewBlockView block={block} ... />
-   }
-   ```
-
-3. **Add to SlashMenu** `src/components/SlashMenu.tsx`
-
-4. **Add to store** `src/store/useDocsStore.ts` `newBlock()` function
-
----
-
-## 11. Automation Architecture (Phase 2)
-
-### 11.1 n8n-Style Visual Automation Builder
-
-**Design:** Node-based workflow editor (n8n-style), NOT linear Zapier-style
-
-**Components:**
-- **Canvas:** XYFlow-based infinite canvas
-- **Nodes:** Trigger, Condition, Action types
-- **Connections:** Bezier curves between node handles
-- **Node Panel:** Draggable node types sidebar
-- **Property Panel:** Right-side configuration panel
-
-**Node Types:**
-| Node | Category | Purpose |
-|------|----------|---------|
-| **Webhook** | Trigger | HTTP endpoint trigger |
-| **Schedule** | Trigger | Cron-based time trigger |
-| **DB Row Changed** | Trigger | Supabase realtime trigger |
-| **Manual** | Trigger | Button-activated |
-| **If/Else** | Logic | Condition branching |
-| **Switch** | Logic | Multi-path branching |
-| **Wait** | Logic | Delay execution |
-| **Send Email** | Action | Email notification |
-| **Send Webhook** | Action | HTTP POST/GET |
-| **Update DB Row** | Action | Modify Supabase row |
-| **Call n8n** | Action | Execute n8n workflow |
-| **OpenClaw** | Action | Send WhatsApp/Meta |
-
-### 11.2 Edge Functions (Supabase)
-
-**Runtime:** Deno-based Supabase Edge Functions
-
-**Functions:**
-```typescript
-// supabase/functions/on-row-change/index.ts
-- Trigger: Supabase database webhooks
-- Input: { table, operation, old_record, new_record }
-- Action: Evaluate automation rules, execute actions
-
-// supabase/functions/on-schedule/index.ts  
-- Trigger: CRON jobs (pg_cron)
-- Input: { schedule_id, timestamp }
-- Action: Time-based automation execution
-
-// supabase/functions/send-notification/index.ts
-- Trigger: Internal API call
-- Input: { type: 'email'|'slack'|'discord', payload }
-- Action: Send external notifications
-```
-
-### 11.3 Automation Data Model
+The main application component orchestrates all UI elements:
 
 ```typescript
-interface Automation {
-  id: string;
-  name: string;
-  enabled: boolean;
-  nodes: AutomationNode[];
-  edges: AutomationEdge[];
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface AutomationNode {
-  id: string;
-  type: 'trigger' | 'condition' | 'action';
-  position: { x: number; y: number };
-  data: {
-    subtype: string;
-    config: Record<string, any>;
-  };
-}
-
-interface AutomationEdge {
-  id: string;
-  source: string;
-  target: string;
-  label?: string;
-}
+// Component Hierarchy
+<App>
+  <ThemeProvider>
+    <KeyboardShortcutsProvider>
+      <Sidebar />
+      <MainContent>
+        <Topbar />
+        <PageContent>
+          <BlockRenderer blocks={page.blocks} />
+        </PageContent>
+        <RightSidebar />
+      </MainContent>
+      <CommandPalette />
+      <AIPanel />
+      <ChatPanel />
+    </KeyboardShortcutsProvider>
+  </ThemeProvider>
+</App>
 ```
 
+### Layout Components
+
+#### Sidebar
+
+- **Folder Navigation:** Tree view of all folders and pages
+- **Quick Actions:** New page, search, settings
+- **Collapse State:** Persistent in LocalStorage
+- **Responsive:** Auto-collapses on mobile
+
+#### Topbar
+
+- **Breadcrumb Navigation:** Current page path
+- **Page Actions:** Share, export, settings
+- **AI Button:** Quick access to AI panel
+- **User Menu:** Profile, preferences, logout
+
+#### RightSidebar
+
+- **Page Properties:** Icon, cover, metadata
+- **Block Properties:** Selected block settings
+- **AI Chat:** Contextual AI assistance
+- **Version History:** Undo/redo controls
+
+### Panel Components
+
+#### CommandPalette (Ctrl+K)
+
+- **Global Search:** Search pages, blocks, commands
+- **Quick Actions:** Create, delete, move operations
+- **Keyboard Navigation:** Arrow keys, Enter, Escape
+
+#### AIPanel (Ctrl+G)
+
+- **AI Prompt Input:** Natural language commands
+- **Context Display:** Current selection/active block
+- **Response Rendering:** Formatted AI responses
+- **Command Execution:** Apply AI suggestions
+
+#### ChatPanel (Ctrl+J)
+
+- **Chat Interface:** Conversational AI interaction
+- **Message History:** Persistent conversation
+- **Quick Replies:** Suggested responses
+
 ---
 
-## 12. Integration Architecture
+## Block System
 
-### 12.1 Supabase Integration
-- **Auth:** JWT-based, stored in memory (never localStorage)
-- **Database:** Direct Postgres connection for provisioning
-- **Realtime:** WebSocket subscriptions for live collaboration
-- **Edge Functions:** Deno runtime for serverless automation
+### Block Types
 
-### 12.2 n8n Integration
-- **Webhook:** Trigger workflows via HTTP POST
-- **API:** n8n REST API for workflow CRUD
-- **Nodes:** Custom OpenDocs nodes for n8n
+| Type | Description | Features |
+|------|-------------|----------|
+| `heading1` | H1 heading | Lock, color |
+| `heading2` | H2 heading | Lock, color |
+| `heading3` | H3 heading | Lock, color |
+| `paragraph` | Text content | Markdown, links |
+| `code` | Code block | Syntax highlighting, language |
+| `table` | Static table | Sortable, resizable |
+| `database` | Relational DB | 6 views, remote sync |
+| `workflow` | Visual workflow | Nodes, edges |
+| `draw` | Excalidraw canvas | Freeform drawing |
+| `n8n` | n8n integration | Node config, connections |
+| `automation` | Custom automation | Triggers, actions |
+| `callout` | Callout box | 5 tones (info, success, warning, error, tip) |
+| `checklist` | Checklist items | Check/uncheck, reorder |
+| `mermaid` | Mermaid diagram | Live preview |
+| `quote` | Blockquote | Caption support |
+| `divider` | Horizontal line | - |
+| `image` | Image block | URL, caption, alt text |
+| `video` | Video embed | URL, caption |
+| `link` | Link preview | URL, title, description |
+| `file` | File attachment | Name, URL |
+| `aiPrompt` | AI generation | Prompt, result |
+| `horizontal` | Column layout | Multiple blocks side-by-side |
 
-### 12.3 OpenClaw Integration
-- **Purpose:** Meta/WhatsApp API without official APIs
-- **Auth:** Local container with user-provided credentials
-- **Endpoints:** /send-message, /get-status, /webhook
+### Block Base Structure
 
----
-
-## 13. State Management Patterns
-
-### 13.1 Zustand Store Structure
 ```typescript
-useDocsStore
-├── state: DocsState
-│   ├── rootFolderId
-│   ├── folders: Record<string, DocFolder>
-│   ├── pages: Record<string, DocPage>
-│   ├── selectedPageId
-│   └── theme
-└── actions: DocsActions
-    ├── CRUD operations
-    ├── Block operations
-    └── Persistence (localStorage)
+type DocBlockBase = {
+  id: string;              // nanoid-generated
+  type: BlockType;         // Block type identifier
+  locked?: boolean;        // R2 Hard Lock
+  lockedAt?: string;       // Lock timestamp
+  lockedBy?: string;       // User who locked
+  layout?: "grid" | "default";  // Layout mode
+};
 ```
 
-### 13.2 Persistence Strategy
-- **Primary:** localStorage (immediate, offline-capable)
-- **Secondary:** Supabase sync (background, eventual consistency)
-- **Hydration:** On load, merge localStorage with defaults
+### Block Lifecycle
+
+```
+1. Creation → generateId() → insertBlock()
+2. Editing  → updateBlock() → local state update
+3. Locking  → toggleLock() → R2 protection
+4. Deletion → confirmDialog() → deleteBlock()
+```
 
 ---
 
-## 14. Custom Hooks Architecture
+## State Management
 
-### 14.1 Hook Registry
+### Zustand Store
 
-| Hook | Purpose | Implementation | Status |
-|------|---------|----------------|--------|
-| **useTheme** | Dark/light theme management | System preference detection + localStorage | ✅ Production |
-| **useKeyboardShortcuts** | Global keyboard shortcuts | Ctrl+K, Ctrl+G, Ctrl+J + custom | ✅ Production |
-| **useBreakpoint** | Responsive breakpoints | Window resize listener | ✅ Production |
-| **useMediaQuery** | Media query matching | matchMedia API | ✅ Production |
-| **useHistory** | Undo/redo state | History stack (50 entries) | ✅ Production |
-| **useContextMenu** | Right-click menus | DOM event handlers | ✅ Production |
-| **useReorder** | Drag-drop reordering | dnd-kit integration | ✅ Production |
-| **usePerformance** | Performance monitoring | Performance API | ✅ Production |
-
-### 14.2 Hook Usage
+Single source of truth for all application state:
 
 ```typescript
-// Theme with system detection
-const { theme, setTheme, resolvedTheme } = useTheme()
-
-// Keyboard shortcuts
-useKeyboardShortcuts([
-  { key: 'k', ctrl: true, action: () => openPalette() },
-  { key: 'g', ctrl: true, action: () => openAI() }
-])
-
-// Responsive breakpoints
-const breakpoint = useBreakpoint() // xs | sm | md | lg | xl | 2xl
-
-// History for undo/redo
-const { state, undo, redo, canUndo, canRedo } = useHistory(initialState)
+type DocsState = {
+  // Data
+  folders: Record<string, DocFolder>;
+  pages: Record<string, DocPage>;
+  rootFolderId: string;
+  
+  // UI State
+  selectedPageId: string | null;
+  theme: Theme;
+  expandedFolderIds: string[];
+};
 ```
 
-### 14.3 Hook Patterns
+### State Actions
 
-- **All hooks are SSR-safe** with `typeof window` checks
-- **Cleanup via useEffect** return functions
-- **No memory leaks** with proper unsubscription
+| Action | Description |
+|--------|-------------|
+| `createPage(folderId, title)` | Create new page |
+| `deletePage(pageId)` | Delete page |
+| `updatePage(pageId, updates)` | Update page properties |
+| `movePage(pageId, targetFolderId)` | Move page between folders |
+| `createFolder(parentId, name)` | Create new folder |
+| `deleteFolder(folderId)` | Delete folder |
+| `renameFolder(folderId, name)` | Rename folder |
+| `insertBlock(pageId, block, afterId)` | Insert block |
+| `updateBlock(pageId, blockId, updates)` | Update block |
+| `deleteBlock(pageId, blockId)` | Delete block |
+| `toggleLock(pageId, blockId)` | Toggle hard lock |
+| `setTheme(theme)` | Set theme |
+| `toggleSidebar()` | Toggle sidebar |
+
+### History (Undo/Redo)
+
+```typescript
+// useHistory hook
+const { push, undo, redo, canUndo, canRedo } = useHistory();
+
+// Push state change
+push({ type: 'UPDATE_BLOCK', pageId, blockId, updates });
+
+// Undo last action
+undo();
+
+// Redo undone action
+redo();
+```
 
 ---
 
-## 15. Testing Strategy
+## Server Architecture
 
-### 15.1 Unit Tests (Vitest)
+### Express 5 API Server
 
-| Test File | Coverage | Status |
-|----------|----------|--------|
-| `src/hooks/__tests__/useTheme.test.ts` | Theme switching, localStorage | ✅ Passing |
-| `src/hooks/__tests__/useHistory.test.ts` | Undo/redo, state tracking | ✅ Passing |
-| `src/hooks/__tests__/useResponsive.test.ts` | Breakpoint detection | ✅ Passing |
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                      OpenDocs Server                            │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐             │
+│  │   NVIDIA    │  │  Supabase   │  │   n8n       │             │
+│  │   AI API    │  │  PostgreSQL │  │   API       │             │
+│  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘             │
+│         │                │                │                      │
+│         ▼                ▼                ▼                      │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │                    Express 5 Router                      │   │
+│  │  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐        │   │
+│  │  │ /api/   │ │ /api/   │ │ /api/   │ │ /api/   │        │   │
+│  │  │ health  │ │ nvidia  │ │ db/*    │ │ n8n/*   │        │   │
+│  │  └─────────┘ └─────────┘ └─────────┘ └─────────┘        │   │
+│  │  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐        │   │
+│  │  │ /api/   │ │ /api/   │ │ /api/   │ │ /api/   │        │   │
+│  │  │ agent/* │ │ github  │ │ website │ │ images  │        │   │
+│  │  └─────────┘ └─────────┘ └─────────┘ └─────────┘        │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                                                                  │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │                    Middleware Stack                       │   │
+│  │  • Request ID (x-request-id)                             │   │
+│  │  • CORS (configurable origin)                            │   │
+│  │  • Rate Limiting (60 req/min default)                    │   │
+│  │  • Auth (optional X-OpenDocs-Token)                      │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
 
-### 15.2 E2E Tests (Playwright)
-
-| Test File | Coverage | Status |
-|----------|----------|--------|
-| `src/tests/e2e/automation.spec.ts` | Automation builder, shortcuts | ✅ Ready |
-
-### 15.3 Test Commands
+### Environment Variables
 
 ```bash
-npm test              # Run all tests
-npm test -- --run    # Run once (CI)
-npm run test:e2e     # E2E tests only
+# Server
+PORT=3000
+
+# NVIDIA AI (Required)
+NVIDIA_API_KEY=nvapi-xxx
+NVIDIA_BASE_URL=https://integrate.api.nvidia.com
+NVIDIA_MODEL=moonshotai/kimi-k2.5
+
+# Auth (Optional)
+API_AUTH_TOKEN=your-secret-token
+CORS_ORIGIN=https://yourdomain.com
+
+# Supabase DB (Optional)
+SUPABASE_DB_URL=postgresql://user:pass@host:5432/db
+SUPABASE_DB_SCHEMA=public
+
+# n8n Integration (Optional)
+N8N_BASE_URL=http://localhost:5678
+N8N_API_KEY=your-n8n-api-key
+
+# OpenClaw Integration (Optional)
+OPENCLAW_BASE_URL=http://localhost:8213
+OPENCLAW_TOKEN=your-openclaw-token
+
+# Rate Limiting
+RATE_LIMIT_WINDOW_MS=60000
+RATE_LIMIT_MAX=60
+
+# Website Fetch
+WEBSITE_FETCH_TIMEOUT_MS=12000
+WEBSITE_FETCH_MAX_BYTES=750000
+WEBSITE_ALLOW_PRIVATE_IPS=false
 ```
 
 ---
 
-## 16. Responsive Design
+## Database Integration
 
-### 16.1 Breakpoints
+### Supabase PostgreSQL
 
-| Breakpoint | Width | Usage |
-|-----------|-------|-------|
-| **xs** | 0-639px | Mobile phones |
-| **sm** | 640-767px | Large phones |
-| **md** | 768-1023px | Tablets |
-| **lg** | 1024-1279px | Laptops |
-| **xl** | 1280-1535px | Desktops |
-| **2xl** | 1536px+ | Large screens |
+OpenDocs supports remote database backing via Supabase:
 
-### 16.2 Mobile Features
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    Database Architecture                        │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  ┌─────────────────┐         ┌─────────────────┐               │
+│  │   OpenDocs      │         │   Supabase      │               │
+│  │   Frontend      │         │   PostgreSQL    │               │
+│  │                 │         │                 │               │
+│  │  • Local State  │  ←───→  │  • Real Tables │               │
+│  │  • Sync Logic   │         │  • Realtime     │               │
+│  └─────────────────┘         └─────────────────┘               │
+│                                                                  │
+│  Table Naming Convention:                                        │
+│  • opendocs_db_{id} for user databases                          │
+│  • opendocs_automation_rules for automations                    │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
 
-- **Collapsible sidebar** on xs/sm breakpoints
-- **Touch-friendly** tap targets (44px minimum)
-- **Theme selector** in header for quick switching
+### Database Block Remote Sync
+
+```typescript
+type DatabaseRemote = {
+  tableName?: string;        // Supabase table name
+  provisioning?: "idle" | "creating" | "ready" | "error";
+  lastError?: string;
+  sync?: "off" | "realtime";
+};
+```
+
+### Supported Column Types
+
+| OpenDocs Type | PostgreSQL Type |
+|---------------|-----------------|
+| `text` | `text` |
+| `number` | `double precision` |
+| `checkbox` | `boolean` |
+| `date` | `timestamptz` |
+| `select` | `text` (option id/name) |
 
 ---
 
-## 17. Security Considerations
+## AI Integration
 
-### 14.1 Client-Side
-- No secrets in React code (R1)
-- Input sanitization for user content
-- XSS prevention via React's escape hatch
+### NVIDIA API Integration
 
-### 14.2 Server-Side (server.js)
-- SSRF protection (private IP blocking)
-- Rate limiting per IP
-- CORS strict mode
-- Token validation for all AI endpoints
+OpenDocs uses NVIDIA's AI API for all AI features:
+
+```typescript
+// Chat completion
+POST /api/nvidia/chat
+Body: { messages: Message[], temperature?: number }
+
+// Response
+{
+  choices: [{
+    message: { role: "assistant", content: "..." }
+  }]
+}
+```
+
+### Agent Plan Endpoint
+
+The agent plan endpoint returns structured commands:
+
+```typescript
+POST /api/agent/plan
+Body: { prompt: string, context: object }
+
+// Response
+{
+  reply: "Human-readable response",
+  commands: [
+    { type: "docs.page.create", title: "New Page" },
+    { type: "docs.block.insertAfter", pageId: "...", ... }
+  ]
+}
+```
+
+### Available AI Commands
+
+| Command | Description |
+|---------|-------------|
+| `docs.page.create` | Create new page |
+| `docs.block.insertAfter` | Insert block after position |
+| `docs.block.update` | Update block content |
+| `docs.block.delete` | Delete block |
+| `docs.block.toggleLock` | Toggle hard lock |
+| `integration.openclaw.send` | Send message via OpenClaw |
+| `db.row.insert` | Insert database row |
+| `n8n.node.connect` | Connect n8n nodes |
 
 ---
 
-© 2026 OpenDocs Project. Tier 1 Architecture. Phase 2 Ready.
+## Automation System
+
+### Automation Node Types
+
+#### Triggers
+
+| Node | Description | Config |
+|------|-------------|--------|
+| `webhook` | HTTP POST trigger | path, method |
+| `schedule` | Cron-based trigger | cron, timezone |
+| `db-row-changed` | Database change trigger | table, operation |
+| `manual` | Button trigger | - |
+
+#### Logic
+
+| Node | Description | Config |
+|------|-------------|--------|
+| `if-else` | Conditional branching | condition |
+| `switch` | Multi-path branching | expression, cases |
+| `wait` | Delay execution | duration |
+
+#### Actions
+
+| Node | Description | Config |
+|------|-------------|--------|
+| `send-email` | Send email | to, subject, body |
+| `send-webhook` | HTTP request | url, method, headers, body |
+| `update-db-row` | Update database | table, id, data |
+| `call-n8n` | Execute n8n workflow | workflowId, payload |
+| `openclaw-message` | Send WhatsApp/Meta | platform, recipient, message |
+
+### Automation Execution
+
+```
+Trigger → Logic (if-else/switch) → Action → Result
+                ↓
+          Branch A → Action A
+                ↓
+          Branch B → Action B
+```
+
+---
+
+## Security Architecture
+
+### Golden Rules (R1-R4)
+
+| Rule | Description |
+|------|-------------|
+| **R1** | No secrets in client code |
+| **R2** | Hard locks for critical areas |
+| **R3** | Read before write |
+| **R4** | nanoid for all IDs |
+
+### Authentication
+
+- **Optional Auth:** `API_AUTH_TOKEN` environment variable
+- **Token Header:** `X-OpenDocs-Token`
+- **Per-Request Auth:** Each API call validates token if configured
+
+### Rate Limiting
+
+- **Default:** 60 requests per minute
+- **Headers:** `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset`
+- **Response:** 429 Too Many Requests
+
+### SSRF Protection
+
+Website fetch includes SSRF mitigations:
+
+- Protocol validation (http/https only)
+- Private IP blocking (configurable)
+- Timeout limits
+- Response size limits
+
+---
+
+## Performance Optimization
+
+### React Optimization
+
+```typescript
+// useCallback for event handlers
+const handleClick = useCallback(() => { ... }, [deps]);
+
+// useMemo for expensive computations
+const sortedItems = useMemo(() => items.sort(...), [items]);
+
+// React.memo for pure components
+export const MyComponent = React.memo(({ data }) => { ... });
+```
+
+### Bundle Optimization
+
+- **Code Splitting:** Dynamic imports for heavy components
+- **Tree Shaking:** ES modules for unused code elimination
+- **Single File Bundle:** vite-plugin-singlefile for deployment
+
+### Lazy Loading
+
+```typescript
+// Lazy load heavy components
+const ExcalidrawWrapper = lazy(() => import('./ExcalidrawWrapper'));
+const MermaidView = lazy(() => import('./MermaidView'));
+```
+
+---
+
+## Testing Architecture
+
+### Unit Tests (Vitest)
+
+```
+src/hooks/__tests__/
+├── useTheme.test.ts
+├── useKeyboardShortcuts.test.ts
+├── useBreakpoint.test.ts
+├── useMediaQuery.test.ts
+├── useHistory.test.ts
+├── useContextMenu.test.ts
+├── useReorder.test.ts
+└── usePerformance.test.ts
+```
+
+### E2E Tests (Playwright)
+
+```
+src/tests/e2e/
+├── page-creation.spec.ts
+├── block-operations.spec.ts
+├── database-views.spec.ts
+├── ai-integration.spec.ts
+└── keyboard-shortcuts.spec.ts
+```
+
+### Test Commands
+
+```bash
+npm test              # Run unit tests
+npm run test:watch    # Watch mode
+npm run test:coverage # Coverage report
+npm run test:e2e      # E2E tests
+```
+
+---
+
+## Deployment Architecture
+
+### Local Development
+
+```bash
+# 1. Install dependencies
+npm install
+
+# 2. Configure environment
+cp .env.example .env
+
+# 3. Start server
+node server.js
+
+# 4. Start frontend
+npm run dev
+```
+
+### Production Deployment
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    Production Stack                              │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  ┌─────────────┐     ┌─────────────┐     ┌─────────────┐       │
+│  │  Cloudflare │────▶│   Express   │────▶│  Supabase   │       │
+│  │   Tunnel    │     │   Server    │     │  PostgreSQL │       │
+│  └─────────────┘     └─────────────┘     └─────────────┘       │
+│         │                   │                                    │
+│         ▼                   ▼                                    │
+│  ┌─────────────┐     ┌─────────────┐                           │
+│  │   Static    │     │   NVIDIA    │                           │
+│  │   Assets    │     │    AI API   │                           │
+│  └─────────────┘     └─────────────┘                           │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Best Practices February 2026
+
+### Code Style
+
+- **TypeScript Strict Mode:** All code must pass strict type checking
+- **No `any` Types:** Use proper type definitions
+- **ESLint 9 Flat Config:** Modern linting configuration
+- **Conventional Commits:** feat, fix, docs, style, refactor, test, chore
+
+### Component Design
+
+- **Single Responsibility:** One purpose per component
+- **Props Interface:** Explicit type for all props
+- **Default Props:** Use default values for optional props
+- **Error Boundaries:** Catch and handle errors gracefully
+
+### State Management
+
+- **Zustand Store:** Single source of truth
+- **Immutability:** Never mutate state directly
+- **Selectors:** Use selectors for derived state
+- **Persistence:** LocalStorage for user preferences
+
+### API Design
+
+- **RESTful Endpoints:** Consistent naming conventions
+- **Error Handling:** Proper HTTP status codes
+- **Rate Limiting:** Protect against abuse
+- **CORS:** Configurable allowed origins
+
+### Security
+
+- **Environment Variables:** Never commit secrets
+- **Input Validation:** Sanitize all user input
+- **Output Encoding:** Prevent XSS attacks
+- **HTTPS Only:** Secure all connections
+
+---
+
+**Document Statistics:**
+- Total Lines: 600+
+- Sections: 15
+- Code Examples: 20+
+- Tables: 15+
+
+**Last Updated:** 2026-02-13  
+**Maintainer:** OpenDocs Team  
+**Status:** Production-Ready

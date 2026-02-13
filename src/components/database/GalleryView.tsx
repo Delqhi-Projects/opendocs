@@ -1,4 +1,5 @@
 import type { DatabaseBlock } from "@/types/docs";
+import type { DbCellValue } from "@/types/database";
 import { Plus, Trash2 } from "lucide-react";
 
 export function GalleryView({
@@ -12,7 +13,7 @@ export function GalleryView({
   disabled: boolean;
   addRow: () => void;
   deleteRow: (id: string) => void;
-  updateCell: (rowId: string, propId: string, value: any) => void;
+  updateCell: (rowId: string, propId: string, value: DbCellValue) => void;
 }) {
   const nameProp = data.properties[0];
 

@@ -1,6 +1,10 @@
 import { AutomationNode } from '@/types/automation';
+import { Parser } from 'expr-eval';
 
 export type ExecutionContext = Record<string, unknown>;
+
+// Safe expression parser for conditions (prevents code injection)
+const parser = new Parser();
 
 export async function sendEmailAction(
   node: AutomationNode,
@@ -119,10 +123,16 @@ export function evaluateCondition(
   context: ExecutionContext
 ): boolean {
   try {
+    // Substitute variables first (e.g., {{user.name}} -> "John")
     const substitutedCondition = substituteVariables(condition, context);
-    const fn = new Function('context', 'return ' + substitutedCondition);
-    return Boolean(fn(context));
-  } catch {
+    
+    // Use safe expression parser instead of new Function()
+    // This prevents arbitrary code injection attacks
+    const expression = parser.parse(substitutedCondition);
+    return Boolean(expression.evaluate(context as any));
+  } catch (error) {
+    // Log error for debugging but don't throw
+    console.warn('Condition evaluation failed:', error);
     return false;
   }
 }
