@@ -73,6 +73,24 @@ const apiLimiter = rateLimit({
 });
 app.use("/api/", apiLimiter);
 
+const auditLog = [];
+
+app.use((req, res, next) => {
+  const logEntry = {
+    timestamp: new Date().toISOString(),
+    method: req.method,
+    path: req.path,
+    ip: req.ip || req.socket.remoteAddress || 'unknown',
+    userAgent: req.get('user-agent') || 'unknown'
+  };
+  
+  if (req.path.startsWith('/api/')) {
+    console.log(`[AUDIT] ${logEntry.timestamp} ${logEntry.method} ${logEntry.path} ${logEntry.ip}`);
+  }
+  
+  next();
+});
+
 app.use(express.json({ limit: "1mb" }));
 
 // Basic request id

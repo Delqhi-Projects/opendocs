@@ -1,10 +1,29 @@
 import { AutomationNode } from '@/types/automation';
 import { Parser } from 'expr-eval';
+import { z } from 'zod';
 
 export type ExecutionContext = Record<string, unknown>;
 
-// Safe expression parser for conditions (prevents code injection)
 const parser = new Parser();
+
+const SendEmailSchema = z.object({
+  to: z.string().max(254),
+  subject: z.string().max(200),
+  body: z.string().max(50000),
+  headers: z.record(z.string(), z.string()).optional()
+});
+
+const SendWebhookSchema = z.object({
+  url: z.string().url().max(2048),
+  method: z.enum(['GET', 'POST', 'PUT', 'DELETE', 'PATCH']),
+  body: z.string().max(100000).optional()
+});
+
+const SendMessageSchema = z.object({
+  platform: z.enum(['telegram', 'discord', 'slack', 'whatsapp']),
+  recipient: z.string().min(1).max(500),
+  message: z.string().min(1).max(4000)
+});
 
 export async function sendEmailAction(
   node: AutomationNode,
@@ -12,15 +31,18 @@ export async function sendEmailAction(
 ): Promise<{ sent: boolean; messageId: string }> {
   const config = node.data.config;
   const headersString = config.headers as string;
+  
+  const validated = SendEmailSchema.parse({
+    to: substituteVariables(config.to as string, context),
+    subject: substituteVariables(config.subject as string, context),
+    body: substituteVariables(config.body as string, context),
+    headers: headersString ? parseHeaders(headersString, context) : {}
+  });
+  
   const response = await fetch('/api/automation/email', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      to: substituteVariables(config.to as string, context),
-      subject: substituteVariables(config.subject as string, context),
-      body: substituteVariables(config.body as string, context),
-      headers: headersString ? parseHeaders(headersString, context) : {},
-    }),
+    body: JSON.stringify(validated),
   });
 
   if (!response.ok) {
@@ -36,15 +58,20 @@ export async function sendWebhookAction(
 ): Promise<{ status: number; response: unknown }> {
   const config = node.data.config;
   const headersString = config.headers as string;
-  const response = await fetch(substituteVariables(config.url as string, context), {
-    method: config.method as string,
+  
+  const validated = SendWebhookSchema.parse({
+    url: substituteVariables(config.url as string, context),
+    method: config.method || 'POST',
+    body: config.body ? substituteVariables(config.body as string, context) : undefined
+  });
+  
+  const response = await fetch(validated.url, {
+    method: validated.method,
     headers: {
       'Content-Type': 'application/json',
       ...parseHeaders(headersString, context),
     },
-    body: config.body
-      ? JSON.stringify(substituteVariables(config.body as string, context))
-      : undefined,
+    body: validated.body ? JSON.stringify(validated.body) : undefined,
   });
 
   return {
@@ -101,14 +128,17 @@ export async function sendOpenClawMessage(
   context: ExecutionContext
 ): Promise<{ sent: boolean; messageId: string }> {
   const config = node.data.config;
+  
+  const validated = SendMessageSchema.parse({
+    platform: config.platform,
+    recipient: substituteVariables(config.recipient as string, context),
+    message: substituteVariables(config.message as string, context),
+  });
+  
   const response = await fetch('/api/openclaw/message', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      platform: config.platform,
-      recipient: substituteVariables(config.recipient as string, context),
-      message: substituteVariables(config.message as string, context),
-    }),
+    body: JSON.stringify(validated),
   });
 
   if (!response.ok) {
