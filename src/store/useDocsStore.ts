@@ -39,20 +39,23 @@ function loadFromStorage(): DocsState {
     
     // Defensive check: only use storage if core structures exist
     if (current && typeof current === 'object' && current.folders && current.pages && current.rootFolderId) {
-      // Best Practice 2026: merge with defaults to handle schema evolution
-      return { 
+      const merged = { 
         ...defaults, 
         ...current,
-        // Ensure theme is valid
-        theme: (current.theme === 'dark' || current.theme === 'light') ? current.theme : defaults.theme
+        theme: (current.theme === 'dark' || current.theme === 'light') ? current.theme : defaults.theme,
+        expandedFolderIds: Array.isArray(current?.expandedFolderIds) ? current.expandedFolderIds : defaults.expandedFolderIds
       } as DocsState;
+      return merged;
     }
 
-    // Try migrating legacy keys
     for (const k of STORAGE_KEYS.stateLegacy) {
       const legacy = safeParse<Partial<DocsState>>(localStorage.getItem(k));
       if (legacy?.folders && legacy.pages && legacy.rootFolderId) {
-        const merged = { ...defaults, ...legacy } as DocsState;
+        const merged = { 
+          ...defaults, 
+          ...legacy,
+          expandedFolderIds: Array.isArray(legacy?.expandedFolderIds) ? legacy.expandedFolderIds : defaults.expandedFolderIds
+        } as DocsState;
         localStorage.setItem(STORAGE_KEYS.state, JSON.stringify(merged));
         return merged;
       }

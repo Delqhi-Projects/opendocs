@@ -17,8 +17,10 @@ export function Sidebar() {
       <div className="flex items-center justify-between px-3 py-3">
         <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">OpenDocs</div>
         <button
+          type="button"
           className="rounded-md p-2 text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-900"
           title="Toggle theme"
+          aria-label="Toggle theme"
           onClick={() => actions.setTheme(state.theme === "dark" ? "light" : "dark")}
         >
           <SunMoon className="h-4 w-4" />
@@ -29,7 +31,9 @@ export function Sidebar() {
         <div className="relative">
           <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-400" />
           <input
+            type="search"
             placeholder="Search pages..."
+            aria-label="Search pages"
             className="w-full rounded-md border border-zinc-200 bg-zinc-50 pl-8 pr-2 py-1.5 text-xs outline-none focus:ring-1 focus:ring-indigo-500 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200"
             onChange={(e) => setFilter(e.target.value)}
           />
@@ -42,8 +46,10 @@ export function Sidebar() {
           <Plus className="mr-2 h-4 w-4" /> New page
         </Button>
         <button
+          type="button"
           className="rounded-md border border-zinc-200 p-2 text-zinc-600 hover:bg-zinc-50 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-900"
           title="New folder"
+          aria-label="New folder"
           onClick={() => actions.createFolder(state.rootFolderId, "New folder")}
         >
           <FolderPlus className="h-4 w-4" />
@@ -60,9 +66,11 @@ export function Sidebar() {
 
       <div className="border-t border-zinc-200 p-3 dark:border-zinc-800">
         <button
+          type="button"
           className="flex w-full items-center justify-between rounded-md px-2 py-2 text-sm text-zinc-600 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-900"
           onClick={actions.clearAllData}
           title="Clear all local data"
+          aria-label="Clear all local data"
         >
           <span className="inline-flex items-center gap-2">
             <Trash2 className="h-4 w-4" /> Clear local data
@@ -93,13 +101,15 @@ function FolderNode({ folderId, depth, filter }: { folderId: string; depth: numb
         style={{ paddingLeft: 8 + depth * 12 }}
       >
         <div className="flex flex-1 items-center gap-2 min-w-0">
-          <button className="p-0.5 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded" onClick={() => actions.toggleFolderExpanded(folderId)}>
+          <button type="button" className="p-0.5 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded" onClick={() => actions.toggleFolderExpanded(folderId)} aria-label={expanded ? "Collapse folder" : "Expand folder"}>
             {expanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
           </button>
           
           <button 
+            type="button"
             className="flex items-center gap-2 min-w-0 flex-1 text-left" 
             onClick={() => setShowPicker(!showPicker)}
+            aria-label="Change folder icon"
           >
             <div className="w-4 h-4 flex-shrink-0 flex items-center justify-center">
               {folder.icon ? <RenderDocIcon icon={folder.icon} className="w-4 h-4" /> : <Folder className="w-4 h-4 text-zinc-400" />}
@@ -109,8 +119,10 @@ function FolderNode({ folderId, depth, filter }: { folderId: string; depth: numb
         </div>
 
         <button
+          type="button"
           className="rounded p-1 text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 opacity-0 group-hover:opacity-100 transition-opacity"
           title="New page in folder"
+          aria-label="New page in folder"
           onClick={() => actions.createPage(folderId, "New page")}
         >
           <Plus className="h-4 w-4" />
