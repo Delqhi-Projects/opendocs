@@ -267,6 +267,7 @@ describe('OpenClaw Client', () => {
       const mockFetch = global.fetch as unknown as vi.Mock
       mockFetch.mockResolvedValueOnce({
         ok: true,
+        json: async () => ({}),
       })
 
       await client.markAsRead('conv-123')
