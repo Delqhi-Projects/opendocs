@@ -92,6 +92,7 @@ export type DocsActions = {
   convertTableToDatabase: (pageId: string, blockId: string) => void;
   setTheme: (theme: "light" | "dark") => void;
   clearAllData: () => void;
+  hydrate: (state: DocsState) => void;
 };
 
 export type DocsStore = {
@@ -658,6 +659,11 @@ export const useDocsStore = create<DocsStore>()((set) => {
         const next = createDefaultState();
         persist(next);
         set({ state: next });
+      },
+
+      hydrate: (hydratedState: DocsState) => {
+        persist(hydratedState);
+        set({ state: hydratedState });
       },
     },
   };
