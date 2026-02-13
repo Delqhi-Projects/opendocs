@@ -22,7 +22,7 @@ export async function runCaptchaBenchmark(): Promise<BenchmarkResult[]> {
   ];
   
   // Benchmark: Cold starts (no cache)
-  console.log('[Benchmark] Testing cold starts...');
+  console.info('[Benchmark] Testing cold starts...');
   const coldStartTimes: number[] = [];
   
   for (const question of testQuestions) {
@@ -42,7 +42,7 @@ export async function runCaptchaBenchmark(): Promise<BenchmarkResult[]> {
   });
   
   // Benchmark: Warm starts (with cache)
-  console.log('[Benchmark] Testing cached responses...');
+  console.info('[Benchmark] Testing cached responses...');
   const warmStartTimes: number[] = [];
   
   for (const question of testQuestions) {

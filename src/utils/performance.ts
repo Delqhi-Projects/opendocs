@@ -68,7 +68,7 @@ export function usePerformanceMonitor() {
 
 export function reportWebVitals(metric: string, value: number): void {
   if (process.env.NODE_ENV === 'production') {
-    console.log(`[Web Vitals] ${metric}: ${value}`);
+    console.info(`[Web Vitals] ${metric}: ${value}`);
   }
 }
 

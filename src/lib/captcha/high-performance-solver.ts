@@ -22,14 +22,14 @@ export class HighPerformanceCaptchaSolver {
   private readonly MAX_CONNECTIONS = 10;
 
   async initialize(): Promise<void> {
-    console.log('[UltraFastCDP] Initializing connection pool...');
+    console.info('[UltraFastCDP] Initializing connection pool...');
     const start = performance.now();
     
     for (let i = 0; i < this.MAX_CONNECTIONS; i++) {
       await this.createConnection(`conn-${i}`);
     }
     
-    console.log(`[UltraFastCDP] Pool ready in ${(performance.now() - start).toFixed(2)}ms`);
+    console.info(`[UltraFastCDP] Pool ready in ${(performance.now() - start).toFixed(2)}ms`);
   }
 
   private async createConnection(id: string): Promise<void> {

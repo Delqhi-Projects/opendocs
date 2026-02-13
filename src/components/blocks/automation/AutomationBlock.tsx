@@ -74,7 +74,6 @@ export function AutomationBlock({ data, onChange }: AutomationBlockProps) {
   }, [data, onChange]);
 
   const testAutomation = useCallback(async () => {
-    console.log('Testing automation:', data.automation);
     // TODO: Implement test execution via Express proxy
   }, [data.automation]);
 

@@ -23,10 +23,10 @@ export function PresenceList() {
         setCollaborators(users);
       })
       .on("presence", { event: "join" }, ({ newPresences }) => {
-        console.log("New collaborator joined:", newPresences);
+        console.debug("New collaborator joined:", newPresences);
       })
       .on("presence", { event: "leave" }, ({ leftPresences }) => {
-        console.log("Collaborator left:", leftPresences);
+        console.debug("Collaborator left:", leftPresences);
       })
       .subscribe(async (status) => {
         if (status === "SUBSCRIBED") {

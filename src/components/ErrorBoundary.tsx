@@ -39,7 +39,7 @@ export class ErrorBoundary extends Component<Props, State> {
       url: window.location.href,
       timestamp: new Date().toISOString(),
     };
-    console.log("Error report:", report);
+    console.error("Error report:", report);
     this.setState({ reportSent: true });
   };
 
