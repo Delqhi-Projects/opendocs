@@ -14,7 +14,8 @@ import {
   hasSupabaseConnection,
 } from '@/lib/storage/supabase-sync';
 import {
-  createAgentFolder,
+  createAIMetadata,
+  extractFolderName,
   getCurrentAgent,
 } from '@/lib/storage/agent-directories';
 import type { GeneratedDocs } from '@/services/nvidia';
@@ -110,16 +111,12 @@ export async function generateWithAgentStorage(
   prompt: string,
   actions: ReturnType<typeof useDocsStore.getState>['actions']
 ): Promise<void> {
-  const agent = getCurrentAgent();
+  await createAIMetadata(mode, prompt);
+  
   const root = useDocsStore.getState().state.rootFolderId;
-
-  const agentFolder = await createAgentFolder(
-    agent.type,
-    mode,
-    prompt
-  );
-
-  const rootFolder = actions.createFolder(root, agentFolder.folderName);
+  const folderName = extractFolderName(mode, prompt);
+  
+  const rootFolder = actions.createFolder(root, folderName);
 
   for (const folder of gen.folders || []) {
     const folderId = actions.createFolder(rootFolder, folder.name || 'Docs');
