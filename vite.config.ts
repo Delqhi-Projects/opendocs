@@ -26,13 +26,13 @@ export default defineConfig({
     },
   },
   build: {
-    chunkSizeWarningLimit: 2000,
-    reportCompressedSize: false,
+    target: 'es2022',
     minify: 'terser',
     terserOptions: {
       compress: {
         drop_console: true,
         drop_debugger: true,
+        passes: 2,
       },
     },
     rollupOptions: {
@@ -45,5 +45,12 @@ export default defineConfig({
         },
       },
     },
+    chunkSizeWarningLimit: 500,
+    sourcemap: false,
+    cssCodeSplit: true,
+    manifest: true,
+  },
+  optimizeDeps: {
+    include: ['react', 'react-dom', 'zustand'],
   },
 });
