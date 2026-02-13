@@ -6,11 +6,43 @@ on:
   pull_request:
     branches: [main, develop]
 
+# Security: Run vulnerability scanning
+permissions:
+  contents: read
+  security-events: write
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - run: npm ci
+      - run: npm run lint
+
+  security:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+          queries: security-extended
+      - uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:javascript-typescript"
+
   type-check:
     runs-on: ubuntu-latest
     steps:
@@ -40,7 +72,7 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
-    needs: [type-check, test]
+    needs: [lint, security, type-check, test]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
