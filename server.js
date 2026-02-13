@@ -2,6 +2,8 @@ import express from "express";
 import crypto from "crypto";
 import { parse } from "url";
 import pg from "pg";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 
 const { Pool } = pg;
 
@@ -42,6 +44,35 @@ if (!NVIDIA_API_KEY) {
 
 const app = express();
 app.disable("x-powered-by");
+
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'", "https://api.supabase.io", "https://*.nvidia.com"],
+      fontSrc: ["'self'"],
+      objectSrc: ["'none'"],
+      frameSrc: ["'none'"]
+    }
+  },
+  xssFilter: true,
+  noSniff: true,
+  referrerPolicy: { policy: "strict-origin-when-cross-origin" },
+  frameguard: { action: "deny" }
+}));
+
+const apiLimiter = rateLimit({
+  windowMs: RATE_LIMIT_WINDOW_MS,
+  max: RATE_LIMIT_MAX,
+  message: { error: "Too many requests, please try again later." },
+  standardHeaders: true,
+  legacyHeaders: false
+});
+app.use("/api/", apiLimiter);
+
 app.use(express.json({ limit: "1mb" }));
 
 // Basic request id
