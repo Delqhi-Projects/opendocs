@@ -44,8 +44,8 @@ test.describe('App', () => {
     });
     await page.goto('/')
     await page.waitForTimeout(1000)
-    const html = await page.locator('html').getAttribute('data-theme')
-    expect(html).toBe('light')
+    const hasDarkClass = await page.locator('html').evaluate(el => el.classList.contains('dark'))
+    expect(hasDarkClass).toBe(false)
   })
 
   test('AI buttons exist', async ({ page }) => {

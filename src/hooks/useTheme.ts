@@ -27,7 +27,7 @@ export function useTheme(): UseThemeReturn {
   }, [theme])
 
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', resolvedTheme)
+    document.documentElement.classList.toggle('dark', resolvedTheme === 'dark')
   }, [resolvedTheme])
 
   const setTheme = useCallback((newTheme: Theme) => {
