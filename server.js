@@ -42,6 +42,38 @@ if (!NVIDIA_API_KEY) {
   process.exit(1);
 }
 
+// ===============================
+// Process-level error handlers (Best Practices Feb 2026)
+// ===============================
+process.on("uncaughtException", (err) => {
+  console.error("[OpenDocs] FATAL: Uncaught exception:", err?.message || err);
+  console.error(err?.stack || "");
+  // In production: graceful shutdown after logging
+  if (process.env.NODE_ENV === "production") {
+    process.exit(1);
+  }
+});
+
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("[OpenDocs] FATAL: Unhandled rejection at:", promise, "reason:", reason);
+  if (process.env.NODE_ENV === "production") {
+    process.exit(1);
+  }
+});
+
+// Graceful shutdown
+const shutdown = async (signal) => {
+  console.log(`\n[OpenDocs] Received ${signal}, shutting down gracefully...`);
+  if (dbPool) {
+    await dbPool.end();
+    console.log("[OpenDocs] Database pool closed.");
+  }
+  process.exit(0);
+};
+
+process.on("SIGTERM", () => shutdown("SIGTERM"));
+process.on("SIGINT", () => shutdown("SIGINT"));
+
 const app = express();
 app.disable("x-powered-by");
 
@@ -115,6 +147,18 @@ app.use((req, res, next) => {
 
 // Rate limiter for /api/*
 const bucket = new Map();
+
+// Cleanup old entries every 5 minutes to prevent memory leak
+const CLEANUP_INTERVAL_MS = 5 * 60 * 1000;
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, entry] of bucket) {
+    if (now > entry.resetAt + CLEANUP_INTERVAL_MS) {
+      bucket.delete(key);
+    }
+  }
+}, CLEANUP_INTERVAL_MS);
+
 app.use((req, res, next) => {
   if (!req.path.startsWith("/api/")) return next();
 

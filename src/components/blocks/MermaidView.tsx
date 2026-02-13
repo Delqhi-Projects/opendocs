@@ -24,7 +24,6 @@ export function MermaidView({ code, dark }: { code: string; dark: boolean }) {
   }, [code, dark, id]);
 
   return (
-    /* eslint-disable-next-line react/no-danger */
     <div 
       className="overflow-x-auto" 
       dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(svg) }} 

@@ -235,7 +235,6 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
               pointerEvents: "none",
               overflow: "hidden",
             }}
-            /* eslint-disable-next-line react/no-danger */
             dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(highlightCode(code)) }}
           />
         </div>
