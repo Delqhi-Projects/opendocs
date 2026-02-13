@@ -123,15 +123,10 @@ export function evaluateCondition(
   context: ExecutionContext
 ): boolean {
   try {
-    // Substitute variables first (e.g., {{user.name}} -> "John")
     const substitutedCondition = substituteVariables(condition, context);
-    
-    // Use safe expression parser instead of new Function()
-    // This prevents arbitrary code injection attacks
     const expression = parser.parse(substitutedCondition);
-    return Boolean(expression.evaluate(context as any));
+    return Boolean(expression.evaluate(context as Record<string, import('expr-eval').Value>));
   } catch (error) {
-    // Log error for debugging but don't throw
     console.warn('Condition evaluation failed:', error);
     return false;
   }
