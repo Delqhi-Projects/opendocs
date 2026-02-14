@@ -213,6 +213,33 @@ export function VoiceBlockView({ block, dark, onUpdate }: VoiceBlockViewProps) {
 
       const result = await response.json();
 
+      if (result.provider === 'browser-tts' && !result.audioUrl) {
+        if ('speechSynthesis' in window) {
+          const utterance = new SpeechSynthesisUtterance(result.text);
+          const voices = window.speechSynthesis.getVoices();
+          const matchingVoice = voices.find(v => v.name.includes(selectedVoice.split('-')[0]));
+          if (matchingVoice) {
+            utterance.voice = matchingVoice;
+          }
+          utterance.onend = () => setIsSynthesizing(false);
+          utterance.onerror = () => {
+            setError('Browser TTS failed');
+            setIsSynthesizing(false);
+          };
+          window.speechSynthesis.speak(utterance);
+          onUpdate({
+            data: {
+              ...block.data,
+              synthesizedAudioUrl: 'browser-tts',
+              synthesizedDuration: result.duration,
+              synthesizedVoice: result.voice,
+            }
+          });
+          return;
+        }
+        throw new Error('No TTS available');
+      }
+
       onUpdate({
         data: {
           ...block.data,
@@ -463,7 +490,7 @@ export function VoiceBlockView({ block, dark, onUpdate }: VoiceBlockViewProps) {
                   </button>
                 </div>
 
-                {block.data.synthesizedAudioUrl && (
+                {block.data.synthesizedAudioUrl && block.data.synthesizedAudioUrl !== 'browser-tts' && (
                   <div className="mt-2">
                     <audio
                       controls
@@ -472,6 +499,13 @@ export function VoiceBlockView({ block, dark, onUpdate }: VoiceBlockViewProps) {
                     >
                       <track kind="captions" label="Audio transcription" />
                     </audio>
+                  </div>
+                )}
+                {block.data.synthesizedAudioUrl === 'browser-tts' && (
+                  <div className="mt-2">
+                    <p className={`text-xs ${dark ? 'text-zinc-400' : 'text-zinc-500'}`}>
+                      ✅ Playing via browser TTS
+                    </p>
                   </div>
                 )}
               </div>

@@ -1027,26 +1027,14 @@ app.post("/api/v1/voice/synthesize", async (req, res) => {
         provider: "elevenlabs",
       });
     } else {
-      const ttsUrl = new URL("https://tts.githubusercontent.com/tts");
-      ttsUrl.searchParams.set("text", text.slice(0, 500));
-      ttsUrl.searchParams.set("voice", voice);
-
-      const resp = await fetch(ttsUrl.toString());
-      if (!resp.ok) {
-        throw new Error(`TTS service error: ${resp.status}`);
-      }
-
-      const audioBuffer = await resp.arrayBuffer();
-      const audioBase64 = Buffer.from(audioBuffer).toString("base64");
-      const audioUrl = `data:audio/${outputFormat};base64,${audioBase64}`;
-
       const estimatedDuration = Math.ceil(text.length / 15);
-
       res.json({
-        audioUrl,
+        audioUrl: null,
         duration: estimatedDuration,
         voice,
-        provider: "edge-tts",
+        provider: "browser-tts",
+        text: text.slice(0, 5000),
+        message: "No TTS API configured. Client should use Web Speech API.",
       });
     }
   } catch (e) {
