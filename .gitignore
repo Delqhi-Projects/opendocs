@@ -142,3 +142,4 @@ docker-compose.override.yml
 .serena/
 *.session-*
 node_modules/.vite/
+lighthouse-report.json
