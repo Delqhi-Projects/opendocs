@@ -15,6 +15,7 @@ interface AutomationStep {
   value?: string;
   verifyWithVision?: boolean;
   waitAfter?: number;
+  onFailure?: 'abort' | 'retry' | 'continue';
 }
 
 interface AutomationTask {
@@ -123,11 +124,11 @@ export class VisionClawAutonomousLoop {
       await this.cdp.connect(`${this.steelBrowserUrl}/devtools/page/1`);
       
       // Execute all steps
-      for (let i = 0; i < this.currentTask.steps.length; i++) {
-        this.currentTask.currentStep = i;
+      for (let i = 0; i < this.currentTask!.steps.length; i++) {
+        this.currentTask!.currentStep = i;
         await this.updateTaskStatus('running');
         
-        const step = this.currentTask.steps[i];
+        const step = this.currentTask!.steps[i];
         const stepResult = await this.executeStep(step);
         
         // Store step result
@@ -176,25 +177,30 @@ export class VisionClawAutonomousLoop {
         await this.cdp.click(step.selector!);
         return { success: true };
         
-      case 'type':
+      case 'type': {
         await this.cdp.type(step.selector!, step.value!);
         return { success: true };
+      }
         
-      case 'select':
+      case 'select': {
         await this.cdp.select(step.selector!, step.value!);
         return { success: true };
+      }
         
-      case 'wait':
+      case 'wait': {
         await new Promise(resolve => setTimeout(resolve, parseInt(step.value || '1000')));
         return { success: true };
+      }
         
-      case 'screenshot':
+      case 'screenshot': {
         const screenshot = await this.cdp.screenshot();
         return { success: true, screenshot: screenshot.toString('base64') };
+      }
         
-      case 'extract':
+      case 'extract': {
         const extracted = await this.cdp.extract(step.selector!);
         return { success: true, data: extracted };
+      }
         
       default:
         throw new Error(`Unknown action: ${step.action}`);
@@ -207,10 +213,10 @@ export class VisionClawAutonomousLoop {
   private async verifyWithVision(): Promise<{ success: boolean; analysis?: string }> {
     try {
       const screenshot = await this.cdp.screenshot();
-      const result = await this.vision.analyzePage(screenshot);
+      const result = await this.vision.analyzePage(screenshot, 'verify state');
       return {
-        success: result.success,
-        analysis: result.analysis
+        success: result.elements.length > 0,
+        analysis: result.suggestions.join('\n')
       };
     } catch (error) {
       console.error('Vision verification failed:', error);
