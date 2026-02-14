@@ -49,17 +49,15 @@ export default defineConfig({
           if (id.includes('node_modules')) {
             if (id.includes('mermaid')) return 'mermaid';
             if (id.includes('katex')) return 'katex';
-            if (id.includes('cytoscape')) return 'cytoscape';
-            if (id.includes('@xyflow/react') || id.includes('reactflow')) return 'react-flow';
-            if (id.includes('framer-motion')) return 'framer-motion';
-            if (id.includes('lucide-react')) return 'lucide';
-            if (id.includes('excalidraw')) return 'excalidraw';
-            if (id.includes('react/') || id.includes('react-dom/')) return;
-            if (id.includes('/react') || id.includes('/react-dom')) return 'react-vendor';
-            if (id.includes('zustand')) return 'zustand';
-            if (id.includes('@supabase/supabase-js')) return 'supabase';
-            if (id.includes('dompurify')) return 'dompurify';
-            if (id.includes('d3-') || id.includes('d3/')) return 'd3';
+            if (id.includes('cytoscape') || id.includes('d3-') || id.includes('d3/')) return 'graphs';
+            if (id.includes('@xyflow/react') || id.includes('reactflow')) return 'workflow';
+            if (id.includes('framer-motion')) return 'animation';
+            if (id.includes('lucide-react')) return 'icons';
+            if (id.includes('excalidraw')) return 'draw';
+            if (id.includes('react/') || id.includes('react-dom/') || id.includes('/react') || id.includes('/react-dom')) return 'react';
+            if (id.includes('zustand')) return 'state';
+            if (id.includes('@supabase/supabase-js')) return 'db';
+            if (id.includes('dompurify')) return 'sanitize';
             return 'vendor';
           }
         },
