@@ -8,7 +8,6 @@ import { visualizer } from "rollup-plugin-visualizer";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [
     react(), 
@@ -37,11 +36,23 @@ export default defineConfig({
     },
     rollupOptions: {
       output: {
-        manualChunks: {
-          'vendor-react': ['react', 'react-dom'],
-          'vendor-ui': ['@xyflow/react', 'framer-motion', 'lucide-react'],
-          'vendor-utils': ['nanoid', 'zustand', '@supabase/supabase-js'],
-          'vendor-heavy': ['mermaid', 'katex', 'cytoscape'],
+        manualChunks: (id) => {
+          if (id.includes('node_modules')) {
+            if (id.includes('mermaid')) return 'mermaid';
+            if (id.includes('katex')) return 'katex';
+            if (id.includes('cytoscape')) return 'cytoscape';
+            if (id.includes('@xyflow/react') || id.includes('reactflow')) return 'react-flow';
+            if (id.includes('framer-motion')) return 'framer-motion';
+            if (id.includes('lucide-react')) return 'lucide';
+            if (id.includes('excalidraw')) return 'excalidraw';
+            if (id.includes('react/') || id.includes('react-dom/')) return;
+            if (id.includes('/react') || id.includes('/react-dom')) return 'react-vendor';
+            if (id.includes('zustand')) return 'zustand';
+            if (id.includes('@supabase/supabase-js')) return 'supabase';
+            if (id.includes('dompurify')) return 'dompurify';
+            if (id.includes('d3-') || id.includes('d3/')) return 'd3';
+            return 'vendor';
+          }
         },
       },
     },
