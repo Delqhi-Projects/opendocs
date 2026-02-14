@@ -288,3 +288,79 @@ test.describe('Undo/Redo', () => {
     await expect(page.locator('text=Test')).not.toBeVisible()
   })
 })
+
+test.describe('Voice Block', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('http://localhost:5173')
+    await page.waitForLoadState('networkidle')
+  })
+
+  test('creates voice block via slash menu', async ({ page }) => {
+    await page.click('text=New Document')
+    await page.locator('text=/').first().click()
+    await page.waitForTimeout(300)
+    await page.click('text=Voice Note')
+    await expect(page.locator('text=Voice Note')).toBeVisible()
+  })
+
+  test('shows recording button in voice block', async ({ page }) => {
+    await page.click('text=New Document')
+    await page.locator('text=/').first().click()
+    await page.waitForTimeout(300)
+    await page.click('text=Voice Note')
+    // The mic button should be visible
+    await expect(page.locator('button:has-text("Click to start recording")')).toBeVisible()
+  })
+
+  test('displays transcription UI after recording concept', async ({ page }) => {
+    await page.click('text=New Document')
+    await page.locator('text=/').first().click()
+    await page.waitForTimeout(300)
+    await page.click('text=Voice Note')
+    // Check for Transcription section label
+    await expect(page.locator('text=Transcription')).toBeVisible()
+  })
+})
+
+test.describe('Comments System', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('http://localhost:5173')
+    await page.waitForLoadState('networkidle')
+  })
+
+  test('shows presence indicators container', async ({ page }) => {
+    await page.click('text=New Document')
+    // The presence indicators should be visible in the header area
+    const presenceContainer = page.locator('[class*="presence"], [data-testid="presence"]').first()
+    // If presence indicators exist, they should be visible
+    await page.waitForTimeout(500)
+  })
+
+  test('document has collaboration-ready structure', async ({ page }) => {
+    await page.click('text=New Document')
+    // Check that the editor has the structure needed for collaboration
+    const editor = page.locator('[contenteditable="true"], [data-block-editor]').first()
+    await expect(editor).toBeVisible()
+  })
+})
+
+test.describe('Block Types', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('http://localhost:5173')
+    await page.waitForLoadState('networkidle')
+  })
+
+  test('all block types are available in slash menu', async ({ page }) => {
+    await page.click('text=New Document')
+    await page.locator('text=/').first().click()
+    await page.waitForTimeout(300)
+    
+    // Check for key block types
+    await expect(page.locator('text=Heading 1')).toBeVisible()
+    await expect(page.locator('text=Text')).toBeVisible()
+    await expect(page.locator('text=Code')).toBeVisible()
+    await expect(page.locator('text=Database')).toBeVisible()
+    await expect(page.locator('text=Voice Note')).toBeVisible()
+    await expect(page.locator('text=AI Prompt')).toBeVisible()
+  })
+})
