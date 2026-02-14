@@ -7,6 +7,7 @@ import { DrawBlockView } from "@/components/blocks/DrawBlockView";
 import { N8nBlockView } from "@/components/blocks/N8nBlockView";
 import { AiPromptBlockView } from "@/components/blocks/AiPromptBlockView";
 import { AutomationBlockView } from "@/components/blocks/AutomationBlockView";
+import { VoiceBlockView } from "@/components/blocks/VoiceBlockView";
 import { AutoResizeTextarea } from "@/components/ui/AutoResizeTextarea";
 import { BotMessageSquare, Lock, Unlock, Trash2, ArrowUp, ArrowDown, Copy, GripVertical, Plus, Columns } from "lucide-react";
 import { BlockChatModal } from "@/components/blocks/BlockChatModal";
@@ -538,7 +539,21 @@ export function BlockRenderer({
       </div>
     );
   } 
-  // Link block
+  else if (block.type === "voice") {
+    content = (
+      <div ref={setNodeRef} style={style} role="presentation" className={`relative group ${frame} ${isDragging ? "opacity-50" : ""}`} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
+        {sideToolbar}
+        <div className="absolute -top-6 left-0 z-10">{toolbar}</div>
+        <div className="p-3">
+          <VoiceBlockView
+            block={block}
+            dark={dark}
+            onUpdate={(patch) => onUpdate(makeBlockPatch(patch))}
+          />
+        </div>
+      </div>
+    );
+  } 
   else if (block.type === "link") {
     content = (
       <div ref={setNodeRef} style={style} role="presentation" className={`relative group ${frame} ${isDragging ? "opacity-50" : ""}`} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>

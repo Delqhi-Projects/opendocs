@@ -16,6 +16,7 @@ export type BlockType =
   | "divider"
   | "image"
   | "video"
+  | "voice"
   | "link"
   | "file"
   | "aiPrompt"
@@ -119,6 +120,23 @@ export type MermaidBlock = DocBlockBase & {
   caption?: string;
 };
 
+export type VoiceBlock = DocBlockBase & {
+  type: "voice";
+  data: {
+    audioUrl?: string;
+    audioData?: string;
+    duration?: number;
+    language?: string;
+    transcription?: string;
+    transcriptionConfidence?: number;
+    transcriptionLanguage?: string;
+    createdAt?: string;
+    synthesizedAudioUrl?: string;
+    synthesizedDuration?: number;
+    synthesizedVoice?: string;
+  };
+};
+
 export type HorizontalBlock = DocBlockBase & {
   type: "horizontal";
   blocks: DocBlock[];
@@ -140,6 +158,7 @@ export type DocBlock =
   | DividerBlock 
   | ImageBlock 
   | VideoBlock 
+  | VoiceBlock
   | LinkBlock 
   | FileBlock 
   | AiPromptBlock 
