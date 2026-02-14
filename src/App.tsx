@@ -7,11 +7,15 @@ import { AiPanel } from "@/components/AiPanel";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ChatPanel } from "@/components/ChatPanel";
 import { ContentAuditPanel } from "@/components/ContentAuditPanel";
-import { PresenceList } from "@/components/ui/PresenceList";
+import { PresenceIndicators } from "@/components/PresenceIndicators";
+import { CursorOverlay } from "@/components/CursorOverlay";
+import { CommentPanel } from "@/components/CommentPanel";
 import { CommandPalette } from "@/components/CommandPalette";
 import { ToastProvider } from "@/components/ui/Toast";
 import { useDocsStore } from "@/store/useDocsStore";
 import { useTheme } from "@/hooks/useTheme";
+import { useRealtimeSync } from "@/hooks/useRealtimeSync";
+import { useComments } from "@/hooks/useComments";
 import {
   useKeyboardShortcuts,
   DEFAULT_SHORTCUTS,
@@ -23,7 +27,20 @@ import {
   ClipboardCheck,
   Menu,
   X,
+  MessageCircle,
 } from "lucide-react";
+import { nanoid } from "nanoid";
+
+// Generate a stable user ID for this session (in production, this would come from auth)
+const CURRENT_USER_ID = (() => {
+  const stored = localStorage.getItem("opendocs_user_id");
+  if (stored) return stored;
+  const newId = `user_${nanoid(8)}`;
+  localStorage.setItem("opendocs_user_id", newId);
+  return newId;
+})();
+
+const CURRENT_USER_NAME = "You";
 
 export function App() {
   const { state, actions } = useDocsStore();
@@ -34,8 +51,30 @@ export function App() {
   const [chatOpen, setChatOpen] = useState(false);
   const [auditOpen, setAuditOpen] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
+  const [commentsOpen, setCommentsOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(() => {
     return breakpoint !== "xs" && breakpoint !== "sm";
+  });
+
+  // Real-time collaboration setup
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+  const documentId = state.selectedPageId || "default";
+
+  const realtimeConfig = supabaseUrl && supabaseKey ? {
+    supabaseUrl,
+    supabaseKey,
+    documentId,
+    userId: CURRENT_USER_ID,
+    userName: CURRENT_USER_NAME,
+  } : null;
+
+  const realtime = useRealtimeSync(realtimeConfig);
+
+  // Comments system
+  const comments = useComments({
+    currentUserId: CURRENT_USER_ID,
+    currentUserName: CURRENT_USER_NAME,
   });
 
   const selectedTitle = useMemo(() => {
@@ -141,8 +180,25 @@ export function App() {
                 <option value="system">💻 System</option>
               </select>
 
-              <PresenceList />
+              <PresenceIndicators
+                presence={realtime.presence}
+                currentUserId={CURRENT_USER_ID}
+              />
               <div className="h-4 w-px bg-zinc-200 dark:bg-zinc-800" />
+
+              <button
+                type="button"
+                onClick={() => setCommentsOpen(true)}
+                className="inline-flex items-center gap-2 rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-200 dark:hover:bg-zinc-900"
+              >
+                <MessageCircle className="h-4 w-4" />
+                Comments
+                {comments.unresolvedCount > 0 && (
+                  <span className="ml-1 rounded-full bg-red-500 px-1.5 py-0.5 text-xs text-white">
+                    {comments.unresolvedCount}
+                  </span>
+                )}
+              </button>
 
               <button
                 type="button"
@@ -169,7 +225,10 @@ export function App() {
           </div>
 
           <div className="flex-1 overflow-y-auto" style={{ minHeight: 0 }}>
-            <Editor />
+            <Editor
+              onCursorMove={realtime.broadcastCursor}
+              onStatusChange={realtime.updatePresence}
+            />
           </div>
         </main>
       </div>
@@ -184,6 +243,36 @@ export function App() {
         onOpenChat={() => setChatOpen(true)}
         onOpenAudit={() => setAuditOpen(true)}
       />
+
+      {realtime.isConnected && (
+        <CursorOverlay
+          cursors={realtime.cursors}
+          currentUserId={CURRENT_USER_ID}
+        />
+      )}
+
+      {commentsOpen && (
+        <div className="fixed inset-y-0 right-0 z-50 flex">
+          <div
+            className="fixed inset-0 bg-black/20 dark:bg-black/40"
+            onClick={() => setCommentsOpen(false)}
+            aria-hidden="true"
+          />
+          <div className="relative z-10 ml-auto h-full shadow-xl">
+            <CommentPanel
+              comments={comments.comments}
+              currentUserId={CURRENT_USER_ID}
+              onAddReply={(parentId, content) => comments.addComment({ parentId, content, blockId: "general" })}
+              onUpdateComment={(id, content) => comments.updateComment({ id, content })}
+              onDeleteComment={comments.deleteComment}
+              onResolveComment={comments.resolveComment}
+              onUnresolveComment={comments.unresolveComment}
+              onClose={() => setCommentsOpen(false)}
+            />
+          </div>
+        </div>
+      )}
+
       <ToastProvider />
     </ErrorBoundary>
   );

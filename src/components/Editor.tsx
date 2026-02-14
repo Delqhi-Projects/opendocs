@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback, useEffect, useRef } from "react";
 import { useDocsStore } from "@/store/useDocsStore";
 import { BlockRenderer } from "@/components/blocks/BlockRenderer";
 import { SlashMenu } from "@/components/SlashMenu";
@@ -20,6 +20,11 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
+
+interface EditorProps {
+  onCursorMove?: (position: { x: number; y: number; blockId?: string }) => void;
+  onStatusChange?: (status: "viewing" | "editing" | "idle") => void;
+}
 
 function groupBlocksForLayout(blocks: DocBlock[]): (DocBlock | DocBlock[])[] {
   const groups: (DocBlock | DocBlock[])[] = [];
@@ -44,12 +49,43 @@ function groupBlocksForLayout(blocks: DocBlock[]): (DocBlock | DocBlock[])[] {
   return groups;
 }
 
-export function Editor() {
+export function Editor({ onCursorMove, onStatusChange }: EditorProps) {
   const { state, actions } = useDocsStore();
   const page = state.selectedPageId ? state.pages[state.selectedPageId] : undefined;
   const dark = state.theme === "dark";
+  const editorRef = useRef<HTMLDivElement>(null);
 
   const [slashBlockId, setSlashBlockId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!onStatusChange) return;
+    onStatusChange("viewing");
+    const handleIdle = () => onStatusChange("idle");
+    
+    let idleTimeout: ReturnType<typeof setTimeout>;
+    const handleActivity = () => {
+      onStatusChange("editing");
+      clearTimeout(idleTimeout);
+      idleTimeout = setTimeout(handleIdle, 30000);
+    };
+
+    window.addEventListener("mousemove", handleActivity);
+    window.addEventListener("keydown", handleActivity);
+    
+    return () => {
+      window.removeEventListener("mousemove", handleActivity);
+      window.removeEventListener("keydown", handleActivity);
+      clearTimeout(idleTimeout);
+    };
+  }, [onStatusChange]);
+
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent) => {
+      if (!onCursorMove) return;
+      onCursorMove({ x: e.clientX, y: e.clientY });
+    },
+    [onCursorMove]
+  );
 
   const blocks = page?.blocks ?? [];
 
@@ -87,7 +123,11 @@ export function Editor() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-5xl px-6 py-8">
+    <div
+      ref={editorRef}
+      onMouseMove={handleMouseMove}
+      className="mx-auto w-full max-w-5xl px-6 py-8"
+    >
       <PageHeader />
 
       <DndContext
