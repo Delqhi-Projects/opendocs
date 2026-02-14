@@ -58,6 +58,9 @@ node server.js & npm run dev
 | 🌙 **Dark Mode** | System preference + localStorage persistence | ✅ |
 | ⌨️ **Keyboard Shortcuts** | Ctrl+K (Palette), Ctrl+G (AI), Ctrl+J (Chat), Ctrl+B (Sidebar) | ✅ |
 | ↩️ **Undo/Redo** | Full history support (50 entries) | ✅ |
+| 🎤 **Voice Block** | Record, transcribe (Whisper), and synthesize (TTS) voice notes | ✅ |
+| 👥 **Real-time Collaboration** | Live cursor sharing and presence indicators | ✅ |
+| 💬 **Comments System** | Block-level comments with resolve/reply functionality | ✅ |
 
 ---
 
@@ -87,6 +90,8 @@ node server.js & npm run dev
 | Provider | Model | Purpose |
 |----------|-------|---------|
 | [NVIDIA NIM](https://build.nvidia.com/) | moonshotai/kimi-k2.5 | Primary LLM |
+| [OpenAI](https://openai.com/) | Whisper | Voice Transcription |
+| [ElevenLabs](https://elevenlabs.io/) | TTS | Voice Synthesis (optional) |
 
 ---
 
