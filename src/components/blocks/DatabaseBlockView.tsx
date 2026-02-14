@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, Suspense, lazy } from "react";
 import { nanoid } from "nanoid";
 import { Trash2, Zap, LayoutGrid, Table as TableIcon, Network, BotMessageSquare, Activity, Calendar, Image as ImageIcon } from "lucide-react";
 import { cn } from "@/utils/cn";
@@ -9,7 +9,6 @@ function makeDatabasePatch(patch: Partial<Omit<DatabaseBlock, 'id' | 'type'>>): 
   return patch as Partial<DocBlock>;
 }
 import type { DbProperty, DbRow } from "@/types/database";
-import { WorkflowBlockView } from "@/components/blocks/WorkflowBlockView";
 import { CalendarView } from "@/components/database/CalendarView";
 import { TimelineView } from "@/components/database/TimelineView";
 import { GalleryView } from "@/components/database/GalleryView";
@@ -21,6 +20,23 @@ import {
   upsertDbRow, 
   triggerAutomationJob,
 } from "@/services/dbProvisioning";
+
+// Lazy-load WorkflowBlockView to reduce initial bundle
+const WorkflowBlockView = lazy(() => 
+  import("@/components/blocks/WorkflowBlockView").then(m => ({ default: m.WorkflowBlockView }))
+);
+
+function BlockLoadingFallback() {
+  return (
+    <div className="flex items-center justify-center py-8 text-zinc-400">
+      <svg className="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24" aria-hidden="true">
+        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+        <path className="opacity-75" fill="currentColor" d="M4 12a8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+      </svg>
+      <span>Loading graph...</span>
+    </div>
+  );
+}
 
 function toPgIdentSafe(input: string): string {
   return input
@@ -237,44 +253,46 @@ export function DatabaseBlockView({
 
       {activeView?.type === "graph" ? (
         <div className="rounded-lg border border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950 overflow-hidden">
-          <WorkflowBlockView
-            block={{
-              id: block.id,
-              type: "workflow",
-              data: {
-                title: data.title,
-                nodes: data.rows.map(r => ({
-                  id: r.id,
-                  x: r.x_pos ?? 100,
-                  y: r.y_pos ?? 100,
-                  label: String(r.cells[data.properties[0]?.id] ?? "Untitled"),
-                  color: r.color
-                })),
-                edges: [] 
-              }
-            }}
-            disabled={disabled}
-            onUpdate={(patch: Partial<DocBlock>) => {
-              const workflowPatch = patch as { data?: { nodes?: Array<{ id: string; x: number; y: number; color?: string }> } };
-              if (workflowPatch.data?.nodes) {
-                const nextRows = data.rows.map((r) => {
-                  const node = workflowPatch.data!.nodes!.find((n) => n.id === r.id);
-                  if (node) return { ...r, x_pos: node.x, y_pos: node.y, color: node.color ?? r.color };
-                  return r;
-                });
-                setData({ ...data, rows: nextRows });
-                if (remoteTable && provisioning === "ready") {
-                  for (const r of nextRows) {
-                    void upsertDbRow({
-                      tableName: remoteTable,
-                      rowId: r.id,
-                      data: { ...rowToDbPayload(r, data.properties), x_pos: r.x_pos ?? null, y_pos: r.y_pos ?? null, color: r.color ?? null },
-                    });
+          <Suspense fallback={<BlockLoadingFallback />}>
+            <WorkflowBlockView
+              block={{
+                id: block.id,
+                type: "workflow",
+                data: {
+                  title: data.title,
+                  nodes: data.rows.map(r => ({
+                    id: r.id,
+                    x: r.x_pos ?? 100,
+                    y: r.y_pos ?? 100,
+                    label: String(r.cells[data.properties[0]?.id] ?? "Untitled"),
+                    color: r.color
+                  })),
+                  edges: [] 
+                }
+              }}
+              disabled={disabled}
+              onUpdate={(patch: Partial<DocBlock>) => {
+                const workflowPatch = patch as { data?: { nodes?: Array<{ id: string; x: number; y: number; color?: string }> } };
+                if (workflowPatch.data?.nodes) {
+                  const nextRows = data.rows.map((r) => {
+                    const node = workflowPatch.data!.nodes!.find((n) => n.id === r.id);
+                    if (node) return { ...r, x_pos: node.x, y_pos: node.y, color: node.color ?? r.color };
+                    return r;
+                  });
+                  setData({ ...data, rows: nextRows });
+                  if (remoteTable && provisioning === "ready") {
+                    for (const r of nextRows) {
+                      void upsertDbRow({
+                        tableName: remoteTable,
+                        rowId: r.id,
+                        data: { ...rowToDbPayload(r, data.properties), x_pos: r.x_pos ?? null, y_pos: r.y_pos ?? null, color: r.color ?? null },
+                      });
+                    }
                   }
                 }
-              }
-            }}
-          />
+              }}
+            />
+          </Suspense>
         </div>
       ) : activeView?.type === "calendar" ? (
         <CalendarView data={data} disabled={disabled} addRow={addRow} updateCell={updateCell} />

@@ -1,13 +1,32 @@
-import { useMemo, useState, type ReactNode } from "react";
+import { useMemo, useState, Suspense, lazy, type ReactNode } from "react";
 import type { DocBlock, TableBlock } from "@/types/docs";
 import { MermaidView } from "@/components/blocks/MermaidView";
 import { DatabaseBlockView } from "@/components/blocks/DatabaseBlockView";
-import { WorkflowBlockView } from "@/components/blocks/WorkflowBlockView";
 import { DrawBlockView } from "@/components/blocks/DrawBlockView";
 import { N8nBlockView } from "@/components/blocks/N8nBlockView";
 import { AiPromptBlockView } from "@/components/blocks/AiPromptBlockView";
-import { AutomationBlockView } from "@/components/blocks/AutomationBlockView";
 import { VoiceBlockView } from "@/components/blocks/VoiceBlockView";
+
+// Lazy-load heavy components to reduce initial bundle size
+const WorkflowBlockView = lazy(() => 
+  import("@/components/blocks/WorkflowBlockView").then(m => ({ default: m.WorkflowBlockView }))
+);
+const AutomationBlockView = lazy(() => 
+  import("@/components/blocks/AutomationBlockView").then(m => ({ default: m.AutomationBlockView }))
+);
+
+// Loading fallback for lazy components
+function BlockLoadingFallback() {
+  return (
+    <div className="flex items-center justify-center py-8 text-zinc-400">
+      <svg className="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24" aria-hidden="true">
+        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+        <path className="opacity-75" fill="currentColor" d="M4 12a8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+      </svg>
+      <span>Loading component...</span>
+    </div>
+  );
+}
 import { AutoResizeTextarea } from "@/components/ui/AutoResizeTextarea";
 import { BotMessageSquare, Lock, Unlock, Trash2, ArrowUp, ArrowDown, Copy, GripVertical, Plus, Columns } from "lucide-react";
 import { BlockChatModal } from "@/components/blocks/BlockChatModal";
@@ -397,7 +416,9 @@ export function BlockRenderer({
         {sideToolbar}
         <div className="absolute -top-6 left-0 z-10">{toolbar}</div>
         <div className="p-3">
-          <WorkflowBlockView block={block} disabled={disabled} onUpdate={onUpdate} />
+          <Suspense fallback={<BlockLoadingFallback />}>
+            <WorkflowBlockView block={block} disabled={disabled} onUpdate={onUpdate} />
+          </Suspense>
         </div>
       </div>
     );
@@ -656,11 +677,13 @@ export function BlockRenderer({
       <div ref={setNodeRef} style={style} role="presentation" className={`relative group ${frame} ${isDragging ? "opacity-50" : ""}`} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
         {sideToolbar}
         <div className="absolute -top-6 left-0 z-10">{toolbar}</div>
-        <AutomationBlockView
-          automation={automationBlock.automation ?? { id: nanoid(), name: "New Automation", enabled: false, nodes: [], edges: [], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), executionCount: 0 }}
-          onUpdate={(automation) => onUpdate(makeBlockPatch({ automation }))}
-          disabled={disabled}
-        />
+        <Suspense fallback={<BlockLoadingFallback />}>
+          <AutomationBlockView
+            automation={automationBlock.automation ?? { id: nanoid(), name: "New Automation", enabled: false, nodes: [], edges: [], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), executionCount: 0 }}
+            onUpdate={(automation) => onUpdate(makeBlockPatch({ automation }))}
+            disabled={disabled}
+          />
+        </Suspense>
       </div>
     );
   } 
