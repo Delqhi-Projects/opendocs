@@ -3,8 +3,8 @@
  * Handles upload → transcription → TTS
  */
 
-import express from 'express';
-import multer from 'multer';
+import * as express from 'express';
+import * as multer from 'multer';
 import { TranscriptionService } from './transcription-service';
 import { TTSEngine } from './tts-engine';
 

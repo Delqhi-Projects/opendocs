@@ -179,7 +179,8 @@ export class SupabaseRealtimeSync {
   }
 
   async close(): Promise<void> {
-    for (const channel of this.channels.values()) {
+    const channelArray = Array.from(this.channels.values());
+    for (const channel of channelArray) {
       await this.supabase.removeChannel(channel);
     }
     await this.pool.end();
