@@ -13,6 +13,10 @@ const NVIDIA_API_KEY = process.env.NVIDIA_API_KEY;
 const NVIDIA_BASE_URL = process.env.NVIDIA_BASE_URL || "https://integrate.api.nvidia.com";
 const NVIDIA_MODEL = process.env.NVIDIA_MODEL || "moonshotai/kimi-k2.5";
 
+// Voice API Configuration
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY || "";
+const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY || "";
+
 const API_AUTH_TOKEN = process.env.API_AUTH_TOKEN || ""; // optional; if set → required
 const CORS_ORIGIN = process.env.CORS_ORIGIN || ""; // optional
 
@@ -933,6 +937,120 @@ app.post("/api/n8n/workflows/execute", async (req, res) => {
     res.json({ ok: true, executionId: data.executionId });
   } catch (e) {
     res.status(500).json({ error: "n8n_execute_failed", message: String(e?.message || e) });
+  }
+});
+
+// Voice API Endpoints
+
+app.post("/api/v1/voice/transcribe", async (req, res) => {
+  try {
+    const { audio, language = "en", model = "base" } = req.body || {};
+    if (!audio || typeof audio !== "string") {
+      return res.status(400).json({ error: "bad_request", message: "Audio data required" });
+    }
+
+    if (!OPENAI_API_KEY) {
+      return res.status(400).json({ error: "voice_not_configured", message: "OPENAI_API_KEY not set" });
+    }
+
+    const audioBuffer = Buffer.from(audio, "base64");
+
+    const formData = new FormData();
+    formData.append("file", new Blob([audioBuffer], { type: "audio/webm" }), "audio.webm");
+    formData.append("model", model === "base" ? "whisper-1" : model);
+    formData.append("language", language);
+    formData.append("response_format", "verbose_json");
+
+    const resp = await fetch("https://api.openai.com/v1/audio/transcriptions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
+      },
+      body: formData,
+    });
+
+    if (!resp.ok) {
+      const text = await resp.text().catch(() => "");
+      throw new Error(`OpenAI Whisper error: ${resp.status} ${text}`);
+    }
+
+    const result = await resp.json();
+
+    res.json({
+      text: result.text || "",
+      confidence: 0.9,
+      language: result.language || language,
+      duration: result.duration || 0,
+    });
+  } catch (e) {
+    res.status(500).json({ error: "transcription_failed", message: String(e?.message || e) });
+  }
+});
+
+app.post("/api/v1/voice/synthesize", async (req, res) => {
+  try {
+    const { text, voice = "en-US-AriaNeural", outputFormat = "mp3" } = req.body || {};
+    if (!text || typeof text !== "string") {
+      return res.status(400).json({ error: "bad_request", message: "Text required" });
+    }
+
+    if (ELEVENLABS_API_KEY) {
+      const voiceId = voice.includes("-") ? voice : "21m00Tcm4TlvDq8ikWAM";
+      const resp = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "xi-api-key": ELEVENLABS_API_KEY,
+        },
+        body: JSON.stringify({
+          text: text.slice(0, 5000),
+          model_id: "eleven_monolingual_v1",
+          voice_settings: { stability: 0.5, similarity_boost: 0.5 },
+        }),
+      });
+
+      if (!resp.ok) {
+        const textErr = await resp.text().catch(() => "");
+        throw new Error(`ElevenLabs error: ${resp.status} ${textErr}`);
+      }
+
+      const audioBuffer = await resp.arrayBuffer();
+      const audioBase64 = Buffer.from(audioBuffer).toString("base64");
+      const audioUrl = `data:audio/${outputFormat};base64,${audioBase64}`;
+
+      const estimatedDuration = Math.ceil(text.length / 15);
+
+      res.json({
+        audioUrl,
+        duration: estimatedDuration,
+        voice: voiceId,
+        provider: "elevenlabs",
+      });
+    } else {
+      const ttsUrl = new URL("https://tts.githubusercontent.com/tts");
+      ttsUrl.searchParams.set("text", text.slice(0, 500));
+      ttsUrl.searchParams.set("voice", voice);
+
+      const resp = await fetch(ttsUrl.toString());
+      if (!resp.ok) {
+        throw new Error(`TTS service error: ${resp.status}`);
+      }
+
+      const audioBuffer = await resp.arrayBuffer();
+      const audioBase64 = Buffer.from(audioBuffer).toString("base64");
+      const audioUrl = `data:audio/${outputFormat};base64,${audioBase64}`;
+
+      const estimatedDuration = Math.ceil(text.length / 15);
+
+      res.json({
+        audioUrl,
+        duration: estimatedDuration,
+        voice,
+        provider: "edge-tts",
+      });
+    }
+  } catch (e) {
+    res.status(500).json({ error: "synthesis_failed", message: String(e?.message || e) });
   }
 });
 
