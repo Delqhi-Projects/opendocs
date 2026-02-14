@@ -1063,5 +1063,6 @@ app.listen(PORT, () => {
   console.log("║  Endpoints:   /api/nvidia/chat | /api/agent/plan              ║");
   console.log("║              /api/github/analyze | /api/website/analyze       ║");
   console.log("║              /api/db/table/* | /api/db/automations/*          ║");
+  console.log("║              /api/v1/voice/transcribe | /api/v1/voice/synthesize║");
   console.log("╚══════════════════════════════════════════════════════════════╝\n");
 });
