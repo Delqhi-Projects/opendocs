@@ -42,4 +42,6 @@
 
 **Fix:** Parent-title resolution was repaired, and the dedicated docs tab now exists as `t.niviexa2a43q`. The remaining issue is no longer tab creation itself but the broader write-state/identity quality of the active Google Docs lane.
 
+**Update 2026-03-20:** The dedicated docs child-tab is now real and wired through the OracleCloud-MCP spec/card/sync surfaces. The original tab-creation blocker is cleared.
+
 **Datei:** Google Docs browser automation for `SIN-OracleCloud-MCP`

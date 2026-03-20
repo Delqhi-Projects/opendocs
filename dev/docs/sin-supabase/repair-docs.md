@@ -34,15 +34,15 @@
 
 ## BUG-20260319-003: OCI runtime lane for SIN-Supabase is not currently verifiable
 
-**Aufgetreten:** 2026-03-19  **Status:** 🔴 OFFEN
+**Aufgetreten:** 2026-03-19  **Status:** ✅ GEFIXT
 
-**Symptom:** OCI auth/bootstrap was initially unavailable, then became locally usable via `~/.oci/config`. IAM calls now work (`region-subscription`, `user get`), but the tenancy still exposes no verifiable running SIN-Supabase compute instance: there are no child compartments, `oci search resource structured-search --query-text "query instance resources"` returns zero items, and `oci compute instance list --all --compartment-id <tenancy>` returns no instance data.
+**Symptom:** OCI auth/bootstrap was initially unavailable, then became locally usable via `~/.oci/config`. IAM calls now work (`region-subscription`, `user get`), but at first the tenancy still exposed no verifiable running SIN-Supabase compute instance.
 
-**Ursache:** The local OCI operator path was only partially set up at first. After restoring OCI access, the deeper issue remains: there is still no visible/accessible compute instance representing the intended self-hosted Supabase VM in the tenancy, or the tenancy/runtime mapping used for Supabase is different from the documented target.
+**Ursache:** The local OCI operator path was only partially set up at first, and the intended Supabase VM did not yet exist in the currently configured tenancy/region.
 
-**Fix:** Verify why the OCI tenancy currently shows zero visible compute instances for the intended Supabase deployment, identify the actual running VM (if it exists) or provision the single canonical Supabase VM, and then publish the public API/Kong host from that real runtime.
+**Fix:** Restored OCI access, provisioned the single canonical OCI VM `sin-supabase`, verified that it is the only visible compute instance in tenancy `oraclezoe` / region `eu-frankfurt-1`, and used that VM as the real runtime target for the self-hosted Supabase stack and control-plane services.
 
-**Update 2026-03-19:** OCI browser bootstrap succeeded and local CLI auth works from `~/.oci/config` (`DEFAULT`, region `eu-frankfurt-1`, tenancy `oraclezoe`). IAM queries succeed, but compute inventory still yields no visible instance resources.
+**Update 2026-03-20:** OCI browser bootstrap and local CLI auth now work from `~/.oci/config` (`DEFAULT`, region `eu-frankfurt-1`, tenancy `oraclezoe`), and the VM inventory is real and stable.
 
 **Datei:** OCI operator/bootstrap lane and SIN-Supabase runtime truth surfaces
 
@@ -118,6 +118,8 @@ The canonical downstream `SUPABASE_URL` has therefore been switched from the raw
 **Fix:** Added the same `waitForShutdownSignal()` / `handle.stop()` lifecycle pattern used by `SIN-Server`, rebuilt `SIN-Supabase`, redeployed the VM copy, and re-verified that the A2A server now stays up and answers `/health` on `127.0.0.1:47115`.
 
 **Update 2026-03-20:** `SIN-Supabase` is now also running under `systemd` on the OCI VM as `sin-supabase.service` instead of only ad-hoc shell background processes.
+
+**Update 2026-03-20 (reboot verification):** After a full OCI VM reboot, `sin-supabase.service` comes back automatically and still answers `/health` on `127.0.0.1:47115`.
 
 **Datei:** `A2A-SIN-Supabase/src/cli.ts`
 

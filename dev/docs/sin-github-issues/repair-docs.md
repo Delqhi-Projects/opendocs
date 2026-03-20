@@ -70,6 +70,8 @@
 
 **Fix:** The new OCI backend now provides a canonical host target `https://supabase-api.delqhi.com`, `SUPABASE_URL` has been fanned out to the `sin-github-issues` HF Space, the table `public.sin_github_issues_events` was created on the new Supabase backend, and repeated issue-comment actions now persist audit rows successfully.
 
+**Update 2026-03-20:** After the OCI VM reboot, the managed backend recovers correctly and audit rows continue to persist against the live Supabase database.
+
 **Datei:** `a2a/team-coding/A2A-SIN-GitHub-Issues/src/supabase.ts`, runtime env
 
 ---
