@@ -63,6 +63,7 @@ Only ask at the approval gate when the next action is destructive, irreversible,
 - Do not auto-commit as part of the core loop
 - Derive validation from the actual stack and task; do not hardcode Go-only checks unless the project is Go
 - Revise the plan at most once after critical review
+- **KING CEO TRACKING:** If working in a git repository, ALWAYS sync the approved plan to a GitHub Issue (using `gh issue create` or `sin-github-issues`) before executing. Update the issue during execution, and close it when done.
 - Continue execution until all done criteria pass or a real blocker remains
 
 ---
@@ -275,7 +276,62 @@ Be direct. No praise. No filler.
 
 If the mode is `plan-only`, return the approved plan here and stop.
 
-If execution is destructive, irreversible, security-sensitive, or billing-sensitive, ask one targeted approval question here before execution.
+If execution mode is active, ask one targeted approval question here before execution if the action is destructive, irreversible, security-sensitive, or billing-sensitive.
+
+---
+
+## Stage 3.5: Tracker Sync (GitHub King CEO Mode)
+
+If the project is a Git repository, the agent MUST persist the approved plan to GitHub using the **Issue Architect** before execution begins.
+
+### Option A: Issue Architect (Recommended — CEO 2026 Style)
+
+Convert the approved plan into a structured JSON roadmap matching the `issue-architect-roadmap.schema.json` contract, then run:
+
+```bash
+node ~/dev/sin-solver-control-plane/scripts/issue-architect.mjs \
+  --roadmap <path_to_roadmap.json> \
+  --repo <owner/repo>
+```
+
+This creates:
+- **Labels** with colors and descriptions
+- **Epic issues** with Context, Scope, Acceptance Criteria, Governance Gates, Sources, Dependencies
+- **Sub-issues** linked to parent epics via description references and cross-linking comments
+- **Master Tracker** issue aggregating all epics with progress table
+
+Always `--dry-run` first to verify before creating real issues.
+
+**Roadmap JSON structure:**
+```json
+{
+  "labels": [{ "name": "epic", "color": "6f42c1", "description": "..." }],
+  "masterTracker": { "title": "[Master] Phase X: ...", "summary": "..." },
+  "epics": [{
+    "id": "XA", "title": "[Epic] ...", "priority": "P0",
+    "labels": ["epic", "phase:x"], "context": "...",
+    "scope": ["..."], "acceptanceCriteria": ["..."],
+    "governanceGates": ["sin doctor must pass"],
+    "sources": ["[Link](url)"], "dependsOn": ["#NN"],
+    "subIssues": [{
+      "title": "[XA-1] ...", "priority": "P0",
+      "labels": ["phase:x"], "tasks": ["..."],
+      "acceptanceCriteria": ["..."]
+    }]
+  }]
+}
+```
+
+Schema: `~/dev/sin-solver-control-plane/contracts/issue-architect-roadmap.schema.json`
+Example: `~/dev/sin-solver-control-plane/roadmaps/example-phase4.json`
+
+### Option B: Legacy Shell Scripts (Fallback)
+
+1. **Create Epics & Tasks:** `~/.config/opencode/scripts/sin-github-ceo.sh <plan.md> "<Epic Title>"`
+2. **Lock Commits:** `~/.config/opencode/scripts/install-ceo-git-hooks.sh`
+3. **Sync Live Board:** `~/.config/opencode/scripts/sync-github-board.sh`
+
+Output the created Master Epic URL to the user and declare King CEO Mode active.
 
 ---
 
@@ -288,6 +344,7 @@ Execution rules:
 - keep the current task aligned with the approved phase order
 - after each task, run the exact validation required by the plan or the project
 - mark a task done only after validation passes
+- **Live Tracker Update:** Run `~/.config/opencode/scripts/sync-github-board.sh` after major completions to keep the local board fresh. Add a comment to the GitHub Sub-Task with `gh issue comment <ID>`.
 - if validation fails, fix it before moving on
 - if blocked, use one focused background consultation only when truly needed
 - do not claim success while done criteria are still open
@@ -303,6 +360,7 @@ Before stopping, verify:
 - every done criterion passes
 - all critical validations passed
 - any remaining risk or open issue is stated clearly
+- **Tracker Closeout:** Close the GitHub Sub-Tasks and the Master Epic with a final summary comment. Run `~/.config/opencode/scripts/sync-github-board.sh` one last time.
 
 Return:
 - what was completed
@@ -310,6 +368,21 @@ Return:
 - what remains open, if anything
 
 If the work is not actually done, continue the loop instead of giving a premature finish message.
+
+---
+
+## Stage 5.5: Wiki & Issue Board Closeout (King CEO Mode)
+
+An Enterprise-grade agent ensures knowledge outlives the task.
+
+### Issue Board Closeout
+- Close completed Sub-Issues and Epics with a final summary comment via `gh issue close <ID> --comment "..."`.
+- Update the Master Tracker with final status.
+
+### Wiki Documentation Sync (if applicable)
+If the project has a GitHub Wiki:
+1. Run `~/.config/opencode/scripts/sync-github-wiki.sh <path_to_saved_plan.md>`
+2. **If the script reports "WIKI NOT INITIALIZED"**, use browser automation to visit `https://github.com/<owner>/<repo>/wiki/_new`, create an initial page, then re-run.
 
 ---
 
