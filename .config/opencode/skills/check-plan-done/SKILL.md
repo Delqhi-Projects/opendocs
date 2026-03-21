@@ -286,13 +286,22 @@ If the project is a Git repository, the agent MUST persist the approved plan to 
 
 ### Option A: Issue Architect (Recommended — CEO 2026 Style)
 
-Convert the approved plan into a structured JSON roadmap matching the `issue-architect-roadmap.schema.json` contract, then run:
+Use the one-shot control-plane command to convert the approved plan into a roadmap and create the GitHub board:
 
 ```bash
-node ~/dev/sin-solver-control-plane/scripts/issue-architect.mjs \
-  --roadmap <path_to_roadmap.json> \
-  --repo <owner/repo>
+node ~/dev/sin-solver-control-plane/packages/cli/src/index.mjs issues \
+  --plan <path_to_saved_plan.md> \
+  --repo <owner/repo> \
+  --phase <phase_id> \
+  --dry-run
 ```
+
+Then remove `--dry-run` for the real creation pass.
+
+This automatically:
+- converts the plan markdown into a roadmap JSON via `plan-to-roadmap.mjs`
+- creates labels, epics, sub-issues, and the master tracker via `issue-architect.mjs`
+- preserves the `check-plan-done` phase structure in GitHub issue form
 
 This creates:
 - **Labels** with colors and descriptions
@@ -300,7 +309,7 @@ This creates:
 - **Sub-issues** linked to parent epics via description references and cross-linking comments
 - **Master Tracker** issue aggregating all epics with progress table
 
-Always `--dry-run` first to verify before creating real issues.
+If you need manual control, you can still run the two scripts separately.
 
 **Roadmap JSON structure:**
 ```json
