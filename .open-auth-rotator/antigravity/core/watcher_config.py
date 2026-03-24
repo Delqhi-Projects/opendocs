@@ -26,6 +26,7 @@ CLAUDE_RATE_LIMIT_PATTERNS = [
 # issues that rotation cannot fix — including them caused an infinite rotation loop.
 ALL_ERROR_PATTERNS = QUOTA_PATTERNS
 LOCK_FILE = Path("/tmp/openAntigravity-auth-rotator.lock")
+LAST_ROTATION_FILE = Path("/tmp/openAntigravity-auth-rotator.last-rotation")
 COOLDOWN_SECS = 30  # FIXED: was 2*60 — rate limit hits every 2-4 min, must rotate fast
 _GOOGLE_AUTH_REINJECT_COOLDOWN = (
     60  # RBUG: raised from 30s → 60s to reduce write pressure during rotation
