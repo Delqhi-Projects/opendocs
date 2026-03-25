@@ -12,11 +12,9 @@ from .watcher_config import (
 from .watcher_log_scan import _scan_logs, preload_log_positions
 from .watcher_accounts_check import _check_accounts_blocked
 from .watcher_guardian import guard_google_auth
-from .watcher_rotation_state import mark_rotation_complete, read_last_rotation_time
 from .utils_log import log
 
 _STALE_LOCK_MAX_AGE_SECS = 600
-_POST_ROTATION_GRACE_SECS = 10  # hard minimum gap after rotation END before next one
 
 
 def _clear_stale_lock() -> bool:
@@ -67,18 +65,16 @@ def run_loop(state: dict, cb: Callable, poll: float = 8.0) -> None:
                 time_since_last_trigger = now - state.get("last_trigger", 0)
                 if hit:
                     state["last_trigger"] = now
-                    shared_last_rot = read_last_rotation_time()
-                    effective_last_rot = max(state.get("last_rot", 0), shared_last_rot)
                     should_rotate = (
-                        effective_last_rot == 0
-                        or (now - effective_last_rot >= COOLDOWN_SECS)
-                        or (time_since_last_trigger >= 60 and effective_last_rot > 0)
+                        state.get("last_rot", 0) == 0
+                        or (now - state.get("last_rot", 0) >= COOLDOWN_SECS)
+                        or (
+                            time_since_last_trigger >= 60
+                            and state.get("last_rot", 0) > 0
+                        )
                     )
-                    time_since_last_rot = now - effective_last_rot
-                    if (
-                        should_rotate
-                        and time_since_last_rot >= min(30, COOLDOWN_SECS)
-                        and time_since_last_rot >= _POST_ROTATION_GRACE_SECS
+                    if should_rotate and now - state.get("last_rot", 0) >= min(
+                        30, COOLDOWN_SECS
                     ):
                         log(
                             f"[watcher] Rate-limit detected → full rotation (hit={hit}, time_since_trigger={time_since_last_trigger:.0f}s)"
@@ -92,10 +88,10 @@ def run_loop(state: dict, cb: Callable, poll: float = 8.0) -> None:
                             )
                             time.sleep(poll)
                             continue
+                        state["last_rot"] = now
                         try:
                             cb()
                         finally:
-                            state["last_rot"] = mark_rotation_complete()
                             LOCK_FILE.unlink(missing_ok=True)
         except (KeyboardInterrupt, SystemExit):
             raise
