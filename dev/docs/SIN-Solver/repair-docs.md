@@ -449,10 +449,10 @@
 **Datei:** `services/room-13-fastapi-coordinator/room13/middleware/__init__.py`
 
 ## BUG-061: Room-13 `GET /api/services/stats/summary` returns `500` on live OCI coordinator
-**Aufgetreten:** Fri Mar 27 2026  **Status:** 🔴 OFFEN
+**Aufgetreten:** Fri Mar 27 2026  **Status:** ✅ GEFIXT
 **Symptom:** During a live fleet-status audit, `GET /api/workers/stats/summary` and `GET /api/tasks/stats/summary` returned `200`, but `GET /api/services/stats/summary` failed with `500 Internal Server Error`.
-**Ursache:** Noch offen. The service-summary path is currently broken even though worker/task summaries and public health stay readable.
-**Fix:** Noch offen. GitHub bug-library issue opened as `OpenSIN-AI/OpenSIN#274`.
+**Ursache:** The route dependency imported runtime globals from `main`/`room13.main` instead of reading the initialized registry from the live FastAPI app state, which broke under the deployed package/import context.
+**Fix:** Switched Room-13 dependency wiring to `request.app.state` for service registry / credential manager access and set those objects on `app.state` during startup. Verified live: `GET /api/services` and `GET /api/services/stats/summary` now both return `200`. GitHub bug-library issue `#274` was closed.
 **Datei:** `http://92.5.60.87:8014/api/services/stats/summary`
 
 ## BUG-062: WorkerCoordinatorRuntime could not talk to authenticated Room-13 because bearer auth was missing
@@ -505,10 +505,10 @@
 **Datei:** `a2a/team-coding/A2A-SIN-Backend/src/runtime.ts`, `a2a/team-coding/A2A-SIN-Frontend/src/runtime.ts`
 
 ## BUG-069: Room-13 can leave tasks stuck in `running` after worker lease expiry
-**Aufgetreten:** Fri Mar 27 2026  **Status:** 🔴 OFFEN
+**Aufgetreten:** Fri Mar 27 2026  **Status:** ✅ GEFIXT
 **Symptom:** When the executor process died mid-task, the worker lease expired but the claimed task remained in `running` instead of returning to a recoverable queue state automatically.
-**Ursache:** Room-13 tracks expired leases and resumable worker state, but there is no automatic task-state recovery path for claimed tasks whose worker disappears.
-**Fix:** Noch offen. Manual queue repair was required (`complete?error=...`) and the gap is tracked in GitHub bug-library issue `OpenSIN-AI/OpenSIN#289`.
+**Ursache:** Expired worker leases were observable in worker state, but the workers route did not requeue the claimed task, and `claimed_task_id` could live only inside heartbeat metadata rather than the top-level worker state used for recovery.
+**Fix:** Added automatic requeue-on-expired-lease in the workers route and synced `claimed_task_id` / `current_step` from heartbeat metadata into durable worker state. Verified live with a short-TTL probe worker/task: after lease expiry, the worker moved to `error` with `lease_expired_requeued`, and the task moved from `running` back to `pending` with `assigned_worker: null` plus `lease_recovery` metadata. GitHub bug-library issue `#289` was closed.
 **Datei:** `services/room-13-fastapi-coordinator/room13/routes/tasks.py`, `services/room-13-fastapi-coordinator/room13/routes/workers.py`
 
 ## BUG-070: Durable executor can still drift into unrelated `AGENTS.md` edits
@@ -516,6 +516,27 @@
 **Symptom:** During live Team-Coding execution, the current worktrees repeatedly showed only `AGENTS.md` changes instead of obvious progress on the claimed implementation surface.
 **Ursache:** The executor prompt originally did not explicitly forbid unrelated governance/doc edits for non-policy tasks, and even after hardening there is still unresolved drift behavior to investigate in the live lane.
 **Fix:** Partially mitigated by adding an explicit prompt guard that forbids `AGENTS.md` / README / repair-doc edits for non-doc tasks. Remaining drift is tracked in GitHub bug-library issue `OpenSIN-AI/OpenSIN#290`.
+**Datei:** `scripts/zeus/run-room13-executor.py`, executor worktrees under `.room13-worktrees/`
+
+## BUG-071: Room-13 HTTP exception handler emitted `500` because `ErrorResponse` contained a raw `datetime`
+**Aufgetreten:** Fri Mar 27 2026  **Status:** ✅ GEFIXT
+**Symptom:** Normal `HTTPException` paths (for example `claim-next` with no matching task) degraded into `500 Internal Server Error` because the global handler itself crashed while rendering the error response.
+**Ursache:** `room13.main.http_exception_handler` used `ErrorResponse.model_dump()` directly; the embedded `timestamp: datetime` field stayed as a raw `datetime`, which Starlette `JSONResponse` could not serialize.
+**Fix:** Switched the handler to `model_dump(mode="json")`. Verified live: `POST /api/tasks/claim-next` now returns a structured `404` JSON payload (`No matching task available`) instead of a fake `500`. GitHub bug-library issue `#304` was closed.
+**Datei:** `services/room-13-fastapi-coordinator/room13/main.py`
+
+## BUG-072: Manual Room-13 OCI redeploy shadowed the `room13.services` package and crashed the coordinator
+**Aufgetreten:** Fri Mar 27 2026  **Status:** ✅ GEFIXT
+**Symptom:** A bad manual rsync dropped `services.py`, `credentials.py`, `gateway.py`, and `worker_runtime.py` into `/app/room13/`, which made Room-13 restart-loop with `ModuleNotFoundError: 'room13.services' is not a package`.
+**Ursache:** Route/service files were copied into the package root instead of their real subdirectories, so `room13/services.py` shadowed the `room13.services` package.
+**Fix:** Removed the stray root-level files on OCI and redeployed the files into the correct package directories (`routes/` and `services/`). Room-13 recovered to healthy state. GitHub bug-library issue `#301` was closed.
+**Datei:** `/opt/sin-room13/app/room13/`, `/opt/sin-room13/app/room13/routes/`, `/opt/sin-room13/app/room13/services/`
+
+## BUG-073: Team-Coding durable executor can generate broad deletion-style worktree diffs
+**Aufgetreten:** Fri Mar 27 2026  **Status:** 🔴 OFFEN
+**Symptom:** A controlled non-doc Team-Coding probe produced a huge deletion-style `git status` diff across large parts of the repo instead of a focused implementation change.
+**Ursache:** Noch offen. The executor now has prompt guards, retry logic, read-only governance-file guards, and branch SHA fallback, but the real `opencode run` path can still drift into catastrophic worktree mutation in disposable branches.
+**Fix:** Noch offen. The durable background executor was stopped fail-closed and the blocker is tracked in GitHub bug-library issue `OpenSIN-AI/OpenSIN#306`.
 **Datei:** `scripts/zeus/run-room13-executor.py`, executor worktrees under `.room13-worktrees/`
 ## BUG-042: Parent issue update failed because inline Python heredoc string was not terminated correctly
 **Aufgetreten:** Tue Mar 24 2026  **Status:** ✅ GEFIXT
