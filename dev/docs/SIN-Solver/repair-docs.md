@@ -512,11 +512,11 @@
 **Datei:** `services/room-13-fastapi-coordinator/room13/routes/tasks.py`, `services/room-13-fastapi-coordinator/room13/routes/workers.py`
 
 ## BUG-070: Durable executor can still drift into unrelated `AGENTS.md` edits
-**Aufgetreten:** Fri Mar 27 2026  **Status:** 🔴 OFFEN
+**Aufgetreten:** Fri Mar 27 2026  **Status:** ✅ GEFIXT
 **Symptom:** During live Team-Coding execution, the current worktrees repeatedly showed only `AGENTS.md` changes instead of obvious progress on the claimed implementation surface.
-**Ursache:** The executor prompt originally did not explicitly forbid unrelated governance/doc edits for non-policy tasks, and even after hardening there is still unresolved drift behavior to investigate in the live lane.
-**Fix:** Partially mitigated by adding an explicit prompt guard that forbids `AGENTS.md` / README / repair-doc edits for non-doc tasks. Remaining drift is tracked in GitHub bug-library issue `OpenSIN-AI/OpenSIN#290`.
-**Datei:** `scripts/zeus/run-room13-executor.py`, executor worktrees under `.room13-worktrees/`
+**Ursache:** Two issues compounded each other: the executor lacked hard mutation-surface guards, and the repo tracked both `AGENTS.md` and `agents.md`, which collided on macOS and made cleanup unreliable.
+**Fix:** Normalized the repo to a single canonical root `AGENTS.md`, added explicit allowed-path / deletion-budget / timeout / fail-closed reset guards in `scripts/zeus/run-room13-executor.py`, and verified with a final live targeted probe against branch head `7c6cad5b`: the task failed for a separate runtime timeout, but the disposable worktree stayed clean (`worktree_status: <clean>`), so `AGENTS.md` drift no longer persisted. GitHub bug-library issue `#290` was closed.
+**Datei:** `scripts/zeus/run-room13-executor.py`, `AGENTS.md`, executor worktrees under `.room13-worktrees/`
 
 ## BUG-071: Room-13 HTTP exception handler emitted `500` because `ErrorResponse` contained a raw `datetime`
 **Aufgetreten:** Fri Mar 27 2026  **Status:** ✅ GEFIXT
@@ -533,11 +533,11 @@
 **Datei:** `/opt/sin-room13/app/room13/`, `/opt/sin-room13/app/room13/routes/`, `/opt/sin-room13/app/room13/services/`
 
 ## BUG-073: Team-Coding durable executor can generate broad deletion-style worktree diffs
-**Aufgetreten:** Fri Mar 27 2026  **Status:** 🔴 OFFEN
+**Aufgetreten:** Fri Mar 27 2026  **Status:** ✅ GEFIXT
 **Symptom:** A controlled non-doc Team-Coding probe produced a huge deletion-style `git status` diff across large parts of the repo instead of a focused implementation change.
-**Ursache:** Noch offen. The executor now has prompt guards, retry logic, read-only governance-file guards, and branch SHA fallback, but the real `opencode run` path can still drift into catastrophic worktree mutation in disposable branches.
-**Fix:** Noch offen. The durable background executor was stopped fail-closed and the blocker is tracked in GitHub bug-library issue `OpenSIN-AI/OpenSIN#306`.
-**Datei:** `scripts/zeus/run-room13-executor.py`, executor worktrees under `.room13-worktrees/`
+**Ursache:** The executor did not yet enforce a strong mutation budget/allowlist, and the root `AGENTS.md`/`agents.md` case collision on macOS amplified cleanup failures.
+**Fix:** Added fail-closed mutation allowlists, deletion-budget guards, timeout-to-error conversion, `targetSha` fallback, and hard worktree reset/clean on unsafe mutations; also removed the lowercase `agents.md` duplicate from the repo. Final live targeted probe against branch head `7c6cad5b` ended with `worktree_status: <clean>`, so the broad diff no longer persisted. GitHub bug-library issue `#306` was closed.
+**Datei:** `scripts/zeus/run-room13-executor.py`, `AGENTS.md`, `tests/unit/test_run_room13_executor.py`
 ## BUG-042: Parent issue update failed because inline Python heredoc string was not terminated correctly
 **Aufgetreten:** Tue Mar 24 2026  **Status:** ✅ GEFIXT
 **Symptom:** Updating issue `#351` with the submit-ready status for lane `#352` failed before the `gh issue comment` call because the temporary Python snippet writing `/tmp/issue351_submit_ready.md` had an unterminated triple-quoted string, causing a `SyntaxError` and leaving the body file empty.
