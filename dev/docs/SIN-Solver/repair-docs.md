@@ -538,6 +538,20 @@
 **Ursache:** The executor did not yet enforce a strong mutation budget/allowlist, and the root `AGENTS.md`/`agents.md` case collision on macOS amplified cleanup failures.
 **Fix:** Added fail-closed mutation allowlists, deletion-budget guards, timeout-to-error conversion, `targetSha` fallback, and hard worktree reset/clean on unsafe mutations; also removed the lowercase `agents.md` duplicate from the repo. Final live targeted probe against branch head `7c6cad5b` ended with `worktree_status: <clean>`, so the broad diff no longer persisted. GitHub bug-library issue `#306` was closed.
 **Datei:** `scripts/zeus/run-room13-executor.py`, `AGENTS.md`, `tests/unit/test_run_room13_executor.py`
+
+## BUG-074: A2A-SIN-Backend build was broken by current TypeScript errors
+**Aufgetreten:** Sat Mar 28 2026  **Status:** ✅ GEFIXT
+**Symptom:** `npm --prefix a2a/team-coding/A2A-SIN-Backend run build` failed, which prevented the backend wrapper from picking up newer runtime fixes.
+**Ursache:** The backend HTTP server used untyped `c.env.req/res` access and `idle-monetization.ts` missed the global `isAgentBusy` declaration.
+**Fix:** Added the missing `declare global` block in `a2a/team-coding/A2A-SIN-Backend/src/idle-monetization.ts` and relaxed the Hono middleware typing in `a2a/team-coding/A2A-SIN-Backend/src/a2a-http.ts`. Verified with a clean backend build. GitHub bug-library issue `#316` was closed.
+**Datei:** `a2a/team-coding/A2A-SIN-Backend/src/a2a-http.ts`, `a2a/team-coding/A2A-SIN-Backend/src/idle-monetization.ts`
+
+## BUG-075: Standalone Team-Coding wrappers still hang on `code.generate` despite stable executor path
+**Aufgetreten:** Sat Mar 28 2026  **Status:** 🔴 OFFEN
+**Symptom:** `bin/sin-backend run-action '{"action":"sin.backend.code.generate",...}'` and the equivalent frontend wrapper still hang until the local caller timeout, even though raw `opencode run ... --agent sin-executor-solo` works and the durable executor path can now use the direct Python runner transport safely.
+**Ursache:** Noch offen. Current evidence points to the standalone Node wrapper transport path, while the durable executor now bypasses that path successfully by calling the Python OpenCode runner directly.
+**Fix:** Noch offen. GitHub bug-library issues `#315` and `#317` remain open; current mitigation is the direct Python runner path in `scripts/zeus/run-room13-executor.py`.
+**Datei:** `a2a/team-coding/A2A-SIN-Backend/src/runtime.ts`, `a2a/team-coding/A2A-SIN-Frontend/src/runtime.ts`, `bin/sin-backend`, `bin/sin-frontend`
 ## BUG-042: Parent issue update failed because inline Python heredoc string was not terminated correctly
 **Aufgetreten:** Tue Mar 24 2026  **Status:** ✅ GEFIXT
 **Symptom:** Updating issue `#351` with the submit-ready status for lane `#352` failed before the `gh issue comment` call because the temporary Python snippet writing `/tmp/issue351_submit_ready.md` had an unterminated triple-quoted string, causing a `SyntaxError` and leaving the body file empty.
