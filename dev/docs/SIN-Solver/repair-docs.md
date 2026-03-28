@@ -566,6 +566,13 @@
 **Ursache:** Worker runtime state treated a non-empty `current_run_id` as proof of active work. Long-lived service executors keep `current_run_id` for the full process lifetime, so the server continued marking them `busy` even when no task was claimed.
 **Fix:** Changed worker runtime state transitions so only a real `claimed_task_id` keeps the worker `busy`; otherwise the worker returns to `online` / `idle_waiting_for_task`. Verified live after redeploy and clean restart: `workers/stats/summary` now shows `busy: 0`, `online: 3`, and the active Team-Coding worker is `status: online`, `claimed_task_id: null`, `status_reason: idle_waiting_for_task`. GitHub bug-library issue `#320` was closed.
 **Datei:** `services/room-13-fastapi-coordinator/room13/services/worker_runtime.py`, `tests/unit/test_room13_worker_routes.py`
+
+## BUG-078: `dashboard-enterprise` Vercel build failed because agent pages used the wrong registry source
+**Aufgetreten:** Sat Mar 28 2026  **Status:** ✅ GEFIXT
+**Symptom:** `npm --prefix dashboard-enterprise run build` failed with `agent_registry_missing:sin-competition-global-rivalry` during page data collection for `/agents/sin-competition-global-rivalry`, which blocked redeploying `a2a.delqhi.com` and kept many coder-agent pages stale/404.
+**Ursache:** Agent detail pages imported `getRequiredAgentRecord` from `dashboard-enterprise/components/a2a/registry.ts`, but the missing competition/global-rivalry slug only existed in the control-plane projection path. The page layer was bypassing the real control-plane registry source.
+**Fix:** Added `getRequiredAgentRecord()` to `dashboard-enterprise/components/a2a/controlPlaneRegistry.ts` and switched the agent detail pages to import from the control-plane registry. After that, `dashboard-enterprise` built successfully and a Vercel production deploy completed using a minimal dashboard-only staging root. Verified post-deploy `200` pages include `sin-coding-ceo`, `sin-repo-sync`, `sin-designer`, `sin-frontend`, `sin-backend`, `sin-tester`, `sin-github-issues`, `sin-bugbounty`, and `sin-github-action`. GitHub bug-library issue `#327` was closed.
+**Datei:** `dashboard-enterprise/components/a2a/controlPlaneRegistry.ts`, `dashboard-enterprise/app/agents/**/page.tsx`
 ## BUG-042: Parent issue update failed because inline Python heredoc string was not terminated correctly
 **Aufgetreten:** Tue Mar 24 2026  **Status:** ✅ GEFIXT
 **Symptom:** Updating issue `#351` with the submit-ready status for lane `#352` failed before the `gh issue comment` call because the temporary Python snippet writing `/tmp/issue351_submit_ready.md` had an unterminated triple-quoted string, causing a `SyntaxError` and leaving the body file empty.
