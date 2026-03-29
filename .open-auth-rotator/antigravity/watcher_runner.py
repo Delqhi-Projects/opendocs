@@ -216,7 +216,7 @@ def _inject_oci_credentials(creds: dict) -> bool:
         log(f"[OCI] inject: accounts.json write failed: {e}", "ERROR")
 
     try:
-        from antigravity.core.opencode_restart import notify_opencode_sessions
+        from core.opencode_restart import notify_opencode_sessions
 
         notify_opencode_sessions("mach weiter")
         log("[OCI] inject: notified opencode sessions", "INFO")
