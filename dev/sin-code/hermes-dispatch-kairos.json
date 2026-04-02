@@ -1,0 +1,24 @@
+{
+  "version": "2026.1",
+  "job": {
+    "title": "Build KAIROS VS Code Extension Scaffold for SIN Code",
+    "target_repo": "OpenSIN-AI/OpenSIN-Code",
+    "target_branch": "feature/kairos-vscode-extension",
+    "delegated_to": "A2A-SIN-Frontend",
+    "tasks": [
+      "Initialize VS Code Extension Repository using generator-code (TypeScript) inside the 'vscode-extension' directory.",
+      "Implement RPC Bridge to talk to the sin-code CLI.",
+      "Build basic Sidebar Webview in React for the Chat Interface, inspired by Claude Code's terminal renderer.",
+      "Ensure all code follows the enterprise standards (no direct Gemini API, strictly opencode CLI via Qwen3.6-plus-free)."
+    ],
+    "context": {
+      "plan_url": "Master Epic created in GitHub",
+      "design_guidance": "Steal Kilo Code's 'Mode Selector' UI and Claude Code's memory structure. React Webview must be optimized for performance."
+    },
+    "done_criteria": [
+      "VS Code Extension is compiled and can be installed via .vsix.",
+      "Extension successfully routes prompts to the local sin-code CLI.",
+      "Basic Sidebar Webview is functional and renders without errors."
+    ]
+  }
+}
