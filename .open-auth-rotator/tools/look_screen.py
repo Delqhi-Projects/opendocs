@@ -15,13 +15,10 @@ Features:
   - Log viewer
   - Status dashboard
 
-Fallback chain (unlimited via free tier quota rotation):
-  1. gemini-2.5-flash (1M context, unlimited)
-  2. gemini-3-flash-preview (250K context)
-  3. gemini-3.1-flash-lite-preview (250K context)
-  4. gemma-3-27b (15K context)
-  5. gemma-3-12b (15K context)
-  6. gemma-3-4b (15K context)
+Fallback chain (free tier quota rotation, respects rate limits):
+  1. gemini-3-flash-preview (5 RPM, 250K TPM, 20 PD)
+  2. gemini-3-pro-preview (Unlimited RPM, 65K TPM, Unlimited PD)
+  3. gemini-3.1-flash-lite-preview (15 RPM, 250K TPM, 500 PD)
 """
 
 import argparse
@@ -65,9 +62,9 @@ def rotate_key():
 
 
 VISION_MODELS = [
-    "gemini-2.5-flash",
-    "gemini-2.5-pro",
     "gemini-3-flash-preview",
+    "gemini-3-pro-preview",
+    "gemini-3.1-flash-lite-preview",
 ]
 
 SCREENSHOT_DIR = Path("/tmp/look-screen")
