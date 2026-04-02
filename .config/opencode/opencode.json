@@ -228,7 +228,7 @@
     "openrouter": {
       "npm": "@openrouter/ai-sdk-provider",
       "options": {
-        "apiKey": "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",
+        "apiKey": "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",
         "baseURL": "https://openrouter.ai/api/v1"
       },
       "models": {
