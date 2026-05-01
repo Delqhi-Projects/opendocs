@@ -1,206 +1,197 @@
-export type BlockType =
-  | "heading1"
-  | "heading2"
-  | "heading3"
-  | "paragraph"
-  | "code"
-  | "table"
-  | "database"
-  | "workflow"
-  | "draw"
-  | "n8n"
-  | "callout"
-  | "checklist"
-  | "mermaid"
-  | "quote"
-  | "divider"
-  | "image"
-  | "video"
-  | "voice"
-  | "link"
-  | "file"
-  | "aiPrompt"
-  | "horizontal"
-  | "automation";
+/**
+ * OpenDocs Core Types
+ * Best Practices 2026 - Production Ready
+ */
 
-import type { DatabaseBlockData } from "@/types/database";
-import type { N8nBlockData } from "@/types/n8n";
-import type { DocIcon } from "@/types/icons";
-
-export type CalloutTone = "info" | "success" | "warning" | "error" | "tip";
-
-// Re-export commonly used types
-export type { N8nBlockData } from "@/types/n8n";
-export type { DatabaseBlockData } from "@/types/database";
-export type { DocIcon } from "@/types/icons";
-
-export type DocBlockBase = {
-  id: string;
-  type: BlockType;
-  locked?: boolean;
-  lockedAt?: string;
-  lockedBy?: string;
-  layout?: "grid" | "default";
-};
-
-export type HeadingBlock = DocBlockBase & { type: "heading1" | "heading2" | "heading3"; text: string };
-export type ParagraphBlock = DocBlockBase & { type: "paragraph"; text: string };
-export type CodeBlock = DocBlockBase & { type: "code"; language: string; code: string };
-export type QuoteBlock = DocBlockBase & { type: "quote"; text: string; caption?: string };
-export type DividerBlock = DocBlockBase & { type: "divider" };
-export type ImageBlock = DocBlockBase & { type: "image"; url: string; alt?: string; caption?: string };
-export type VideoBlock = DocBlockBase & { type: "video"; url: string; caption?: string };
-export type LinkBlock = DocBlockBase & { type: "link"; url: string; title?: string; description?: string };
-export type FileBlock = DocBlockBase & { type: "file"; name: string; url?: string };
-export type AiPromptResult = 
-  | { status: "pending" }
-  | { status: "success"; content: string }
-  | { status: "error"; message: string };
-
-export type AiPromptBlock = DocBlockBase & { 
-  type: "aiPrompt"; 
-  prompt: string; 
-  result?: AiPromptResult;
-};
-
-export type ChecklistItem = { id: string; text: string; checked: boolean };
-export type ChecklistBlock = DocBlockBase & { type: "checklist"; items: ChecklistItem[] };
-
-export type TableCell = { id: string; value: string };
-export type TableRow = { id: string; cells: TableCell[] };
-export type TableBlock = DocBlockBase & {
-  type: "table";
-  columns: { id: string; name: string }[];
-  rows: TableRow[];
-};
-
-export type DatabaseBlock = DocBlockBase & {
-  type: "database";
-  data: DatabaseBlockData;
-};
-
-export type WorkflowBlock = DocBlockBase & {
-  type: "workflow";
-  data: {
-    title: string;
-    nodes: { id: string; x: number; y: number; label: string; color?: string; refId?: string }[];
-    edges: { id: string; source: string; target: string; label?: string }[];
-  };
-};
-
-// Excalidraw types - using Record for flexibility while maintaining type safety
-export type ExcalidrawElement = Record<string, unknown>;
-export type ExcalidrawAppState = Record<string, unknown>;
-export type ExcalidrawFiles = Record<string, unknown>;
-
-export type DrawBlock = DocBlockBase & {
-  type: "draw";
-  data: {
-    elements: ExcalidrawElement[];
-    appState: ExcalidrawAppState;
-    files: ExcalidrawFiles;
-  };
-};
-
-export type N8nBlock = DocBlockBase & {
-  type: "n8n";
-  data: N8nBlockData;
-};
-
-export type CalloutBlock = DocBlockBase & {
-  type: "callout";
-  text: string;
-  title?: string;
-  tone: CalloutTone;
-};
-
-export type MermaidBlock = DocBlockBase & {
-  type: "mermaid";
-  code: string;
-  caption?: string;
-};
-
-export type VoiceBlock = DocBlockBase & {
-  type: "voice";
-  data: {
-    audioUrl?: string;
-    audioData?: string;
-    duration?: number;
-    language?: string;
-    transcription?: string;
-    transcriptionConfidence?: number;
-    transcriptionLanguage?: string;
-    createdAt?: string;
-    synthesizedAudioUrl?: string;
-    synthesizedDuration?: number;
-    synthesizedVoice?: string;
-  };
-};
-
-export type HorizontalBlock = DocBlockBase & {
-  type: "horizontal";
-  blocks: DocBlock[];
-};
-
-// Re-export Automation type for use in AutomationBlock
-export type { Automation, AutomationNode, AutomationEdge } from "@/types/automation";
-
-export type AutomationBlock = DocBlockBase & {
-  type: "automation";
-  automation: import("@/types/automation").Automation;
-};
-
-export type DocBlock = 
-  | HeadingBlock 
-  | ParagraphBlock 
-  | CodeBlock 
-  | QuoteBlock 
-  | DividerBlock 
-  | ImageBlock 
-  | VideoBlock 
-  | VoiceBlock
-  | LinkBlock 
-  | FileBlock 
-  | AiPromptBlock 
-  | ChecklistBlock 
-  | TableBlock 
-  | DatabaseBlock 
-  | WorkflowBlock 
-  | DrawBlock
-  | N8nBlock
-  | CalloutBlock
-  | MermaidBlock
-  | HorizontalBlock
-  | AutomationBlock;
-
-// Page and Folder types
-export type DocPage = {
+export interface Document {
   id: string;
   title: string;
-  icon?: DocIcon;
-  cover?: string;
-  blocks: DocBlock[];
-  createdAt: string;
-  updatedAt: string;
-};
+  content: Block[];
+  createdAt: Date;
+  updatedAt: Date;
+  authorId: string;
+  collaborators: Collaborator[];
+  metadata: DocumentMetadata;
+}
 
-export type DocFolder = {
+export interface Block {
+  id: string;
+  type: BlockType;
+  content: any;
+  metadata?: BlockMetadata;
+}
+
+export type BlockType = 
+  | 'paragraph'
+  | 'heading'
+  | 'heading1'
+  | 'heading2'
+  | 'heading3'
+  | 'list'
+  | 'bullet'
+  | 'numbered'
+  | 'checklist'
+  | 'code'
+  | 'image'
+  | 'video'
+  | 'audio'
+  | 'quote'
+  | 'callout'
+  | 'divider'
+  | 'toggle'
+  | 'comment'
+  | 'voice'
+  | 'automation'
+  | 'table'
+  | 'link'
+  | 'file'
+  | 'mermaid'
+  | 'horizontal'
+  | 'workflow'
+  | 'draw'
+  | 'database'
+  | 'n8n'
+  | 'aiPrompt';
+
+export interface BlockMetadata {
+  createdAt?: Date;
+  updatedAt?: Date;
+  authorId?: string;
+  [key: string]: any;
+}
+
+export interface Collaborator {
   id: string;
   name: string;
-  icon?: DocIcon;
-  children: string[]; // Page IDs or subfolder IDs
-  folderIds: string[]; // Subfolder IDs
-  pageIds: string[]; // Page IDs
-  collapsed?: boolean;
-};
+  email: string;
+  avatar?: string;
+  color: string;
+  cursor?: CursorPosition;
+  isActive: boolean;
+}
 
-export type Theme = "light" | "dark";
+export interface CursorPosition {
+  line: number;
+  ch: number;
+}
 
-export type DocsState = {
-  folders: Record<string, DocFolder>;
-  pages: Record<string, DocPage>;
-  rootFolderId: string;
-  selectedPageId: string | null;
-  theme: Theme;
-  expandedFolderIds: string[];
-};
+export interface DocumentMetadata {
+  tags?: string[];
+  description?: string;
+  coverImage?: string;
+  [key: string]: any;
+}
+
+export interface Comment {
+  id: string;
+  documentId: string;
+  blockId: string;
+  authorId: string;
+  content: string;
+  createdAt: Date;
+  updatedAt?: Date;
+  resolved: boolean;
+  resolvedBy?: string;
+  resolvedAt?: Date;
+  replies: CommentReply[];
+  mentions: string[];
+}
+
+export interface CommentReply {
+  id: string;
+  commentId: string;
+  authorId: string;
+  content: string;
+  createdAt: Date;
+  mentions: string[];
+}
+
+export interface Presence {
+  userId: string;
+  userName: string;
+  color: string;
+  cursorPosition?: CursorPosition;
+  selection?: { from: number; to: number };
+  lastActive: number;
+}
+
+export type ToastType = 'success' | 'error' | 'warning' | 'info';
+
+export interface Toast {
+  id: string;
+  type: ToastType;
+  title: string;
+  message?: string;
+  duration?: number;
+}
+
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  avatar?: string;
+  role: 'admin' | 'editor' | 'viewer';
+}
+
+export interface AutomationConfig {
+  id: string;
+  name: string;
+  trigger: AutomationTrigger;
+  actions: AutomationAction[];
+  enabled: boolean;
+}
+
+export interface AutomationTrigger {
+  type: 'document_created' | 'document_updated' | 'comment_added' | 'schedule';
+  config: Record<string, any>;
+}
+
+export interface AutomationAction {
+  type: 'send_email' | 'create_task' | 'webhook' | 'n8n_workflow';
+  config: Record<string, any>;
+  label: string;
+  description?: string;
+}
+
+export interface DocsState {
+  state: any;
+  actions: any;
+}
+
+export interface DocPage {
+  id: string;
+  title: string;
+  content: Block[];
+}
+
+export interface VoiceBlock {
+  id: string;
+  audioUrl: string;
+  duration: number;
+  transcript?: string;
+  speaker?: string;
+  data?: any;
+}
+
+// Specific Block Types for blockHelpers
+export interface DocBlock extends Block { type: 'paragraph'; }
+export interface HeadingBlock extends Block { type: 'heading' | 'heading1' | 'heading2' | 'heading3'; }
+export interface ParagraphBlock extends Block { type: 'paragraph'; }
+export interface CodeBlock extends Block { type: 'code'; }
+export interface TableBlock extends Block { type: 'table'; }
+export interface DatabaseBlock extends Block { type: 'database'; }
+export interface WorkflowBlock extends Block { type: 'workflow'; }
+export interface DrawBlock extends Block { type: 'draw'; }
+export interface N8nBlock extends Block { type: 'n8n'; }
+export interface CalloutBlock extends Block { type: 'callout'; }
+export interface ChecklistBlock extends Block { type: 'checklist'; }
+export interface MermaidBlock extends Block { type: 'mermaid'; }
+export interface HorizontalBlock extends Block { type: 'horizontal'; }
+export interface QuoteBlock extends Block { type: 'quote'; }
+export interface DividerBlock extends Block { type: 'divider'; }
+export interface ImageBlock extends Block { type: 'image'; }
+export interface VideoBlock extends Block { type: 'video'; }
+export interface LinkBlock extends Block { type: 'link'; }
+export interface FileBlock extends Block { type: 'file'; }
+export interface AiPromptBlock extends Block { type: 'aiPrompt'; }
+export interface AutomationBlock extends Block { type: 'automation'; }

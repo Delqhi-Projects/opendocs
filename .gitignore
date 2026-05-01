@@ -1,145 +1,56 @@
-# ==============================================================================
-# OpenDocs - .gitignore
-# ==============================================================================
-# Best Practices 2026 - No secrets in git!
-# ==============================================================================
-
-# ==============================================================================
-# ENVIRONMENT & SECRETS
-# ==============================================================================
-.env
-.env.local
-.env.*.local
-.env.production
-.env.staging
-*.env
-
-# Credentials & Keys
-*.key
-*.pem
-*.crt
-credentials.json
-secrets.json
-*.secret
-
-# API Keys (common patterns)
-*api*key*
-*token*
-*auth*
-
-# ==============================================================================
-# BUILD OUTPUTS
-# ==============================================================================
-dist/
-build/
-.next/
-.nuxt/
-out/
-*.tgz
-
-# Vite / Rollup
-dist-ssr/
-dist/assets/*.js.map
-
-# Webpack
-*.js.map
-
-# ==============================================================================
-# NODE
-# ==============================================================================
-node_modules/
+# Logs
+logs
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# npm / yarn
-package-lock.json
-yarn.lock
-pnpm-lock.yaml
-.pnpm-store/
+# Dependencies
+node_modules
+dist
+dist-ssr
+*.local
 
-# ==============================================================================
-# TEST & COVERAGE
-# ==============================================================================
-coverage/
-.nyc_output/
-coverage.lcov
-*.coverage
-*.profraw
-
-# Playwright
-playwright-report/
-test-results/
-videos/
-traces/
-
-# Vitest
-__snapshots__/
-
-# ==============================================================================
-# IDE & EDITOR
-# ==============================================================================
-.idea/
-.vscode/
-*.swp
-*.swo
-*~
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
 .DS_Store
-Thumbs.db
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
 
-# ==============================================================================
-# LOGS
-# ==============================================================================
-*.log
-logs/
-*.log.*
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
-# ==============================================================================
-# DOCKER & CONTAINER
-# ==============================================================================
-.docker/
-docker-compose.override.yml
+# Build outputs
+build
+.next
+out
 
-# ==============================================================================
-# TEMP & CACHE
-# ==============================================================================
-.cache/
-.turbo/
-.eslintcache
+# Testing
+coverage
+.playwright
+test-results
+
+# TypeScript
 *.tsbuildinfo
 
-# ==============================================================================
-# DATABASE
-# ==============================================================================
-*.db
-*.sqlite
-*.sqlite3
-*.dump
+# Misc
+.cache
+.temp
+.turbo
+.vercel
 
-# ==============================================================================
-# SECRETS MANAGEMENT
-# ==============================================================================
-# Vault (HashiCorp)
-.vault/
+# Serena
+.serna/cache
 
-# ==============================================================================
-# CI/CD
-# ==============================================================================
-.github/workflows/*.local.yml
-
-# ==============================================================================
-# GOOGLE
-# ==============================================================================
-# Google OAuth (never commit!)
-*client_secret*
-*credentials.json
-
-# ==============================================================================
-# OPENCODE & SERENA
-# ==============================================================================
-.serena/
-*.session-*
-node_modules/.vite/
-lighthouse-report.json
+.doctor/

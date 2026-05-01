@@ -21,33 +21,39 @@ Comprehensive E2E testing was performed on OpenDocs. A **critical production bug
 **Date Found:** 2026-02-13
 
 #### Error
+
 ```
 TypeError: state.expandedFolderIds.includes is not a function
 at FolderNode (src/components/Sidebar.tsx:192:44)
 ```
 
 #### Root Cause
+
 When loading from corrupted/legacy localStorage data, `state.expandedFolderIds` was not an array, causing `.includes()` to fail.
 
 #### Impact
+
 - App crashed on load showing "Recovery Mode" screen
 - Error occurred in FolderNode component
 - User data inaccessible until fixed
 
 #### Fix Applied
+
 Added defensive checks in `src/store/useDocsStore.ts`:
 
 ```typescript
-expandedFolderIds: Array.isArray(current?.expandedFolderIds) 
-  ? current.expandedFolderIds 
-  : defaults.expandedFolderIds
+expandedFolderIds: Array.isArray(current?.expandedFolderIds)
+  ? current.expandedFolderIds
+  : defaults.expandedFolderIds;
 ```
 
 Applied to both:
+
 1. Default state merge (line ~43)
 2. Legacy key migration (line ~55)
 
 #### Files Modified
+
 - `src/store/useDocsStore.ts`
 
 ---
@@ -55,35 +61,39 @@ Applied to both:
 ## Test Results
 
 ### Summary
-| Metric | Result |
-|--------|--------|
-| Total Tests | 145 |
-| Passed | 145 ✅ |
-| Failed | 0 |
+
+| Metric        | Result  |
+| ------------- | ------- |
+| Total Tests   | 145     |
+| Passed        | 145 ✅  |
+| Failed        | 0       |
 | Test Duration | 2.4 min |
 
 ### Browser Matrix
-| Browser | Tests | Status |
-|---------|-------|--------|
-| Chromium | 29 | ✅ Pass |
-| Firefox | 29 | ✅ Pass |
-| Webkit | 29 | ✅ Pass |
-| Mobile Chrome | 29 | ✅ Pass |
-| Mobile Safari | 29 | ✅ Pass |
+
+| Browser       | Tests | Status  |
+| ------------- | ----- | ------- |
+| Chromium      | 29    | ✅ Pass |
+| Firefox       | 29    | ✅ Pass |
+| Webkit        | 29    | ✅ Pass |
+| Mobile Chrome | 29    | ✅ Pass |
+| Mobile Safari | 29    | ✅ Pass |
 
 ### Test Coverage
-| Category | Tests | Files |
-|----------|-------|-------|
-| Core App Functionality | 14 | `app.spec.ts` |
-| Keyboard Shortcuts | 2 | `keyboard-shortcuts.spec.ts` |
-| Command Palette | 2 | `command-palette.spec.ts` |
-| Visual Audit | 11 × 5 browsers | `visual-audit.spec.ts` |
+
+| Category               | Tests           | Files                        |
+| ---------------------- | --------------- | ---------------------------- |
+| Core App Functionality | 14              | `app.spec.ts`                |
+| Keyboard Shortcuts     | 2               | `keyboard-shortcuts.spec.ts` |
+| Command Palette        | 2               | `command-palette.spec.ts`    |
+| Visual Audit           | 11 × 5 browsers | `visual-audit.spec.ts`       |
 
 ---
 
 ## Visual Audit Results
 
 ### Screenshot Scenarios Captured (11)
+
 1. Homepage - Chromium Desktop
 2. Homepage - Firefox Desktop
 3. Homepage - Webkit Desktop
@@ -97,6 +107,7 @@ Applied to both:
 11. Viewport - Large Desktop
 
 ### Visual Findings
+
 - ✅ No layout overflow issues detected
 - ✅ Responsive breakpoints working correctly
 - ✅ Dark mode rendering correctly
@@ -115,6 +126,7 @@ The Playwright tests included `page.addInitScript(() => { localStorage.clear(); 
 ## CI/CD Pipeline
 
 Created `.github/workflows/ci.yml` with:
+
 - Lint check
 - Type-check
 - Unit tests

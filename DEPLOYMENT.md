@@ -108,51 +108,55 @@ OPENAI_API_KEY=your-openai-api-key
 ### 3.1 HTTP Security Headers
 
 ```typescript
-import helmet from 'helmet'
+import helmet from "helmet";
 
 export const securityHeaders = helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'", "'unsafe-inline'"],
-      styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
-      fontSrc: ["'self'", 'https://fonts.gstatic.com'],
-      imgSrc: ["'self'", 'data:', 'https:'],
-      connectSrc: ["'self'", 'https://api.openai.com', 'https://api.nvidia.com'],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: [
+        "'self'",
+        "https://api.openai.com",
+        "https://api.nvidia.com",
+      ],
     },
   },
   crossOriginEmbedderPolicy: false,
-  crossOriginResourcePolicy: { policy: 'cross-origin' },
-})
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+});
 ```
 
 ### 3.2 Rate Limiting
 
 ```typescript
-import rateLimit from 'express-rate-limit'
+import rateLimit from "express-rate-limit";
 
 export const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
   message: {
-    error: 'Too many requests, please try again later.',
+    error: "Too many requests, please try again later.",
     retryAfter: 60,
   },
-})
+});
 
 export const authLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
   max: 10,
   message: {
-    error: 'Too many login attempts. Please try again in an hour.',
+    error: "Too many login attempts. Please try again in an hour.",
   },
-})
+});
 ```
 
 ### 3.3 Input Validation
 
 ```typescript
-import { z } from 'zod'
+import { z } from "zod";
 
 export const documentSchema = z.object({
   title: z.string().min(1).max(200),
@@ -160,7 +164,7 @@ export const documentSchema = z.object({
   parentId: z.string().uuid().optional(),
   isLocked: z.boolean().optional(),
   metadata: z.record(z.unknown()).optional(),
-})
+});
 ```
 
 ---
@@ -181,21 +185,21 @@ CREATE INDEX idx_automations_enabled ON automations(enabled);
 
 ```typescript
 // Implement lazy loading
-const Document = lazy(() => import('./pages/Document'))
-const Automations = lazy(() => import('./pages/Automations'))
+const Document = lazy(() => import("./pages/Document"));
+const Automations = lazy(() => import("./pages/Automations"));
 
 // Image optimization
 export function useOptimizedImage(url: string) {
-  const cloudinaryUrl = `https://res.cloudinary.com/demo/image/upload/w_400,c_limit,f_auto,q_auto/${url}`
-  
+  const cloudinaryUrl = `https://res.cloudinary.com/demo/image/upload/w_400,c_limit,f_auto,q_auto/${url}`;
+
   return {
     src: cloudinaryUrl,
     srcSet: `
-      ${cloudinaryUrl.replace('w_400', 'w_400')} 400w,
-      ${cloudinaryUrl.replace('w_400', 'w_800')} 800w,
-      ${cloudinaryUrl.replace('w_400', 'w_1200')} 1200w
+      ${cloudinaryUrl.replace("w_400", "w_400")} 400w,
+      ${cloudinaryUrl.replace("w_400", "w_800")} 800w,
+      ${cloudinaryUrl.replace("w_400", "w_1200")} 1200w
     `,
-  }
+  };
 }
 ```
 
@@ -206,20 +210,20 @@ export function useOptimizedImage(url: string) {
 ### 5.1 Logging Configuration
 
 ```typescript
-import winston from 'winston'
+import winston from "winston";
 
 export const logger = winston.createLogger({
-  level: process.env.LOG_LEVEL || 'info',
+  level: process.env.LOG_LEVEL || "info",
   format: winston.format.combine(
     winston.format.timestamp(),
-    winston.format.json()
+    winston.format.json(),
   ),
   transports: [
     new winston.transports.Console(),
-    new winston.transports.File({ filename: 'logs/error.log', level: 'error' }),
-    new winston.transports.File({ filename: 'logs/combined.log' }),
+    new winston.transports.File({ filename: "logs/error.log", level: "error" }),
+    new winston.transports.File({ filename: "logs/combined.log" }),
   ],
-})
+});
 ```
 
 ### 5.2 Health Checks
@@ -229,46 +233,46 @@ export async function healthCheck(req: Request, res: Response) {
   const checks = {
     database: false,
     redis: false,
-  }
-  
+  };
+
   try {
-    await db.query('SELECT 1')
-    checks.database = true
+    await db.query("SELECT 1");
+    checks.database = true;
   } catch {
-    checks.database = false
+    checks.database = false;
   }
-  
-  const isHealthy = Object.values(checks).every(Boolean)
-  
+
+  const isHealthy = Object.values(checks).every(Boolean);
+
   res.status(isHealthy ? 200 : 503).json({
-    status: isHealthy ? 'healthy' : 'unhealthy',
+    status: isHealthy ? "healthy" : "unhealthy",
     timestamp: new Date().toISOString(),
     services: { ...checks, uptime: process.uptime() },
-  })
+  });
 }
 ```
 
 ### 5.3 Metrics Collection
 
 ```typescript
-import client from 'prom-client'
+import client from "prom-client";
 
-const registry = new client.Registry()
+const registry = new client.Registry();
 
 export const httpRequestsTotal = new client.Counter({
-  name: 'http_requests_total',
-  help: 'Total HTTP requests',
-  labelNames: ['method', 'route', 'status'],
+  name: "http_requests_total",
+  help: "Total HTTP requests",
+  labelNames: ["method", "route", "status"],
   registers: [registry],
-})
+});
 
 export const httpRequestDuration = new client.Histogram({
-  name: 'http_request_duration_seconds',
-  help: 'Request duration',
-  labelNames: ['method', 'route'],
+  name: "http_request_duration_seconds",
+  help: "Request duration",
+  labelNames: ["method", "route"],
   buckets: [0.1, 0.5, 1, 2, 5],
   registers: [registry],
-})
+});
 ```
 
 ---
@@ -294,13 +298,13 @@ pg_dump "${DATABASE_URL}" | gzip > "${BACKUP_FILE}"
 
 if [ -f "${BACKUP_FILE}" ] && [ -s "${BACKUP_FILE}" ]; then
   echo "Backup created: ${BACKUP_FILE}"
-  
+
   # Upload to cloud storage
   aws s3 cp "${BACKUP_FILE}" "s3://opendocs-backups/postgres/"
-  
+
   # Keep last 7 local backups
   ls -t "${BACKUP_DIR}"/*.sql.gz | tail -n +8 | xargs rm -f
-  
+
   echo "Backup completed"
 else
   echo "ERROR: Backup failed"
@@ -343,7 +347,7 @@ services:
       replicas: 3
       resources:
         limits:
-          cpus: '1'
+          cpus: "1"
           memory: 1G
     depends_on:
       - postgres
@@ -420,7 +424,7 @@ Troubleshooting:
     solutions:
       - Check automation logs
       - Review slow query logs
-  
+
   database_connection_errors:
     symptoms:
       - "Connection refused" errors
@@ -430,7 +434,7 @@ Troubleshooting:
     solutions:
       - Increase pool size
       - Check database health
-  
+
   authentication_failures:
     symptoms:
       - 401 Unauthorized errors
@@ -460,28 +464,28 @@ tail -f logs/combined.log | jq 'select(.level == "error")'
 ### 9.1 Smoke Tests
 
 ```typescript
-test.describe('Post-Deployment Smoke Tests', () => {
-  test('API health endpoint returns 200', async ({ request }) => {
-    const response = await request.get('/health')
-    expect(response.status()).toBe(200)
-    
-    const body = await response.json()
-    expect(body.status).toBe('healthy')
-  })
+test.describe("Post-Deployment Smoke Tests", () => {
+  test("API health endpoint returns 200", async ({ request }) => {
+    const response = await request.get("/health");
+    expect(response.status()).toBe(200);
 
-  test('Database connection is working', async ({ request }) => {
-    const response = await request.get('/health/detailed')
-    expect(response.status()).toBe(200)
-    expect(response.json().checks.database.healthy).toBe(true)
-  })
+    const body = await response.json();
+    expect(body.status).toBe("healthy");
+  });
 
-  test('Can create and retrieve document', async ({ request }) => {
-    const doc = await request.post('/api/documents', {
-      data: { title: 'Smoke Test' },
-    })
-    expect(doc.status()).toBe(201)
-  })
-})
+  test("Database connection is working", async ({ request }) => {
+    const response = await request.get("/health/detailed");
+    expect(response.status()).toBe(200);
+    expect(response.json().checks.database.healthy).toBe(true);
+  });
+
+  test("Can create and retrieve document", async ({ request }) => {
+    const doc = await request.post("/api/documents", {
+      data: { title: "Smoke Test" },
+    });
+    expect(doc.status()).toBe(201);
+  });
+});
 ```
 
 ### 9.2 Monitoring Checklist

@@ -36,11 +36,11 @@
 
 ### Components
 
-| Component | Location | Port | Description |
-|-----------|----------|------|-------------|
+| Component      | Location                             | Port     | Description                        |
+| -------------- | ------------------------------------ | -------- | ---------------------------------- |
 | Captcha Vision | `services/solver-19-captcha-solver/` | Internal | Mistral Pixtral for image analysis |
-| Captcha Worker | `workers/2captcha-worker/` | 8019 | Main orchestrator |
-| Steel Browser | `agent-05-steel-browser/` | 50015 | CDP WebSocket for browser control |
+| Captcha Worker | `workers/2captcha-worker/`           | 8019     | Main orchestrator                  |
+| Steel Browser  | `agent-05-steel-browser/`            | 50015    | CDP WebSocket for browser control  |
 
 ### Flow Steps
 
@@ -58,7 +58,7 @@
 // POST /api/v1/captcha/solve
 interface CaptchaSolveRequest {
   url: string;
-  captchaType: 'text' | 'image' | 'slider' | 'hcaptcha' | 'recaptcha';
+  captchaType: "text" | "image" | "slider" | "hcaptcha" | "recaptcha";
   elementSelector?: string;
 }
 
@@ -103,7 +103,14 @@ interface CaptchaSolveResponse {
         "url": "https://api.mistral.ai/v1/chat/completions",
         "body": {
           "model": "pixtral-12b-2409",
-          "messages": [{"role": "user", "content": [{"type": "image_url", "image_url": "{{$json.captchaImage}}"}]}]
+          "messages": [
+            {
+              "role": "user",
+              "content": [
+                { "type": "image_url", "image_url": "{{$json.captchaImage}}" }
+              ]
+            }
+          ]
         }
       }
     },
@@ -120,7 +127,7 @@ interface CaptchaSolveResponse {
       "parameters": {
         "operation": "update",
         "table": "earnings",
-        "values": {"amount": "{{$json.earnings}}"}
+        "values": { "amount": "{{$json.earnings}}" }
       }
     }
   ]
@@ -149,11 +156,11 @@ interface CaptchaSolveResponse {
 
 ### Components
 
-| Component | Location | Port | Description |
-|-----------|----------|------|-------------|
-| Voice Upload | `services/voice-api/` | 8080 | REST API for file upload |
-| Transcription | `services/whisper-api/` | 8010 | FastAPI with Whisper |
-| TTS Engine | `services/edge-tts/` | 8020 | Microsoft Edge TTS |
+| Component     | Location                | Port | Description              |
+| ------------- | ----------------------- | ---- | ------------------------ |
+| Voice Upload  | `services/voice-api/`   | 8080 | REST API for file upload |
+| Transcription | `services/whisper-api/` | 8010 | FastAPI with Whisper     |
+| TTS Engine    | `services/edge-tts/`    | 8020 | Microsoft Edge TTS       |
 
 ### Flow Steps
 
@@ -171,7 +178,7 @@ interface CaptchaSolveResponse {
 interface TranscribeRequest {
   audio: File;
   language?: string;
-  model?: 'base' | 'small' | 'medium' | 'large';
+  model?: "base" | "small" | "medium" | "large";
 }
 
 interface TranscribeResponse {
@@ -186,7 +193,7 @@ interface SynthesizeRequest {
   text: string;
   voice: string;
   language?: string;
-  outputFormat?: 'mp3' | 'wav' | 'ogg';
+  outputFormat?: "mp3" | "wav" | "ogg";
 }
 
 interface SynthesizeResponse {
@@ -281,11 +288,11 @@ interface SynthesizeResponse {
 
 ### Components
 
-| Component | Location | Description |
-|-----------|----------|-------------|
-| Worker Results | `workers/*/results/` | JSON results from captcha/survey workers |
-| Earnings Service | `extensions/opendelqhi/server/services/earnings-service.js` | Calculate and track earnings |
-| Wallet Service | `services/wallet-api/` | PostgreSQL wallet management |
+| Component        | Location                                                    | Description                              |
+| ---------------- | ----------------------------------------------------------- | ---------------------------------------- |
+| Worker Results   | `workers/*/results/`                                        | JSON results from captcha/survey workers |
+| Earnings Service | `extensions/opendelqhi/server/services/earnings-service.js` | Calculate and track earnings             |
+| Wallet Service   | `services/wallet-api/`                                      | PostgreSQL wallet management             |
 
 ### Flow Steps
 
@@ -333,7 +340,7 @@ interface RecordEarningsRequest {
   userId: string;
   amount: number;
   currency: string;
-  source: 'captcha' | 'survey' | 'referral';
+  source: "captcha" | "survey" | "referral";
   taskId: string;
   metadata?: Record<string, any>;
 }
@@ -448,11 +455,11 @@ interface WalletResponse {
 
 ### Components
 
-| Component | Location | Description |
-|-----------|----------|-------------|
-| Local Postgres | `room-03-archiv-postgres/` | Primary database |
-| Table Sync | `services/table-sync/` | pg_trgm triggers for change detection |
-| Supabase | Cloud | Real-time WebSocket + Edge Functions |
+| Component      | Location                   | Description                           |
+| -------------- | -------------------------- | ------------------------------------- |
+| Local Postgres | `room-03-archiv-postgres/` | Primary database                      |
+| Table Sync     | `services/table-sync/`     | pg_trgm triggers for change detection |
+| Supabase       | Cloud                      | Real-time WebSocket + Edge Functions  |
 
 ### Flow Steps
 
@@ -503,48 +510,55 @@ FOR EACH ROW EXECUTE FUNCTION sync_trigger();
 
 ```typescript
 // supabase/functions/sync-earnings/index.ts
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_KEY')!)
+const supabase = createClient(
+  Deno.env.get("SUPABASE_URL")!,
+  Deno.env.get("SUPABASE_KEY")!,
+);
 
 serve(async (req) => {
-  const { table, record_id, operation, data } = await req.json()
-  
+  const { table, record_id, operation, data } = await req.json();
+
   // Broadcast to all connected clients
-  const channel = supabase.channel(`sync:${table}`)
+  const channel = supabase.channel(`sync:${table}`);
   await channel.send({
-    type: 'postgres_changes',
+    type: "postgres_changes",
     event: operation,
-    schema: 'public',
+    schema: "public",
     table: table,
-    record: data
-  })
-  
+    record: data,
+  });
+
   return new Response(JSON.stringify({ success: true }), {
-    headers: { 'Content-Type': 'application/json' }
-  })
-})
+    headers: { "Content-Type": "application/json" },
+  });
+});
 ```
 
 ### Client Integration
 
 ```typescript
 // Frontend subscription
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 supabase
-  .channel('custom-insert-channel')
-  .on('postgres_changes', { 
-    event: 'INSERT', 
-    schema: 'public', 
-    table: 'earnings',
-    filter: 'user_id=eq.' + userId
-  }, (payload) => {
-    console.log('New earnings:', payload.new)
-    updateEarningsDisplay(payload.new)
-  })
-  .subscribe()
+  .channel("custom-insert-channel")
+  .on(
+    "postgres_changes",
+    {
+      event: "INSERT",
+      schema: "public",
+      table: "earnings",
+      filter: "user_id=eq." + userId,
+    },
+    (payload) => {
+      console.log("New earnings:", payload.new);
+      updateEarningsDisplay(payload.new);
+    },
+  )
+  .subscribe();
 ```
 
 ---
@@ -569,12 +583,12 @@ supabase
 
 ### Components
 
-| Component | Location | Port | Description |
-|-----------|----------|------|-------------|
-| VisionClaw Gateway | `gateway/` | 18790 | Main API gateway |
-| Automation Engine | `services/automation-engine/` | 8085 | n8n workflow orchestrator |
-| Steel Browser | `agent-05-steel-browser/` | 50015 | CDP browser control |
-| Task Queue | `room-04-redis/` | 6379 | Redis for async tasks |
+| Component          | Location                      | Port  | Description               |
+| ------------------ | ----------------------------- | ----- | ------------------------- |
+| VisionClaw Gateway | `gateway/`                    | 18790 | Main API gateway          |
+| Automation Engine  | `services/automation-engine/` | 8085  | n8n workflow orchestrator |
+| Steel Browser      | `agent-05-steel-browser/`     | 50015 | CDP browser control       |
+| Task Queue         | `room-04-redis/`              | 6379  | Redis for async tasks     |
 
 ### Flow Steps
 
@@ -592,7 +606,11 @@ supabase
 ```typescript
 interface AutomationTask {
   id: string;
-  type: 'web_automation' | 'data_extraction' | 'form_filling' | 'account_creation';
+  type:
+    | "web_automation"
+    | "data_extraction"
+    | "form_filling"
+    | "account_creation";
   url: string;
   steps: AutomationStep[];
   options: {
@@ -601,17 +619,24 @@ interface AutomationTask {
     retryOnFailure: boolean;
     screenshotEachStep: boolean;
   };
-  status: 'pending' | 'running' | 'completed' | 'failed';
+  status: "pending" | "running" | "completed" | "failed";
 }
 
 interface AutomationStep {
   id: string;
-  action: 'navigate' | 'click' | 'type' | 'select' | 'extract' | 'wait' | 'screenshot';
+  action:
+    | "navigate"
+    | "click"
+    | "type"
+    | "select"
+    | "extract"
+    | "wait"
+    | "screenshot";
   selector?: string;
   value?: string;
   verifyWithVision?: boolean;
   onSuccess?: string; // next step id
-  onFailure?: 'retry' | 'skip' | 'abort';
+  onFailure?: "retry" | "skip" | "abort";
 }
 ```
 
@@ -625,14 +650,14 @@ interface StartAutomationRequest {
 
 interface StartAutomationResponse {
   taskId: string;
-  status: 'queued' | 'running';
+  status: "queued" | "running";
   estimatedDuration: number;
 }
 
 // GET /api/v1/automation/:taskId/status
 interface AutomationStatusResponse {
   taskId: string;
-  status: 'pending' | 'running' | 'completed' | 'failed';
+  status: "pending" | "running" | "completed" | "failed";
   currentStep?: number;
   totalSteps: number;
   screenshots?: string[];
@@ -696,7 +721,14 @@ interface StopAutomationRequest {
         "url": "https://api.mistral.ai/v1/chat/completions",
         "body": {
           "model": "pixtral-12b-2409",
-          "messages": [{"role": "user", "content": [{"type": "image_url", "image_url": "{{$json.screenshot}}"}]}]
+          "messages": [
+            {
+              "role": "user",
+              "content": [
+                { "type": "image_url", "image_url": "{{$json.screenshot}}" }
+              ]
+            }
+          ]
         }
       }
     },
@@ -817,12 +849,12 @@ npm run test:e2e
 
 ### Metrics
 
-| Metric | Description | Alert Threshold |
-|--------|-------------|-----------------|
-| captcha_solve_time | Time to solve captcha | > 10s |
-| voice_transcribe_time | Time to transcribe audio | > 30s |
-| earnings_total | Total earnings today | < $0 (negative) |
-| automation_success_rate | % of successful automations | < 80% |
+| Metric                  | Description                 | Alert Threshold |
+| ----------------------- | --------------------------- | --------------- |
+| captcha_solve_time      | Time to solve captcha       | > 10s           |
+| voice_transcribe_time   | Time to transcribe audio    | > 30s           |
+| earnings_total          | Total earnings today        | < $0 (negative) |
+| automation_success_rate | % of successful automations | < 80%           |
 
 ---
 

@@ -11,13 +11,13 @@ Die optimierte Captcha-Lösung erreicht **9x bessere Performance** durch:
 
 ## Performance-Vergleich
 
-| Metrik | Playwright | Native CDP | Verbesserung |
-|--------|-----------|-----------|--------------|
-| Connection | 230ms | 5ms | **46x** |
-| Screenshot | 2000ms | 100ms | **20x** |
-| Navigation | 2000ms | 100ms | **20x** |
-| Action | 1000ms | 50ms | **20x** |
-| **Gesamt** | **6000ms** | **750ms** | **9x** |
+| Metrik     | Playwright | Native CDP | Verbesserung |
+| ---------- | ---------- | ---------- | ------------ |
+| Connection | 230ms      | 5ms        | **46x**      |
+| Screenshot | 2000ms     | 100ms      | **20x**      |
+| Navigation | 2000ms     | 100ms      | **20x**      |
+| Action     | 1000ms     | 50ms       | **20x**      |
+| **Gesamt** | **6000ms** | **750ms**  | **9x**       |
 
 ## Architektur
 
@@ -55,14 +55,14 @@ Die optimierte Captcha-Lösung erreicht **9x bessere Performance** durch:
 ## Verwendung
 
 ```typescript
-import { captchaSolver } from '@/lib/captcha/high-performance-solver';
+import { captchaSolver } from "@/lib/captcha/high-performance-solver";
 
 // Initialisierung
 await captchaSolver.initialize();
 
 // Text Captcha lösen
 const result = await captchaSolver.solveTextCaptcha(
-  'If tomorrow is Saturday, what day is today?'
+  "If tomorrow is Saturday, what day is today?",
 );
 
 console.log(result);
@@ -75,7 +75,7 @@ console.log(result);
 
 // Zweiter Aufruf (cached)
 const cached = await captchaSolver.solveTextCaptcha(
-  'If tomorrow is Saturday, what day is today?'
+  "If tomorrow is Saturday, what day is today?",
 );
 
 console.log(cached);
@@ -92,6 +92,7 @@ console.log(cached);
 ### 1. Text Captcha (Logik)
 
 **Beispiele:**
+
 - "If tomorrow is Saturday, what day is today?" → "Friday"
 - "What is 15 + 27?" → "42"
 - "What is 100 - 33?" → "67"
@@ -119,7 +120,7 @@ console.log(cached);
 ## Demo-Komponente
 
 ```tsx
-import { CaptchaSolverDemo } from '@/components/blocks/CaptchaSolverDemo';
+import { CaptchaSolverDemo } from "@/components/blocks/CaptchaSolverDemo";
 
 function App() {
   return <CaptchaSolverDemo />;
@@ -127,6 +128,7 @@ function App() {
 ```
 
 Die Demo zeigt:
+
 - Live Captcha-Lösung
 - Performance-Vergleich (CDP vs Playwright)
 - Cache-Statistiken
@@ -192,32 +194,34 @@ private getImageHash(imageData: Buffer): string {
 
 ```typescript
 // Screenshot (100ms)
-await this.sendCDP(connId, 'Page.captureScreenshot', {
-  format: 'jpeg',
+await this.sendCDP(connId, "Page.captureScreenshot", {
+  format: "jpeg",
   quality: 80,
-  clip: { x, y, width, height }
+  clip: { x, y, width, height },
 });
 
 // Click (50ms)
-await this.sendCDP(connId, 'Input.dispatchMouseEvent', {
-  type: 'mousePressed',
+await this.sendCDP(connId, "Input.dispatchMouseEvent", {
+  type: "mousePressed",
   x,
   y,
-  button: 'left'
+  button: "left",
 });
 
 // Type (50ms)
-await this.sendCDP(connId, 'Input.insertText', { text });
+await this.sendCDP(connId, "Input.insertText", { text });
 ```
 
 ## Voraussetzungen
 
 1. **Chrome/Chromium** mit CDP aktiviert:
+
    ```bash
    chrome --remote-debugging-port=9222 --headless
    ```
 
 2. **Steel Browser** (empfohlen):
+
    ```bash
    docker run -p 9222:9222 -p 3000:3000 steel-browser
    ```
@@ -236,27 +240,25 @@ await this.sendCDP(connId, 'Input.insertText', { text });
 const result = await captchaSolver.solveOn2CaptchaDemo();
 
 if (result.success) {
-  console.log('Captcha gelöst:', result.answer);
-  console.log('Zeit:', result.duration, 'ms');
+  console.log("Captcha gelöst:", result.answer);
+  console.log("Zeit:", result.duration, "ms");
 }
 ```
 
 ### Mit eigenem Service
 
 ```typescript
-import { CaptchaSolver } from './captcha-solver';
+import { CaptchaSolver } from "./captcha-solver";
 
 const solver = new CaptchaSolver({
-  cdpUrl: 'ws://localhost:9222',
+  cdpUrl: "ws://localhost:9222",
   cacheEnabled: true,
-  maxConnections: 10
+  maxConnections: 10,
 });
 
-app.post('/solve', async (req, res) => {
+app.post("/solve", async (req, res) => {
   const { image } = req.body;
-  const result = await solver.solveImageCaptcha(
-    Buffer.from(image, 'base64')
-  );
+  const result = await solver.solveImageCaptcha(Buffer.from(image, "base64"));
   res.json(result);
 });
 ```

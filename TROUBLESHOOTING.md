@@ -352,10 +352,10 @@ Automation configuration should include valid trigger conditions, properly confi
 
 ## Revision History
 
-| Version | Date | Description |
-|---------|------|-------------|
-| 1.0 | 2024-01-15 | Initial documentation |
-| 1.1 | 2024-02-20 | Added AI integration troubleshooting |
-| 1.2 | 2024-03-10 | Added performance diagnosis procedures |
-| 1.3 | 2024-04-05 | Expanded recovery procedures |
-| 1.4 | 2024-05-15 | Added error message reference appendix |
+| Version | Date       | Description                            |
+| ------- | ---------- | -------------------------------------- |
+| 1.0     | 2024-01-15 | Initial documentation                  |
+| 1.1     | 2024-02-20 | Added AI integration troubleshooting   |
+| 1.2     | 2024-03-10 | Added performance diagnosis procedures |
+| 1.3     | 2024-04-05 | Expanded recovery procedures           |
+| 1.4     | 2024-05-15 | Added error message reference appendix |

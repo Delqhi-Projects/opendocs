@@ -8,34 +8,34 @@
 
 ## ✅ Working Features
 
-| Feature | Status | Notes |
-|---------|--------|-------|
-| **App Loading** | ✅ Working | Full UI renders correctly |
-| **OpenDocs Branding** | ✅ Working | Header shows logo and title |
-| **Dark Mode Toggle** | ✅ Working | Theme toggle button visible |
-| **Search Pages** | ✅ Working | Search textbox in sidebar |
-| **New Page/Folder** | ✅ Working | Creation buttons functional |
-| **Sidebar Navigation** | ✅ Working | Folders and pages listed |
-| **Document Title** | ✅ Working | Editable title area |
-| **AI/Chat/Audit Tabs** | ✅ Working | Top navigation tabs |
-| **Text Blocks** | ✅ Working | Write and edit text |
-| **Slash Menu** | ✅ Working | Type "/" to trigger menu |
-| **Database Blocks** | ✅ Working | Table view rendering |
-| **n8n Node Blocks** | ✅ Working | Visual node connections |
-| **Image Blocks** | ✅ Working | URL-based image embedding |
-| **Video Blocks** | ✅ Working | YouTube embeds working |
-| **Block Controls** | ✅ Working | Chat/Lock/Move/Delete buttons |
-| **Per-Block AI Chat** | ✅ Working | "Chat about this block" buttons |
+| Feature                | Status     | Notes                           |
+| ---------------------- | ---------- | ------------------------------- |
+| **App Loading**        | ✅ Working | Full UI renders correctly       |
+| **OpenDocs Branding**  | ✅ Working | Header shows logo and title     |
+| **Dark Mode Toggle**   | ✅ Working | Theme toggle button visible     |
+| **Search Pages**       | ✅ Working | Search textbox in sidebar       |
+| **New Page/Folder**    | ✅ Working | Creation buttons functional     |
+| **Sidebar Navigation** | ✅ Working | Folders and pages listed        |
+| **Document Title**     | ✅ Working | Editable title area             |
+| **AI/Chat/Audit Tabs** | ✅ Working | Top navigation tabs             |
+| **Text Blocks**        | ✅ Working | Write and edit text             |
+| **Slash Menu**         | ✅ Working | Type "/" to trigger menu        |
+| **Database Blocks**    | ✅ Working | Table view rendering            |
+| **n8n Node Blocks**    | ✅ Working | Visual node connections         |
+| **Image Blocks**       | ✅ Working | URL-based image embedding       |
+| **Video Blocks**       | ✅ Working | YouTube embeds working          |
+| **Block Controls**     | ✅ Working | Chat/Lock/Move/Delete buttons   |
+| **Per-Block AI Chat**  | ✅ Working | "Chat about this block" buttons |
 
 ---
 
 ## Console Errors (Non-Critical)
 
-| Error | Count | Impact |
-|-------|-------|--------|
-| `GET /api/n8n/nodes` 404 | 6 | n8n server not running - expected |
-| `GET /favicon.ico` 404 | 1 | Missing favicon - minor |
-| React DevTools info | 1 | Not an error |
+| Error                    | Count | Impact                            |
+| ------------------------ | ----- | --------------------------------- |
+| `GET /api/n8n/nodes` 404 | 6     | n8n server not running - expected |
+| `GET /favicon.ico` 404   | 1     | Missing favicon - minor           |
+| React DevTools info      | 1     | Not an error                      |
 
 **Total Errors:** 13 (all non-critical)
 

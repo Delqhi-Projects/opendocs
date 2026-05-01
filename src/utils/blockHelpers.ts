@@ -1,248 +1,169 @@
 /**
  * Type-safe Block Update Utilities - Best Practices 2026
- * Eliminates the need for `as any` casts when updating blocks
  */
 
-import type {
-  DocBlock,
-  HeadingBlock,
-  ParagraphBlock,
-  CodeBlock,
-  TableBlock,
-  DatabaseBlock,
-  WorkflowBlock,
-  DrawBlock,
-  N8nBlock,
-  CalloutBlock,
-  ChecklistBlock,
-  MermaidBlock,
-  HorizontalBlock,
-  QuoteBlock,
-  DividerBlock,
-  ImageBlock,
-  VideoBlock,
-  LinkBlock,
-  FileBlock,
-  AiPromptBlock,
-  AutomationBlock,
-  BlockType,
-} from "@/types/docs";
+import type { Block, BlockType } from "@/types/docs";
 
-// Type-safe partial update types for each block type
-export type HeadingBlockUpdate = Partial<Omit<HeadingBlock, "id" | "type">>;
-export type ParagraphBlockUpdate = Partial<Omit<ParagraphBlock, "id" | "type">>;
-export type CodeBlockUpdate = Partial<Omit<CodeBlock, "id" | "type">>;
-export type TableBlockUpdate = Partial<Omit<TableBlock, "id" | "type">>;
-export type DatabaseBlockUpdate = Partial<Omit<DatabaseBlock, "id" | "type">>;
-export type WorkflowBlockUpdate = Partial<Omit<WorkflowBlock, "id" | "type">>;
-export type DrawBlockUpdate = Partial<Omit<DrawBlock, "id" | "type">>;
-export type N8nBlockUpdate = Partial<Omit<N8nBlock, "id" | "type">>;
-export type CalloutBlockUpdate = Partial<Omit<CalloutBlock, "id" | "type">>;
-export type ChecklistBlockUpdate = Partial<Omit<ChecklistBlock, "id" | "type">>;
-export type MermaidBlockUpdate = Partial<Omit<MermaidBlock, "id" | "type">>;
-export type HorizontalBlockUpdate = Partial<Omit<HorizontalBlock, "id" | "type">>;
-export type QuoteBlockUpdate = Partial<Omit<QuoteBlock, "id" | "type">>;
-export type DividerBlockUpdate = Partial<Omit<DividerBlock, "id" | "type">>;
-export type ImageBlockUpdate = Partial<Omit<ImageBlock, "id" | "type">>;
-export type VideoBlockUpdate = Partial<Omit<VideoBlock, "id" | "type">>;
-export type LinkBlockUpdate = Partial<Omit<LinkBlock, "id" | "type">>;
-export type FileBlockUpdate = Partial<Omit<FileBlock, "id" | "type">>;
-export type AiPromptBlockUpdate = Partial<Omit<AiPromptBlock, "id" | "type">>;
-export type AutomationBlockUpdate = Partial<Omit<AutomationBlock, "id" | "type">>;
-
-// Union type for all block updates
-export type BlockUpdate =
-  | { type: "heading1" | "heading2" | "heading3"; update: HeadingBlockUpdate }
-  | { type: "paragraph"; update: ParagraphBlockUpdate }
-  | { type: "code"; update: CodeBlockUpdate }
-  | { type: "table"; update: TableBlockUpdate }
-  | { type: "database"; update: DatabaseBlockUpdate }
-  | { type: "workflow"; update: WorkflowBlockUpdate }
-  | { type: "draw"; update: DrawBlockUpdate }
-  | { type: "n8n"; update: N8nBlockUpdate }
-  | { type: "callout"; update: CalloutBlockUpdate }
-  | { type: "checklist"; update: ChecklistBlockUpdate }
-  | { type: "mermaid"; update: MermaidBlockUpdate }
-  | { type: "horizontal"; update: HorizontalBlockUpdate }
-  | { type: "quote"; update: QuoteBlockUpdate }
-  | { type: "divider"; update: DividerBlockUpdate }
-  | { type: "image"; update: ImageBlockUpdate }
-  | { type: "video"; update: VideoBlockUpdate }
-  | { type: "link"; update: LinkBlockUpdate }
-  | { type: "file"; update: FileBlockUpdate }
-  | { type: "aiPrompt"; update: AiPromptBlockUpdate }
-  | { type: "automation"; update: AutomationBlockUpdate };
-
-/**
- * Type-safe block update function
- * Returns a properly typed partial block for the given block type
- */
-export function createBlockPatch<T extends BlockType>(
-  blockType: T,
-  patch: Extract<BlockUpdate, { type: T }>["update"]
-): Partial<DocBlock> {
-  return { ...patch, type: blockType } as Partial<DocBlock>;
+export function isBlockType(block: Block, type: BlockType): boolean {
+  return block.type === type;
 }
 
-/**
- * Type guard helpers for block types
- */
-export function isHeadingBlock(block: DocBlock): block is HeadingBlock {
-  return block.type === "heading1" || block.type === "heading2" || block.type === "heading3";
+export function isHeading(block: Block): boolean {
+  return block.type.includes('heading');
 }
 
-export function isParagraphBlock(block: DocBlock): block is ParagraphBlock {
-  return block.type === "paragraph";
+export function isList(block: Block): boolean {
+  return block.type === 'list' || block.type === 'checklist';
 }
 
-export function isCodeBlock(block: DocBlock): block is CodeBlock {
-  return block.type === "code";
+export function isMedia(block: Block): boolean {
+  return block.type === 'image' || block.type === 'video' ;
 }
 
-export function isTableBlock(block: DocBlock): block is TableBlock {
-  return block.type === "table";
+export function isCode(block: Block): boolean {
+  return block.type === 'code' || block.type === 'mermaid';
 }
 
-export function isDatabaseBlock(block: DocBlock): block is DatabaseBlock {
-  return block.type === "database";
+export function isLayout(block: Block): boolean {
+  return block.type === 'horizontal' || block.type === 'divider';
 }
 
-export function isWorkflowBlock(block: DocBlock): block is WorkflowBlock {
-  return block.type === "workflow";
+export function isInteractive(block: Block): boolean {
+  return block.type === 'automation' || block.type === 'workflow' || block.type === 'n8n' || block.type === 'database';
 }
 
-export function isDrawBlock(block: DocBlock): block is DrawBlock {
-  return block.type === "draw";
+export function isContent(block: Block): boolean {
+  return !isLayout(block) && !isInteractive(block);
 }
 
-export function isN8nBlock(block: DocBlock): block is N8nBlock {
-  return block.type === "n8n";
+export function getBlockCategory(block: Block): string {
+  if (isHeading(block)) return 'heading';
+  if (isList(block)) return 'list';
+  if (isMedia(block)) return 'media';
+  if (isCode(block)) return 'code';
+  if (isLayout(block)) return 'layout';
+  if (isInteractive(block)) return 'interactive';
+  return 'content';
 }
 
-export function isCalloutBlock(block: DocBlock): block is CalloutBlock {
-  return block.type === "callout";
+export function createBlock(type: BlockType, content: any = {}): Block {
+  return {
+    id: crypto.randomUUID(),
+    type,
+    content,
+    metadata: {
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+  };
 }
 
-export function isChecklistBlock(block: DocBlock): block is ChecklistBlock {
-  return block.type === "checklist";
+export function updateBlock(block: Block, updates: Partial<Block>): Block {
+  return {
+    ...block,
+    ...updates,
+    metadata: {
+      ...block.metadata,
+      updatedAt: new Date(),
+    },
+  };
 }
 
-export function isMermaidBlock(block: DocBlock): block is MermaidBlock {
-  return block.type === "mermaid";
+export function deleteBlock(blocks: Block[], blockId: string): Block[] {
+  return blocks.filter(b => b.id !== blockId);
 }
 
-export function isHorizontalBlock(block: DocBlock): block is HorizontalBlock {
-  return block.type === "horizontal";
+export function insertBlock(blocks: Block[], block: Block, index: number): Block[] {
+  const newBlocks = [...blocks];
+  newBlocks.splice(index, 0, block);
+  return newBlocks;
 }
 
-export function isQuoteBlock(block: DocBlock): block is QuoteBlock {
-  return block.type === "quote";
+export function moveBlock(blocks: Block[], fromIndex: number, toIndex: number): Block[] {
+  const newBlocks = [...blocks];
+  const [removed] = newBlocks.splice(fromIndex, 1);
+  newBlocks.splice(toIndex, 0, removed);
+  return newBlocks;
 }
 
-export function isDividerBlock(block: DocBlock): block is DividerBlock {
-  return block.type === "divider";
+export function duplicateBlock(blocks: Block[], blockId: string): Block[] {
+  const blockIndex = blocks.findIndex(b => b.id === blockId);
+  if (blockIndex === -1) return blocks;
+  
+  const block = blocks[blockIndex];
+  const duplicate: Block = {
+    ...block,
+    id: crypto.randomUUID(),
+    metadata: {
+      ...block.metadata,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+  };
+  
+  return insertBlock(blocks, duplicate, blockIndex + 1);
 }
 
-export function isImageBlock(block: DocBlock): block is ImageBlock {
-  return block.type === "image";
+export function serializeBlock(block: Block): string {
+  return JSON.stringify(block, null, 2);
 }
 
-export function isVideoBlock(block: DocBlock): block is VideoBlock {
-  return block.type === "video";
+export function deserializeBlock(json: string): Block {
+  return JSON.parse(json);
 }
 
-export function isLinkBlock(block: DocBlock): block is LinkBlock {
-  return block.type === "link";
+export function cloneBlock(block: Block): Block {
+  return JSON.parse(JSON.stringify(block));
 }
 
-export function isFileBlock(block: DocBlock): block is FileBlock {
-  return block.type === "file";
+export function isEmptyBlock(block: Block): boolean {
+  if (!block.content) return true;
+  if (typeof block.content === 'string') return block.content.trim() === '';
+  if (Array.isArray(block.content)) return block.content.length === 0;
+  if (typeof block.content === 'object') return Object.keys(block.content).length === 0;
+  return false;
 }
 
-export function isAiPromptBlock(block: DocBlock): block is AiPromptBlock {
-  return block.type === "aiPrompt";
+export function getBlockText(block: Block): string {
+  if (typeof block.content === 'string') return block.content;
+  if (block.content?.text) return block.content.text;
+  if (block.content?.code) return block.content.code;
+  return '';
 }
 
-export function isAutomationBlock(block: DocBlock): block is AutomationBlock {
-  return block.type === "automation";
-}
-
-/**
- * Safely extract error message from unknown error
- */
-export function getErrorMessage(error: unknown): string {
-  if (error instanceof Error) return error.message;
-  if (typeof error === "string") return error;
-  if (typeof error === "object" && error !== null && "message" in error) {
-    return String((error as { message: unknown }).message);
+export function setBlockText(block: Block, text: string): Block {
+  if (typeof block.content === 'string') {
+    return { ...block, content: text };
   }
-  return String(error);
+  if (block.content && typeof block.content === 'object') {
+    return {
+      ...block,
+      content: { ...block.content, text },
+    };
+  }
+  return { ...block, content: text };
 }
 
-/**
- * Special block update markers for internal operations
- */
-export interface ConvertToDatabaseMarker {
-  __convertToDatabase: true;
-}
-
-/**
- * Type guard to check if a patch contains the convert-to-database marker
- */
-export function hasConvertToDatabaseMarker(
-  patch: unknown
-): patch is ConvertToDatabaseMarker {
-  return (
-    typeof patch === "object" &&
-    patch !== null &&
-    "__convertToDatabase" in patch &&
-    (patch as ConvertToDatabaseMarker).__convertToDatabase === true
-  );
-}
-
-/**
- * Type for block update patch that may contain special markers
- */
-export type BlockUpdatePatch = Partial<DocBlock> | ConvertToDatabaseMarker;
-
-/**
- * Valid block types that can be added via slash menu
- */
-export const VALID_BLOCK_TYPES: readonly BlockType[] = [
-  "paragraph",
-  "heading1",
-  "heading2",
-  "heading3",
-  "quote",
-  "code",
-  "callout",
-  "table",
-  "checklist",
-  "divider",
-  "image",
-  "video",
-  "link",
-  "file",
-  "mermaid",
-  "horizontal",
-  "workflow",
-  "draw",
-  "database",
-  "n8n",
-  "aiPrompt",
-  "automation",
-] as const;
-
-/**
- * Check if a string is a valid block type
- */
-export function isValidBlockType(type: string): type is BlockType {
-  return VALID_BLOCK_TYPES.includes(type as BlockType);
-}
-
-/**
- * Safely cast a string to BlockType if valid, or return undefined
- */
-export function toBlockType(type: string): BlockType | undefined {
-  return isValidBlockType(type) ? type : undefined;
-}
+export default {
+  isBlockType,
+  isHeading,
+  isList,
+  isMedia,
+  isCode,
+  isLayout,
+  isInteractive,
+  isContent,
+  getBlockCategory,
+  createBlock,
+  updateBlock,
+  deleteBlock,
+  insertBlock,
+  moveBlock,
+  duplicateBlock,
+  serializeBlock,
+  deserializeBlock,
+  cloneBlock,
+  isEmptyBlock,
+  getBlockText,
+  setBlockText,
+};

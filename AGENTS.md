@@ -11,6 +11,7 @@
 SIN-Solver follows the **"Das Haus" (The House)** architecture pattern - a centralized, room-based container system with clear separation of concerns.
 
 ### Core Principle: SINGLE SOURCE OF TRUTH
+
 - **ONE** docker-compose.yml (the main one in project root)
 - **NO** scattered docker-compose files in subdirectories
 - **CONSISTENT** naming: `Zimmer-XX-Descriptive-Name`
@@ -21,11 +22,13 @@ SIN-Solver follows the **"Das Haus" (The House)** architecture pattern - a centr
 ## 📋 Container Naming Convention (MANDATORY)
 
 All containers MUST follow this pattern:
+
 ```
 Zimmer-XX-Descriptive-Name
 ```
 
 **Examples:**
+
 - ✅ `Zimmer-01-n8n-Manager`
 - ✅ `Zimmer-Speicher-Redis`
 - ✅ `Zimmer-Archiv-Postgres`
@@ -40,19 +43,21 @@ Zimmer-XX-Descriptive-Name
 **Subnet:** `172.26.0.0/16` (avoided 172.20.0.0/16 conflict with delqhi-network)
 
 ### IP Assignments (Fixed):
-| Container | IP | Purpose |
-|-----------|-----|---------|
-| Zimmer-Speicher-Redis | 172.26.0.10 | Cache & Sessions |
-| Zimmer-Archiv-Postgres | 172.26.0.11 | Primary Database |
-| Zimmer-10-Postgres-Bibliothek | 172.26.0.12 | Knowledge Base |
-| Zimmer-05-Steel-Tarnkappe | 172.26.0.20 | Stealth Browser |
-| Zimmer-01-n8n-Manager | 172.26.0.30 | Workflow Engine |
+
+| Container                     | IP          | Purpose          |
+| ----------------------------- | ----------- | ---------------- |
+| Zimmer-Speicher-Redis         | 172.26.0.10 | Cache & Sessions |
+| Zimmer-Archiv-Postgres        | 172.26.0.11 | Primary Database |
+| Zimmer-10-Postgres-Bibliothek | 172.26.0.12 | Knowledge Base   |
+| Zimmer-05-Steel-Tarnkappe     | 172.26.0.20 | Stealth Browser  |
+| Zimmer-01-n8n-Manager         | 172.26.0.30 | Workflow Engine  |
 
 ---
 
 ## 🔧 Best Practices (February 2026)
 
 ### 1. Container Management
+
 ```bash
 # Start core infrastructure
 docker-compose up -d zimmer-speicher-redis zimmer-archiv-postgres
@@ -68,7 +73,9 @@ docker container prune -f
 ```
 
 ### 2. Network Troubleshooting
+
 If you see: `Pool overlaps with other one on this address space`
+
 ```bash
 # Check existing networks
 docker network ls
@@ -79,7 +86,9 @@ docker network inspect <name> | grep Subnet
 ```
 
 ### 3. Volume Management
+
 When facing "RDB format version" or permission errors:
+
 ```bash
 # Remove and recreate volumes (WARNING: Data loss!)
 docker volume rm sin-solver_redis_data sin-solver_postgres_data
@@ -88,7 +97,9 @@ docker volume create sin-solver_postgres_data
 ```
 
 ### 4. Health Check Protocol
+
 Always verify containers after start:
+
 ```bash
 docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 
@@ -103,22 +114,26 @@ docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 ## 🚀 Quick Start for New Agents
 
 ### Step 1: Verify Infrastructure
+
 ```bash
 cd /Users/jeremy/dev/SIN-Solver
 docker-compose ps
 ```
 
 ### Step 2: Start Core Services
+
 ```bash
 docker-compose up -d zimmer-speicher-redis zimmer-archiv-postgres zimmer-01-n8n-manager
 ```
 
 ### Step 3: Verify Health
+
 ```bash
 docker ps | grep -i zimmer
 ```
 
 ### Step 4: Access Services
+
 - Redis: `redis-cli -p 6379 ping` → Should return `PONG`
 - Postgres: `psql -h localhost -p 5432 -U ceo_admin -d sin_solver_production`
 - n8n: http://localhost:5678
@@ -128,6 +143,7 @@ docker ps | grep -i zimmer
 ## 📝 Development Guidelines
 
 ### DO:
+
 - ✅ Use main docker-compose.yml only
 - ✅ Name containers with Zimmer-XX pattern
 - ✅ Check lastchanges.md before making changes
@@ -135,6 +151,7 @@ docker ps | grep -i zimmer
 - ✅ Clean up dead containers regularly
 
 ### DON'T:
+
 - ❌ Create new docker-compose.yml files in subdirectories
 - ❌ Use generic container names
 - ❌ Delete volumes without checking contents
@@ -146,18 +163,22 @@ docker ps | grep -i zimmer
 ## 🔍 Common Issues & Solutions
 
 ### Issue: "Pool overlaps with other one on this address space"
+
 **Cause:** Subnet conflict with existing Docker network
 **Solution:** Change subnet in docker-compose.yml (already fixed to 172.26.0.0/16)
 
 ### Issue: Redis "Can't handle RDB format version 12"
+
 **Cause:** Version mismatch between Redis image and data volume
 **Solution:** Recreate volume (see Volume Management above)
 
 ### Issue: Postgres permission errors
+
 **Cause:** Existing data directory owned by different user
 **Solution:** Recreate volume or fix permissions in container
 
 ### Issue: Container starts but immediately exits
+
 **Cause:** Health check failing or dependency not ready
 **Solution:** Check logs with `docker logs <container-name>`
 
@@ -166,6 +187,7 @@ docker ps | grep -i zimmer
 ## 📚 Reference
 
 ### Project Structure
+
 ```
 /Users/jeremy/dev/SIN-Solver/
 ├── docker-compose.yml          ← MAIN CONFIGURATION
@@ -183,6 +205,7 @@ docker ps | grep -i zimmer
 ```
 
 ### Related Documentation
+
 - Main README: `/Users/jeremy/dev/SIN-Solver/README.md`
 - Last Changes: `/Users/jeremy/dev/SIN-Solver/lastchanges.md`
 - Architecture: See docker-compose.yml header comments
@@ -192,6 +215,7 @@ docker ps | grep -i zimmer
 ## 🎯 Success Criteria
 
 A healthy SIN-Solver installation should have:
+
 - [ ] 8+ containers running (minimum core services)
 - [ ] Zimmer-Speicher-Redis showing "healthy"
 - [ ] Zimmer-Archiv-Postgres showing "healthy"

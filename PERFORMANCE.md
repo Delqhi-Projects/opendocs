@@ -9,15 +9,16 @@
 
 ## 📊 Executive Summary
 
-| Metric | Current | Target | Status |
-|--------|---------|--------|--------|
-| **Build Time** | 1m 13s | < 30s | 🔴 Critical |
-| **Vendor Bundle** | 1.2MB | < 400KB | 🔴 Critical |
-| **Initial Load** | ~3s | < 1s | 🟡 Needs Work |
-| **Time to Interactive** | ~4s | < 2s | 🟡 Needs Work |
-| **Lighthouse Score** | ~65 | > 90 | 🟡 Needs Work |
+| Metric                  | Current | Target  | Status        |
+| ----------------------- | ------- | ------- | ------------- |
+| **Build Time**          | 1m 13s  | < 30s   | 🔴 Critical   |
+| **Vendor Bundle**       | 1.2MB   | < 400KB | 🔴 Critical   |
+| **Initial Load**        | ~3s     | < 1s    | 🟡 Needs Work |
+| **Time to Interactive** | ~4s     | < 2s    | 🟡 Needs Work |
+| **Lighthouse Score**    | ~65     | > 90    | 🟡 Needs Work |
 
 **Priority Actions:**
+
 1. Implement lazy loading for heavy block components
 2. Optimize Zustand store with selectors
 3. Add React.memo and useCallback where missing
@@ -45,15 +46,15 @@ dist/
 
 **Heavy Dependencies Breakdown:**
 
-| Package | Size (min) | Gzipped | Impact |
-|---------|-----------|---------|--------|
-| `mermaid` | ~850 KB | ~280 KB | 🔴 Critical |
-| `@xyflow/react` | ~180 KB | ~58 KB | 🟡 High |
-| `@excalidraw/excalidraw` | ~520 KB | ~165 KB | 🟡 High (CDN) |
-| `framer-motion` | ~95 KB | ~32 KB | 🟡 High |
-| `lucide-react` | ~45 KB | ~15 KB | 🟢 Medium |
-| `@supabase/supabase-js` | ~85 KB | ~28 KB | 🟢 Medium |
-| `react-markdown` | ~35 KB | ~12 KB | 🟢 Medium |
+| Package                  | Size (min) | Gzipped | Impact        |
+| ------------------------ | ---------- | ------- | ------------- |
+| `mermaid`                | ~850 KB    | ~280 KB | 🔴 Critical   |
+| `@xyflow/react`          | ~180 KB    | ~58 KB  | 🟡 High       |
+| `@excalidraw/excalidraw` | ~520 KB    | ~165 KB | 🟡 High (CDN) |
+| `framer-motion`          | ~95 KB     | ~32 KB  | 🟡 High       |
+| `lucide-react`           | ~45 KB     | ~15 KB  | 🟢 Medium     |
+| `@supabase/supabase-js`  | ~85 KB     | ~28 KB  | 🟢 Medium     |
+| `react-markdown`         | ~35 KB     | ~12 KB  | 🟢 Medium     |
 
 ### 1.2 Build Configuration Analysis
 
@@ -70,6 +71,7 @@ manualChunks: {
 ```
 
 **Issues Identified:**
+
 1. `vendor-heavy` is still too large (890KB)
 2. No dynamic imports for mermaid
 3. `katex` and `cytoscape` imported but may not be used
@@ -78,13 +80,13 @@ manualChunks: {
 
 **Components Without Memoization:**
 
-| Component | Issue | Impact |
-|-----------|-------|--------|
-| `App.tsx` | Missing useCallback for handlers | 🟡 Medium |
-| `Editor.tsx` | Inline functions in map() | 🟡 Medium |
-| `Sidebar.tsx` | Re-renders on every state change | 🟡 Medium |
-| `BlockRenderer.tsx` | Large component, no memo | 🔴 High |
-| `DatabaseBlockView.tsx` | Complex, no memo | 🔴 High |
+| Component               | Issue                            | Impact    |
+| ----------------------- | -------------------------------- | --------- |
+| `App.tsx`               | Missing useCallback for handlers | 🟡 Medium |
+| `Editor.tsx`            | Inline functions in map()        | 🟡 Medium |
+| `Sidebar.tsx`           | Re-renders on every state change | 🟡 Medium |
+| `BlockRenderer.tsx`     | Large component, no memo         | 🔴 High   |
+| `DatabaseBlockView.tsx` | Complex, no memo                 | 🔴 High   |
 
 **Zustand Store Issues:**
 
@@ -117,10 +119,10 @@ const __dirname = path.dirname(__filename);
 
 export default defineConfig({
   plugins: [
-    react(), 
+    react(),
     tailwindcss(),
     visualizer({
-      filename: './dist/stats.html',
+      filename: "./dist/stats.html",
       open: false,
       gzipSize: true,
       brotliSize: true,
@@ -134,12 +136,12 @@ export default defineConfig({
   build: {
     chunkSizeWarningLimit: 500,
     reportCompressedSize: true,
-    minify: 'terser',
+    minify: "terser",
     terserOptions: {
       compress: {
         drop_console: true,
         drop_debugger: true,
-        pure_funcs: ['console.log', 'console.info'],
+        pure_funcs: ["console.log", "console.info"],
       },
     },
     rollupOptions: {
@@ -147,54 +149,60 @@ export default defineConfig({
         // Granular chunk splitting
         manualChunks: (id) => {
           // React core - rarely changes
-          if (id.includes('node_modules/react/') || 
-              id.includes('node_modules/react-dom/')) {
-            return 'react-core';
+          if (
+            id.includes("node_modules/react/") ||
+            id.includes("node_modules/react-dom/")
+          ) {
+            return "react-core";
           }
-          
+
           // React Flow - separate chunk (heavy but used)
-          if (id.includes('@xyflow/react')) {
-            return 'react-flow';
+          if (id.includes("@xyflow/react")) {
+            return "react-flow";
           }
-          
+
           // Framer Motion - animation library
-          if (id.includes('framer-motion')) {
-            return 'framer-motion';
+          if (id.includes("framer-motion")) {
+            return "framer-motion";
           }
-          
+
           // Lucide icons - tree-shakeable but group together
-          if (id.includes('lucide-react')) {
-            return 'lucide';
+          if (id.includes("lucide-react")) {
+            return "lucide";
           }
-          
+
           // State management
-          if (id.includes('zustand') || id.includes('nanoid')) {
-            return 'state';
+          if (id.includes("zustand") || id.includes("nanoid")) {
+            return "state";
           }
-          
+
           // Database/Backend
-          if (id.includes('@supabase/supabase-js') || 
-              id.includes('pg') || 
-              id.includes('express')) {
-            return 'backend';
+          if (
+            id.includes("@supabase/supabase-js") ||
+            id.includes("pg") ||
+            id.includes("express")
+          ) {
+            return "backend";
           }
-          
+
           // DnD Kit
-          if (id.includes('@dnd-kit')) {
-            return 'dnd-kit';
+          if (id.includes("@dnd-kit")) {
+            return "dnd-kit";
           }
-          
+
           // Markdown processing
-          if (id.includes('react-markdown') || 
-              id.includes('remark-gfm') ||
-              id.includes('node-html-parser')) {
-            return 'markdown';
+          if (
+            id.includes("react-markdown") ||
+            id.includes("remark-gfm") ||
+            id.includes("node-html-parser")
+          ) {
+            return "markdown";
           }
-          
+
           // Mermaid - LAZY LOADED (do not include in initial bundle)
           // Will be dynamically imported
-          if (id.includes('mermaid')) {
-            return 'mermaid-lazy';
+          if (id.includes("mermaid")) {
+            return "mermaid-lazy";
           }
         },
       },
@@ -202,15 +210,9 @@ export default defineConfig({
   },
   // Optimize dependencies
   optimizeDeps: {
-    include: [
-      'react',
-      'react-dom',
-      'zustand',
-      'nanoid',
-      'lucide-react',
-    ],
+    include: ["react", "react-dom", "zustand", "nanoid", "lucide-react"],
     exclude: [
-      'mermaid', // Lazy loaded
+      "mermaid", // Lazy loaded
     ],
   },
 });
@@ -222,10 +224,16 @@ export default defineConfig({
 
 ```typescript
 // BAD: Imports entire lucide-react
-import * as Icons from 'lucide-react';
+import * as Icons from "lucide-react";
 
 // GOOD: Named imports (already done in codebase ✅)
-import { Sparkles, MessageSquareText, ClipboardCheck, Menu, X } from "lucide-react";
+import {
+  Sparkles,
+  MessageSquareText,
+  ClipboardCheck,
+  Menu,
+  X,
+} from "lucide-react";
 ```
 
 **Recommended Icon Optimization:**
@@ -234,20 +242,52 @@ import { Sparkles, MessageSquareText, ClipboardCheck, Menu, X } from "lucide-rea
 // Create src/components/ui/Icons.tsx for commonly used icons
 // This allows better tree-shaking and consistent usage
 
-export { Sparkles, MessageSquareText, ClipboardCheck, Menu, X, ChevronDown, ChevronRight, FileText, Folder, FolderPlus, Plus, SunMoon, Trash2, Search, BotMessageSquare, Lock, Unlock, ArrowUp, ArrowDown, Copy, GripVertical, Columns, Grid3X3, Zap, LayoutGrid, Table as TableIcon, Network, Activity, Calendar, Image as ImageIcon, Minus } from "lucide-react";
+export {
+  Sparkles,
+  MessageSquareText,
+  ClipboardCheck,
+  Menu,
+  X,
+  ChevronDown,
+  ChevronRight,
+  FileText,
+  Folder,
+  FolderPlus,
+  Plus,
+  SunMoon,
+  Trash2,
+  Search,
+  BotMessageSquare,
+  Lock,
+  Unlock,
+  ArrowUp,
+  ArrowDown,
+  Copy,
+  GripVertical,
+  Columns,
+  Grid3X3,
+  Zap,
+  LayoutGrid,
+  Table as TableIcon,
+  Network,
+  Activity,
+  Calendar,
+  Image as ImageIcon,
+  Minus,
+} from "lucide-react";
 ```
 
 ### 2.3 Dependency Audit
 
 **Dependencies to Review:**
 
-| Package | Used? | Action |
-|---------|-------|--------|
-| `cytoscape` | Not found in code | ❌ Remove |
-| `katex` | Not found in code | ❌ Remove |
-| `framer-motion` | Limited use | 🟡 Evaluate |
-| `node-html-parser` | Used in services | ✅ Keep |
-| `pg` | Server-side only | 🟡 Split |
+| Package            | Used?             | Action      |
+| ------------------ | ----------------- | ----------- |
+| `cytoscape`        | Not found in code | ❌ Remove   |
+| `katex`            | Not found in code | ❌ Remove   |
+| `framer-motion`    | Limited use       | 🟡 Evaluate |
+| `node-html-parser` | Used in services  | ✅ Keep     |
+| `pg`               | Server-side only  | 🟡 Split    |
 
 ---
 
@@ -263,11 +303,21 @@ export function App() {
   const [aiOpen, setAiOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   // ...
-  
+
   useKeyboardShortcuts([
     ...DEFAULT_SHORTCUTS,
-    { key: "g", ctrl: true, action: () => setAiOpen(true), description: "Open AI" },
-    { key: "j", ctrl: true, action: () => setChatOpen(true), description: "Open Chat" },
+    {
+      key: "g",
+      ctrl: true,
+      action: () => setAiOpen(true),
+      description: "Open AI",
+    },
+    {
+      key: "j",
+      ctrl: true,
+      action: () => setChatOpen(true),
+      description: "Open Chat",
+    },
     // These inline functions are recreated every render!
   ]);
 }
@@ -302,7 +352,7 @@ export function App() {
   const handleOpenChat = useCallback(() => setChatOpen(true), []);
   const handleOpenAudit = useCallback(() => setAuditOpen(true), []);
   const handleOpenCommand = useCallback(() => setCommandOpen(true), []);
-  const handleToggleSidebar = useCallback(() => setSidebarOpen(s => !s), []);
+  const handleToggleSidebar = useCallback(() => setSidebarOpen((s) => !s), []);
   const handleCloseAll = useCallback(() => {
     setAiOpen(false);
     setChatOpen(false);
@@ -311,21 +361,48 @@ export function App() {
   }, []);
 
   // ✅ Memoize shortcuts array
-  const shortcuts = useMemo(() => [
-    ...DEFAULT_SHORTCUTS,
-    { key: "g", ctrl: true, action: handleOpenAi, description: "Open AI" },
-    { key: "j", ctrl: true, action: handleOpenChat, description: "Open Chat" },
-    { key: "k", ctrl: true, action: handleOpenCommand, description: "Command Palette" },
-    { key: "b", ctrl: true, action: handleToggleSidebar, description: "Toggle Sidebar" },
-    { key: "Escape", action: handleCloseAll, description: "Close All" },
-  ], [handleOpenAi, handleOpenChat, handleOpenCommand, handleToggleSidebar, handleCloseAll]);
+  const shortcuts = useMemo(
+    () => [
+      ...DEFAULT_SHORTCUTS,
+      { key: "g", ctrl: true, action: handleOpenAi, description: "Open AI" },
+      {
+        key: "j",
+        ctrl: true,
+        action: handleOpenChat,
+        description: "Open Chat",
+      },
+      {
+        key: "k",
+        ctrl: true,
+        action: handleOpenCommand,
+        description: "Command Palette",
+      },
+      {
+        key: "b",
+        ctrl: true,
+        action: handleToggleSidebar,
+        description: "Toggle Sidebar",
+      },
+      { key: "Escape", action: handleCloseAll, description: "Close All" },
+    ],
+    [
+      handleOpenAi,
+      handleOpenChat,
+      handleOpenCommand,
+      handleToggleSidebar,
+      handleCloseAll,
+    ],
+  );
 
   useKeyboardShortcuts(shortcuts);
 
   // ✅ Memoize theme handler
-  const handleThemeChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    setTheme(e.target.value as "light" | "dark" | "system");
-  }, [setTheme]);
+  const handleThemeChange = useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      setTheme(e.target.value as "light" | "dark" | "system");
+    },
+    [setTheme],
+  );
 
   // ... rest of component
 }
@@ -412,16 +489,16 @@ export const BlockRenderer = memo(function BlockRenderer({
 
 ### 3.3 Component Memoization Checklist
 
-| Component | Priority | Action |
-|-----------|----------|--------|
-| `BlockRenderer` | 🔴 High | Add memo with custom comparison |
-| `DatabaseBlockView` | 🔴 High | Add memo + useCallback for handlers |
-| `WorkflowBlockView` | 🔴 High | Add memo |
-| `Sidebar` | 🟡 Medium | Add memo for FolderNode/PageNode |
-| `Editor` | 🟡 Medium | Add useCallback for handlers |
-| `MermaidView` | 🟡 Medium | Add memo |
-| `AiPanel` | 🟢 Low | Add memo |
-| `ChatPanel` | 🟢 Low | Add memo |
+| Component           | Priority  | Action                              |
+| ------------------- | --------- | ----------------------------------- |
+| `BlockRenderer`     | 🔴 High   | Add memo with custom comparison     |
+| `DatabaseBlockView` | 🔴 High   | Add memo + useCallback for handlers |
+| `WorkflowBlockView` | 🔴 High   | Add memo                            |
+| `Sidebar`           | 🟡 Medium | Add memo for FolderNode/PageNode    |
+| `Editor`            | 🟡 Medium | Add useCallback for handlers        |
+| `MermaidView`       | 🟡 Medium | Add memo                            |
+| `AiPanel`           | 🟢 Low    | Add memo                            |
+| `ChatPanel`         | 🟢 Low    | Add memo                            |
 
 ---
 
@@ -437,27 +514,27 @@ import { lazy, Suspense } from "react";
 import { Skeleton } from "@/components/ui/Skeleton";
 
 // Lazy load heavy components
-export const MermaidViewLazy = lazy(() => 
+export const MermaidViewLazy = lazy(() =>
   import("@/components/blocks/MermaidView").then(m => ({ default: m.MermaidView }))
 );
 
-export const DatabaseBlockViewLazy = lazy(() => 
+export const DatabaseBlockViewLazy = lazy(() =>
   import("@/components/blocks/DatabaseBlockView").then(m => ({ default: m.DatabaseBlockView }))
 );
 
-export const WorkflowBlockViewLazy = lazy(() => 
+export const WorkflowBlockViewLazy = lazy(() =>
   import("@/components/blocks/WorkflowBlockView").then(m => ({ default: m.WorkflowBlockView }))
 );
 
-export const DrawBlockViewLazy = lazy(() => 
+export const DrawBlockViewLazy = lazy(() =>
   import("@/components/blocks/DrawBlockView").then(m => ({ default: m.DrawBlockView }))
 );
 
-export const N8nBlockViewLazy = lazy(() => 
+export const N8nBlockViewLazy = lazy(() =>
   import("@/components/blocks/N8nBlockView").then(m => ({ default: m.N8nBlockView }))
 );
 
-export const AutomationBlockViewLazy = lazy(() => 
+export const AutomationBlockViewLazy = lazy(() =>
   import("@/components/blocks/AutomationBlockView").then(m => ({ default: m.AutomationBlockView }))
 );
 
@@ -489,19 +566,19 @@ export function LazyBlockWrapper({ children }: { children: React.ReactNode }) {
 import { lazy, Suspense } from "react";
 
 // Lazy load modal panels - they're not needed on initial render
-const AiPanel = lazy(() => 
+const AiPanel = lazy(() =>
   import("@/components/AiPanel").then(m => ({ default: m.AiPanel }))
 );
 
-const ChatPanel = lazy(() => 
+const ChatPanel = lazy(() =>
   import("@/components/ChatPanel").then(m => ({ default: m.ChatPanel }))
 );
 
-const ContentAuditPanel = lazy(() => 
+const ContentAuditPanel = lazy(() =>
   import("@/components/ContentAuditPanel").then(m => ({ default: m.ContentAuditPanel }))
 );
 
-const CommandPalette = lazy(() => 
+const CommandPalette = lazy(() =>
   import("@/components/CommandPalette").then(m => ({ default: m.CommandPalette }))
 );
 
@@ -538,12 +615,12 @@ async function loadMermaid() {
     await mermaidLoadPromise;
     return mermaidModule;
   }
-  
+
   mermaidLoadPromise = import("mermaid").then((m) => {
     mermaidModule = m.default;
     return;
   });
-  
+
   await mermaidLoadPromise;
   return mermaidModule;
 }
@@ -558,17 +635,17 @@ export function MermaidView({ code, dark }: { code: string; dark: boolean }) {
 
   useEffect(() => {
     mounted.current = true;
-    
+
     loadMermaid()
       .then((mermaid) => {
         if (!mermaid || !mounted.current) return;
-        
-        mermaid.initialize({ 
-          startOnLoad: false, 
+
+        mermaid.initialize({
+          startOnLoad: false,
           theme: dark ? "dark" : "default",
           securityLevel: 'loose', // For embedded HTML
         });
-        
+
         return mermaid.render(id, code);
       })
       .then((out) => {
@@ -617,18 +694,18 @@ export function MermaidView({ code, dark }: { code: string; dark: boolean }) {
 // Preload critical resources after initial render
 export function preloadCriticalResources() {
   // Preload fonts
-  const fontLink = document.createElement('link');
-  fontLink.rel = 'preload';
-  fontLink.as = 'font';
-  fontLink.href = '/fonts/inter-var.woff2';
-  fontLink.type = 'font/woff2';
-  fontLink.crossOrigin = 'anonymous';
+  const fontLink = document.createElement("link");
+  fontLink.rel = "preload";
+  fontLink.as = "font";
+  fontLink.href = "/fonts/inter-var.woff2";
+  fontLink.type = "font/woff2";
+  fontLink.crossOrigin = "anonymous";
   document.head.appendChild(fontLink);
-  
+
   // Preload mermaid on idle (for likely mermaid blocks)
-  if ('requestIdleCallback' in window) {
+  if ("requestIdleCallback" in window) {
     requestIdleCallback(() => {
-      import('mermaid');
+      import("mermaid");
     });
   }
 }
@@ -637,16 +714,24 @@ export function preloadCriticalResources() {
 export function setupPreloadHints() {
   // Preload AI panel when user hovers AI button
   const aiButton = document.querySelector('[data-preload="ai-panel"]');
-  aiButton?.addEventListener('mouseenter', () => {
-    import('@/components/AiPanel');
-  }, { once: true });
-  
+  aiButton?.addEventListener(
+    "mouseenter",
+    () => {
+      import("@/components/AiPanel");
+    },
+    { once: true },
+  );
+
   // Preload mermaid when user types in a block
-  document.addEventListener('keydown', (e) => {
-    if (e.key === '/' || e.key === 'm') {
-      import('mermaid');
-    }
-  }, { once: true });
+  document.addEventListener(
+    "keydown",
+    (e) => {
+      if (e.key === "/" || e.key === "m") {
+        import("mermaid");
+      }
+    },
+    { once: true },
+  );
 }
 ```
 
@@ -714,12 +799,12 @@ let actionsCache: DocsActions | null = null;
 
 export function useDocsActions() {
   const actions = useDocsStore((s) => s.actions);
-  
+
   // Cache actions object (it's stable in Zustand)
   if (!actionsCache) {
     actionsCache = actions;
   }
-  
+
   return actionsCache;
 }
 
@@ -728,12 +813,14 @@ export function usePagesList() {
   return useDocsStore((s) => {
     const rootId = s.state.rootFolderId;
     const rootFolder = rootId ? s.state.folders[rootId] : null;
-    
+
     if (!rootFolder) return { folders: [], pages: [] };
-    
+
     return {
-      folders: rootFolder.folderIds.map(id => s.state.folders[id]).filter(Boolean),
-      pages: rootFolder.pageIds.map(id => s.state.pages[id]).filter(Boolean),
+      folders: rootFolder.folderIds
+        .map((id) => s.state.folders[id])
+        .filter(Boolean),
+      pages: rootFolder.pageIds.map((id) => s.state.pages[id]).filter(Boolean),
     };
   }, shallow);
 }
@@ -744,47 +831,57 @@ export function usePagesList() {
 ```typescript
 // src/components/Sidebar.tsx - OPTIMIZED
 import { memo, useState, useCallback } from "react";
-import { ChevronDown, ChevronRight, FileText, Folder, FolderPlus, Plus, SunMoon, Trash2, Search } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronRight,
+  FileText,
+  Folder,
+  FolderPlus,
+  Plus,
+  SunMoon,
+  Trash2,
+  Search,
+} from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { 
-  useDocsActions, 
-  useRootFolder, 
+import {
+  useDocsActions,
+  useRootFolder,
   useTheme,
-  useExpandedFolders 
+  useExpandedFolders,
 } from "@/store/useDocsStore";
 
 // Memoized folder node
-const FolderNode = memo(function FolderNode({ 
-  folderId, 
-  depth, 
-  filter 
-}: { 
-  folderId: string; 
-  depth: number; 
-  filter: string 
+const FolderNode = memo(function FolderNode({
+  folderId,
+  depth,
+  filter,
+}: {
+  folderId: string;
+  depth: number;
+  filter: string;
 }) {
   // Use specific selectors instead of entire state
   const actions = useDocsActions();
   const expanded = useExpandedFolders().includes(folderId);
   const folder = useDocsStore((s) => s.state.folders[folderId], shallow);
-  
+
   // ... rest of component
 });
 
 // Memoized page node
-const PageNode = memo(function PageNode({ 
-  pageId, 
-  depth, 
-  filter 
-}: { 
-  pageId: string; 
-  depth: number; 
-  filter: string 
+const PageNode = memo(function PageNode({
+  pageId,
+  depth,
+  filter,
+}: {
+  pageId: string;
+  depth: number;
+  filter: string;
 }) {
   const actions = useDocsActions();
   const page = useDocsStore((s) => s.state.pages[pageId], shallow);
   const isSelected = useDocsStore((s) => s.state.selectedPageId === pageId);
-  
+
   // ... rest of component
 });
 
@@ -792,7 +889,7 @@ export const Sidebar = memo(function Sidebar() {
   const actions = useDocsActions();
   const theme = useTheme();
   const rootFolder = useRootFolder();
-  
+
   const [filter, setFilter] = useState("");
   const handleThemeToggle = useCallback(() => {
     actions.setTheme(theme === "dark" ? "light" : "dark");
@@ -820,27 +917,30 @@ export function usePageBlocks(pageId: string | null) {
 
 // For complex selections, create a custom equality function
 export function usePageForEditor(pageId: string | null) {
-  return useDocsStore((s) => {
-    if (!pageId) return null;
-    const page = s.state.pages[pageId];
-    if (!page) return null;
-    
-    // Only select what's needed for editor
-    return {
-      id: page.id,
-      title: page.title,
-      blocks: page.blocks,
-      updatedAt: page.updatedAt,
-    };
-  }, (a, b) => {
-    if (!a || !b) return a === b;
-    return (
-      a.id === b.id &&
-      a.title === b.title &&
-      a.blocks === b.blocks &&
-      a.updatedAt === b.updatedAt
-    );
-  });
+  return useDocsStore(
+    (s) => {
+      if (!pageId) return null;
+      const page = s.state.pages[pageId];
+      if (!page) return null;
+
+      // Only select what's needed for editor
+      return {
+        id: page.id,
+        title: page.title,
+        blocks: page.blocks,
+        updatedAt: page.updatedAt,
+      };
+    },
+    (a, b) => {
+      if (!a || !b) return a === b;
+      return (
+        a.id === b.id &&
+        a.title === b.title &&
+        a.blocks === b.blocks &&
+        a.updatedAt === b.updatedAt
+      );
+    },
+  );
 }
 ```
 
@@ -887,7 +987,7 @@ src/
 
 ```typescript
 // Add this to vite.config.ts for import cost tracking
-import { importCostPlugin } from 'vite-plugin-import-cost';
+import { importCostPlugin } from "vite-plugin-import-cost";
 
 export default defineConfig({
   plugins: [
@@ -964,16 +1064,19 @@ import { useCallback, useRef } from "react";
 
 export function useDebouncedCallback<T extends (...args: unknown[]) => void>(
   callback: T,
-  delay: number
+  delay: number,
 ): T {
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
-  return useCallback((...args: Parameters<T>) => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-    timeoutRef.current = setTimeout(() => callback(...args), delay);
-  }, [callback, delay]) as T;
+  return useCallback(
+    (...args: Parameters<T>) => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      timeoutRef.current = setTimeout(() => callback(...args), delay);
+    },
+    [callback, delay],
+  ) as T;
 }
 
 // Usage in DatabaseBlockView:
@@ -999,9 +1102,9 @@ export function ImageBlock({ block, onUpdate, disabled }: ImageBlockProps) {
         className="mb-2 w-full rounded-md border border-zinc-200 bg-white px-2 py-1 text-sm"
       />
       {block.url && (
-        <img 
-          src={block.url} 
-          alt={block.alt ?? ""} 
+        <img
+          src={block.url}
+          alt={block.alt ?? ""}
           className="max-h-[360px] w-full rounded-md object-contain"
           loading="lazy" // ✅ Native lazy loading
           decoding="async" // ✅ Async decoding
@@ -1016,14 +1119,14 @@ export function ImageBlock({ block, onUpdate, disabled }: ImageBlockProps) {
 
 ```typescript
 // For responsive image loading
-export function ResponsiveImage({ 
-  src, 
-  alt, 
-  sizes = "100vw" 
-}: { 
-  src: string; 
-  alt: string; 
-  sizes?: string 
+export function ResponsiveImage({
+  src,
+  alt,
+  sizes = "100vw"
+}: {
+  src: string;
+  alt: string;
+  sizes?: string
 }) {
   return (
     <img
@@ -1061,7 +1164,7 @@ export function usePerformanceMonitor(componentName: string) {
 
   useEffect(() => {
     renderStart.current = performance.now();
-    
+
     return () => {
       const renderTime = performance.now() - renderStart.current;
       performanceMetrics.push({
@@ -1069,10 +1172,12 @@ export function usePerformanceMonitor(componentName: string) {
         componentName,
         timestamp: Date.now(),
       });
-      
+
       // Log slow renders (> 16ms = dropped frame)
       if (renderTime > 16) {
-        console.warn(`[Performance] ${componentName} took ${renderTime.toFixed(2)}ms`);
+        console.warn(
+          `[Performance] ${componentName} took ${renderTime.toFixed(2)}ms`,
+        );
       }
     };
   });
@@ -1097,20 +1202,22 @@ const MAX_BUNDLE_SIZE = 400 * 1024; // 400KB
 
 function checkBundleSize() {
   const output = execSync("du -sb dist/assets/*.js", { encoding: "utf-8" });
-  const sizes = output.split("\n").map(line => {
+  const sizes = output.split("\n").map((line) => {
     const [size, file] = line.split("\t");
     return { size: parseInt(size), file };
   });
 
   const totalSize = sizes.reduce((acc, { size }) => acc + size, 0);
-  
+
   console.log(`Total JS bundle size: ${(totalSize / 1024).toFixed(2)}KB`);
-  
+
   if (totalSize > MAX_BUNDLE_SIZE) {
-    console.error(`❌ Bundle size exceeds limit: ${(totalSize / 1024).toFixed(2)}KB > ${MAX_BUNDLE_SIZE / 1024}KB`);
+    console.error(
+      `❌ Bundle size exceeds limit: ${(totalSize / 1024).toFixed(2)}KB > ${MAX_BUNDLE_SIZE / 1024}KB`,
+    );
     process.exit(1);
   }
-  
+
   console.log("✅ Bundle size within limits");
 }
 
@@ -1122,25 +1229,23 @@ checkBundleSize();
 ```yaml
 # .lighthouserc.json
 {
-  "ci": {
-    "collect": {
-      "url": ["http://localhost:5173"],
-      "numberOfRuns": 3
+  "ci":
+    {
+      "collect": { "url": ["http://localhost:5173"], "numberOfRuns": 3 },
+      "assert":
+        {
+          "assertions":
+            {
+              "categories:performance": ["warn", { "minScore": 0.9 }],
+              "categories:accessibility": ["error", { "minScore": 0.9 }],
+              "first-contentful-paint": ["warn", { "maxNumericValue": 1500 }],
+              "largest-contentful-paint": ["warn", { "maxNumericValue": 2500 }],
+              "cumulative-layout-shift": ["warn", { "maxNumericValue": 0.1 }],
+              "total-blocking-time": ["warn", { "maxNumericValue": 300 }],
+            },
+        },
+      "upload": { "target": "temporary-public-storage" },
     },
-    "assert": {
-      "assertions": {
-        "categories:performance": ["warn", { "minScore": 0.9 }],
-        "categories:accessibility": ["error", { "minScore": 0.9 }],
-        "first-contentful-paint": ["warn", { "maxNumericValue": 1500 }],
-        "largest-contentful-paint": ["warn", { "maxNumericValue": 2500 }],
-        "cumulative-layout-shift": ["warn", { "maxNumericValue": 0.1 }],
-        "total-blocking-time": ["warn", { "maxNumericValue": 300 }]
-      }
-    },
-    "upload": {
-      "target": "temporary-public-storage"
-    }
-  }
 }
 ```
 
@@ -1150,33 +1255,33 @@ checkBundleSize();
 
 ### Phase 1: Quick Wins (1-2 Days)
 
-| Task | Impact | Effort |
-|------|--------|--------|
-| Add React.memo to BlockRenderer | 🔴 High | Low |
-| Add useCallback to App.tsx | 🟡 Medium | Low |
-| Implement Zustand selectors | 🔴 High | Medium |
-| Remove unused dependencies | 🟡 Medium | Low |
-| Add native lazy loading to images | 🟢 Low | Low |
+| Task                              | Impact    | Effort |
+| --------------------------------- | --------- | ------ |
+| Add React.memo to BlockRenderer   | 🔴 High   | Low    |
+| Add useCallback to App.tsx        | 🟡 Medium | Low    |
+| Implement Zustand selectors       | 🔴 High   | Medium |
+| Remove unused dependencies        | 🟡 Medium | Low    |
+| Add native lazy loading to images | 🟢 Low    | Low    |
 
 ### Phase 2: Bundle Optimization (2-3 Days)
 
-| Task | Impact | Effort |
-|------|--------|--------|
-| Improve chunk splitting config | 🔴 High | Medium |
-| Lazy load MermaidView | 🔴 High | Medium |
-| Lazy load AI/Chat panels | 🟡 Medium | Low |
-| Dynamic import for mermaid | 🔴 High | Medium |
-| Add import cost plugin | 🟢 Low | Low |
+| Task                           | Impact    | Effort |
+| ------------------------------ | --------- | ------ |
+| Improve chunk splitting config | 🔴 High   | Medium |
+| Lazy load MermaidView          | 🔴 High   | Medium |
+| Lazy load AI/Chat panels       | 🟡 Medium | Low    |
+| Dynamic import for mermaid     | 🔴 High   | Medium |
+| Add import cost plugin         | 🟢 Low    | Low    |
 
 ### Phase 3: Advanced Optimization (3-5 Days)
 
-| Task | Impact | Effort |
-|------|--------|--------|
-| Virtualize long database lists | 🟡 Medium | High |
-| Add performance monitoring | 🟢 Low | Medium |
-| Implement preload strategies | 🟡 Medium | Medium |
-| Setup Lighthouse CI | 🟢 Low | Low |
-| Add debounced updates | 🟡 Medium | Low |
+| Task                           | Impact    | Effort |
+| ------------------------------ | --------- | ------ |
+| Virtualize long database lists | 🟡 Medium | High   |
+| Add performance monitoring     | 🟢 Low    | Medium |
+| Implement preload strategies   | 🟡 Medium | Medium |
+| Setup Lighthouse CI            | 🟢 Low    | Low    |
+| Add debounced updates          | 🟡 Medium | Low    |
 
 ---
 
@@ -1204,12 +1309,12 @@ Lighthouse Score:    > 90
 
 ### Bundle Size Reduction
 
-| Chunk | Before | After | Reduction |
-|-------|--------|-------|-----------|
-| Initial JS | 450 KB | 150 KB | **-67%** |
-| React Flow | Included | Lazy | **-180 KB** |
-| Mermaid | Included | Lazy | **-850 KB** |
-| AI Panels | Included | Lazy | **-50 KB** |
+| Chunk      | Before   | After  | Reduction   |
+| ---------- | -------- | ------ | ----------- |
+| Initial JS | 450 KB   | 150 KB | **-67%**    |
+| React Flow | Included | Lazy   | **-180 KB** |
+| Mermaid    | Included | Lazy   | **-850 KB** |
+| AI Panels  | Included | Lazy   | **-50 KB**  |
 
 ---
 

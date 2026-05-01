@@ -1,12 +1,15 @@
 # COMPLETE CONTEXT STACK - SIN-Solver Session 2026-02-12
+
 ## MANDATORY READ FOR ALL FUTURE AGENTS
 
 ---
 
 ## 🎯 USER'S MAIN GOAL
+
 **Consolidate SIN-Solver architecture** - Eliminate chaos of multiple captcha-worker containers and use ONLY opendelqhi project with Vision AI.
 
 ### User Explicit Requests:
+
 1. "zeige live auf https://2captcha.com/demo wie du captchas löst" (Show live solving)
 2. "NIEMALS primitive ANWENDUNG BAUEN - NIEMALS nur hartcodierte Pattern"
 3. "wir wollen eine ECHTE Vision-AI Extension"
@@ -19,6 +22,7 @@
 ## 📁 DIRECTORY CONTEXT
 
 ### Project Root:
+
 ```
 /Users/jeremy/dev/SIN-Solver/
 ├── docker-compose.yml              ← MAIN SOURCE OF TRUTH (subnet: 172.26.0.0/16)
@@ -68,6 +72,7 @@
 ## 🐳 DOCKER CONTEXT
 
 ### Current Container Status (After Cleanup):
+
 ```
 RUNNING CONTAINERS (8 total):
 ✅ Zimmer-Speicher-Redis        healthy     Port 6379
@@ -84,11 +89,13 @@ EXITED CONTAINERS (0):
 ```
 
 ### Network Configuration:
+
 - **Network:** haus-netzwerk
 - **Subnet:** 172.26.0.0/16 (changed from 172.20.0.0/16 due to conflict)
 - **Gateway:** 172.26.0.1
 
 ### Deleted Containers (22 total):
+
 ```
 captcha-worker-dev
 captcha-grafana-dev
@@ -115,6 +122,7 @@ agent-01-n8n-orchestrator (old orphan)
 ```
 
 ### Docker Compose Files (20+ found):
+
 ```
 /Users/jeremy/dev/SIN-Solver/docker-compose.yml                    ← MAIN
 /Users/jeremy/dev/SIN-Solver/docker-compose.enterprise.yml
@@ -143,6 +151,7 @@ agent-01-n8n-orchestrator (old orphan)
 ## 🔑 KEY VARIABLES
 
 ### Ports:
+
 ```
 Redis:              6379
 Postgres:           5432
@@ -156,6 +165,7 @@ Ollama (expected):  11434
 ```
 
 ### IP Assignments (haus-netzwerk 172.26.0.0/16):
+
 ```
 Zimmer-Speicher-Redis:        172.26.0.10
 Zimmer-Archiv-Postgres:       172.26.0.11
@@ -168,6 +178,7 @@ Zimmer-04-OpenCode-Sekretaer: 172.26.0.41
 ```
 
 ### Environment Variables (from docker-compose.yml):
+
 ```
 POSTGRES_DB: sin_solver_production
 POSTGRES_USER: ceo_admin
@@ -182,24 +193,29 @@ STEEL_CDP_URL: ws://zimmer-05-steel-tarnkappe:3000/
 ## 🔍 DISCOVERIES
 
 ### Critical Discovery 1: Container Chaos Root Cause
+
 - **Problem:** 20+ docker-compose.yml files scattered across project
 - **Cause:** Each experiment created new compose file without cleanup
 - **Solution:** Use ONLY main docker-compose.yml ("Das Haus" architecture)
 
 ### Critical Discovery 2: Network Conflict
+
 - **Problem:** Subnet 172.20.0.0/16 overlapped with delqhi-network
 - **Solution:** Changed to 172.26.0.0/16 in main docker-compose.yml
 - **Files Modified:** 28 IP references updated in docker-compose.yml
 
 ### Critical Discovery 3: Two Extension Folders
+
 - **WRONG:** `/extensions/captcha-solver/` - Primitive, hardcoded patterns
 - **CORRECT:** `/extensions/opendelqhi/` - Advanced, VisionClaw, Steel CDP, Ollama
 
 ### Critical Discovery 4: Volume Issues
+
 - **Redis:** RDB format version mismatch (old volume incompatible)
 - **Solution:** Recreated volumes with fresh data
 
 ### Critical Discovery 5: Missing Services Directory
+
 - **Error:** `services/zimmer-09-clawdbot` not found (causing build failure)
 - **Status:** Service referenced in docker-compose but directory missing
 
@@ -208,6 +224,7 @@ STEEL_CDP_URL: ws://zimmer-05-steel-tarnkappe:3000/
 ## 📝 TASKS TO COMPLETE
 
 ### Immediate Tasks:
+
 1. ✅ Container cleanup (22 dead containers deleted)
 2. ✅ Network fix (subnet changed to 172.26.0.0/16)
 3. ✅ Core infrastructure started (Redis, Postgres, n8n)
@@ -218,6 +235,7 @@ STEEL_CDP_URL: ws://zimmer-05-steel-tarnkappe:3000/
 8. ⏭️ Test live captcha solving
 
 ### Next Phase Tasks:
+
 9. Update opendelqhi manifest.json with 2captcha.com permissions
 10. Verify Vision AI integration (Ollama/Mistral)
 11. Test Chrome Extension on 2captcha.com
@@ -255,6 +273,7 @@ STEEL_CDP_URL: ws://zimmer-05-steel-tarnkappe:3000/
 ## 🎯 KEY FILES
 
 ### Must Read Before Work:
+
 1. `/Users/jeremy/dev/SIN-Solver/lastchanges.md` - Session log
 2. `/Users/jeremy/dev/SIN-Solver/docker-compose.yml` - Main config
 3. `/Users/jeremy/dev/SIN-Solver/extensions/opendelqhi/manifest.json` - Extension config
@@ -262,6 +281,7 @@ STEEL_CDP_URL: ws://zimmer-05-steel-tarnkappe:3000/
 5. `/Users/jeremy/dev/SIN-Solver/extensions/opendelqhi/captcha-solver-ultimate.js` - Solver logic
 
 ### High-Performance Worker:
+
 - `/Users/jeremy/dev/SIN-Solver/workers/2captcha-worker/dist/high-performance-native-worker.js`
   - UltraFastCDPManager (native WebSocket, no Playwright)
   - RedisCacheManager

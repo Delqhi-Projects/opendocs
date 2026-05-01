@@ -1,253 +1,242 @@
 openapi: 3.0.3
 info:
-  title: OpenDocs API
-  description: |
-    RESTful API for OpenDocs - Open Source Documentation, Database, and Automation Platform.
-    
+title: OpenDocs API
+description: |
+RESTful API for OpenDocs - Open Source Documentation, Database, and Automation Platform.
+
     ## Authentication
     All API endpoints require Bearer token authentication. Include the token in the Authorization header:
     ```
     Authorization: Bearer <your-token>
     ```
-    
+
     ## Rate Limiting
     - 100 requests per 15 minutes for authenticated users
     - 10 requests per 15 minutes for authentication endpoints
-    
+
     ## Response Format
     All responses use JSON format with consistent error structure.
-  version: 1.0.0
-  contact:
-    name: OpenDocs Support
-    url: https://github.com/opendocs/opendocs
-    email: support@opendocs.example.com
-  license:
-    name: MIT
-    url: https://opensource.org/licenses/MIT
+
+version: 1.0.0
+contact:
+name: OpenDocs Support
+url: https://github.com/opendocs/opendocs
+email: support@opendocs.example.com
+license:
+name: MIT
+url: https://opensource.org/licenses/MIT
 servers:
-  - url: http://localhost:3000/api
-    description: Development server
-  - url: https://api.opendocs.example.com/api
-    description: Production server
-  - url: https://staging-api.opendocs.example.com/api
-    description: Staging server
+
+- url: http://localhost:3000/api
+  description: Development server
+- url: https://api.opendocs.example.com/api
+  description: Production server
+- url: https://staging-api.opendocs.example.com/api
+  description: Staging server
 
 tags:
-  - name: Authentication
-    description: User authentication and authorization
-  - name: Documents
-    description: Document CRUD operations
-  - name: Blocks
-    description: Block management within documents
-  - name: Databases
-    description: Database block operations
-  - name: Automations
-    description: Automation workflow management
-  - name: AI
-    description: AI-powered features
-  - name: Users
-    description: User management
-  - name: Health
-    description: System health and monitoring
+
+- name: Authentication
+  description: User authentication and authorization
+- name: Documents
+  description: Document CRUD operations
+- name: Blocks
+  description: Block management within documents
+- name: Databases
+  description: Database block operations
+- name: Automations
+  description: Automation workflow management
+- name: AI
+  description: AI-powered features
+- name: Users
+  description: User management
+- name: Health
+  description: System health and monitoring
 
 paths:
-  /health:
-    get:
-      tags:
-        - Health
-      summary: Health check
-      description: Returns the health status of the API and its dependencies
-      operationId: getHealth
-      responses:
-        '200':
-          description: System is healthy
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HealthStatus'
-        '503':
-          description: System is unhealthy
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HealthStatus'
+/health:
+get:
+tags: - Health
+summary: Health check
+description: Returns the health status of the API and its dependencies
+operationId: getHealth
+responses:
+'200':
+description: System is healthy
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/HealthStatus'
+'503':
+description: System is unhealthy
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/HealthStatus'
 
-  /health/detailed:
-    get:
-      tags:
-        - Health
-      summary: Detailed health check
-      description: Returns detailed health status including all service dependencies
-      operationId: getDetailedHealth
-      security:
-        - BearerAuth: []
-      responses:
-        '200':
-          description: Detailed health status
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DetailedHealthStatus'
-        '503':
-          description: One or more services unhealthy
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DetailedHealthStatus'
+/health/detailed:
+get:
+tags: - Health
+summary: Detailed health check
+description: Returns detailed health status including all service dependencies
+operationId: getDetailedHealth
+security: - BearerAuth: []
+responses:
+'200':
+description: Detailed health status
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/DetailedHealthStatus'
+'503':
+description: One or more services unhealthy
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/DetailedHealthStatus'
 
-  /auth/register:
-    post:
-      tags:
-        - Authentication
-      summary: Register new user
-      description: Creates a new user account with email and password
-      operationId: registerUser
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RegisterRequest'
-      responses:
-        '201':
-          description: User registered successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AuthResponse'
-        '400':
-          description: Invalid input
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '409':
-          description: Email already registered
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+/auth/register:
+post:
+tags: - Authentication
+summary: Register new user
+description: Creates a new user account with email and password
+operationId: registerUser
+requestBody:
+required: true
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/RegisterRequest'
+responses:
+'201':
+description: User registered successfully
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/AuthResponse'
+'400':
+description: Invalid input
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/Error'
+'409':
+description: Email already registered
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/Error'
 
-  /auth/login:
-    post:
-      tags:
-        - Authentication
-      summary: User login
-      description: Authenticates user and returns access token
-      operationId: loginUser
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/LoginRequest'
-      responses:
-        '200':
-          description: Login successful
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AuthResponse'
-        '401':
-          description: Invalid credentials
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+/auth/login:
+post:
+tags: - Authentication
+summary: User login
+description: Authenticates user and returns access token
+operationId: loginUser
+requestBody:
+required: true
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/LoginRequest'
+responses:
+'200':
+description: Login successful
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/AuthResponse'
+'401':
+description: Invalid credentials
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/Error'
 
-  /auth/refresh:
-    post:
-      tags:
-        - Authentication
-      summary: Refresh access token
-      description: Refreshes access token using refresh token
-      operationId: refreshToken
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RefreshTokenRequest'
-      responses:
-        '200':
-          description: Token refreshed successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AuthResponse'
-        '401':
-          description: Invalid or expired refresh token
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+/auth/refresh:
+post:
+tags: - Authentication
+summary: Refresh access token
+description: Refreshes access token using refresh token
+operationId: refreshToken
+requestBody:
+required: true
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/RefreshTokenRequest'
+responses:
+'200':
+description: Token refreshed successfully
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/AuthResponse'
+'401':
+description: Invalid or expired refresh token
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/Error'
 
-  /auth/logout:
-    post:
-      tags:
-        - Authentication
-      summary: User logout
-      description: Invalidates refresh token and logs user out
-      operationId: logoutUser
-      security:
-        - BearerAuth: []
-      responses:
-        '200':
-          description: Logout successful
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+/auth/logout:
+post:
+tags: - Authentication
+summary: User logout
+description: Invalidates refresh token and logs user out
+operationId: logoutUser
+security: - BearerAuth: []
+responses:
+'200':
+description: Logout successful
+'401':
+description: Unauthorized
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/Error'
 
-  /documents:
-    get:
-      tags:
-        - Documents
-      summary: List documents
-      description: Returns a paginated list of documents for the authenticated user
-      operationId: listDocuments
-      security:
-        - BearerAuth: []
-      parameters:
-        - in: query
-          name: page
-          schema:
-            type: integer
-            default: 1
-          description: Page number
-        - in: query
-          name: limit
-          schema:
-            type: integer
-            default: 20
-            maximum: 100
-          description: Number of items per page
-        - in: query
-          name: parentId
-          schema:
-            type: string
-            format: uuid
-          description: Filter by parent document ID
-        - in: query
-          name: search
-          schema:
-            type: string
-          description: Search in title and content
-      responses:
-        '200':
-          description: List of documents
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DocumentListResponse'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+/documents:
+get:
+tags: - Documents
+summary: List documents
+description: Returns a paginated list of documents for the authenticated user
+operationId: listDocuments
+security: - BearerAuth: []
+parameters: - in: query
+name: page
+schema:
+type: integer
+default: 1
+description: Page number - in: query
+name: limit
+schema:
+type: integer
+default: 20
+maximum: 100
+description: Number of items per page - in: query
+name: parentId
+schema:
+type: string
+format: uuid
+description: Filter by parent document ID - in: query
+name: search
+schema:
+type: string
+description: Search in title and content
+responses:
+'200':
+description: List of documents
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/DocumentListResponse'
+'401':
+description: Unauthorized
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/Error'
 
     post:
       tags:
@@ -283,36 +272,33 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /documents/{id}:
-    get:
-      tags:
-        - Documents
-      summary: Get document
-      description: Returns a single document by ID
-      operationId: getDocument
-      security:
-        - BearerAuth: []
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-            format: uuid
-          description: Document ID
-      responses:
-        '200':
-          description: Document found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Document'
-        '404':
-          description: Document not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+/documents/{id}:
+get:
+tags: - Documents
+summary: Get document
+description: Returns a single document by ID
+operationId: getDocument
+security: - BearerAuth: []
+parameters: - in: path
+name: id
+required: true
+schema:
+type: string
+format: uuid
+description: Document ID
+responses:
+'200':
+description: Document found
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/Document'
+'404':
+description: Document not found
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/Error'
 
     put:
       tags:
@@ -382,64 +368,57 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /documents/{id}/blocks:
-    get:
-      tags:
-        - Documents
-        - Blocks
-      summary: Get document blocks
-      description: Returns all blocks in a document
-      operationId: getDocumentBlocks
-      security:
-        - BearerAuth: []
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-            format: uuid
-          description: Document ID
-      responses:
-        '200':
-          description: List of blocks
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Block'
+/documents/{id}/blocks:
+get:
+tags: - Documents - Blocks
+summary: Get document blocks
+description: Returns all blocks in a document
+operationId: getDocumentBlocks
+security: - BearerAuth: []
+parameters: - in: path
+name: id
+required: true
+schema:
+type: string
+format: uuid
+description: Document ID
+responses:
+'200':
+description: List of blocks
+content:
+application/json:
+schema:
+type: array
+items:
+$ref: '#/components/schemas/Block'
 
-  /blocks/{id}:
-    get:
-      tags:
-        - Blocks
-      summary: Get block
-      description: Returns a single block by ID
-      operationId: getBlock
-      security:
-        - BearerAuth: []
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-            format: uuid
-          description: Block ID
-      responses:
-        '200':
-          description: Block found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Block'
-        '404':
-          description: Block not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+/blocks/{id}:
+get:
+tags: - Blocks
+summary: Get block
+description: Returns a single block by ID
+operationId: getBlock
+security: - BearerAuth: []
+parameters: - in: path
+name: id
+required: true
+schema:
+type: string
+format: uuid
+description: Block ID
+responses:
+'200':
+description: Block found
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/Block'
+'404':
+description: Block not found
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/Error'
 
     put:
       tags:
@@ -497,55 +476,50 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /databases:
-    get:
-      tags:
-        - Databases
-      summary: List databases
-      description: Returns all database blocks for the user
-      operationId: listDatabases
-      security:
-        - BearerAuth: []
-      responses:
-        '200':
-          description: List of databases
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Database'
+/databases:
+get:
+tags: - Databases
+summary: List databases
+description: Returns all database blocks for the user
+operationId: listDatabases
+security: - BearerAuth: []
+responses:
+'200':
+description: List of databases
+content:
+application/json:
+schema:
+type: array
+items:
+$ref: '#/components/schemas/Database'
 
-  /databases/{id}:
-    get:
-      tags:
-        - Databases
-      summary: Get database
-      description: Returns database schema and metadata
-      operationId: getDatabase
-      security:
-        - BearerAuth: []
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-            format: uuid
-          description: Database ID
-      responses:
-        '200':
-          description: Database found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Database'
-        '404':
-          description: Database not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+/databases/{id}:
+get:
+tags: - Databases
+summary: Get database
+description: Returns database schema and metadata
+operationId: getDatabase
+security: - BearerAuth: []
+parameters: - in: path
+name: id
+required: true
+schema:
+type: string
+format: uuid
+description: Database ID
+responses:
+'200':
+description: Database found
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/Database'
+'404':
+description: Database not found
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/Error'
 
     put:
       tags:
@@ -577,62 +551,53 @@ paths:
               schema:
                 $ref: '#/components/schemas/Database'
 
-  /databases/{id}/rows:
-    get:
-      tags:
-        - Databases
-      summary: List database rows
-      description: Returns paginated rows from database
-      operationId: listDatabaseRows
-      security:
-        - BearerAuth: []
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-            format: uuid
-          description: Database ID
-        - in: query
-          name: page
-          schema:
-            type: integer
-            default: 1
-        - in: query
-          name: limit
-          schema:
-            type: integer
-            default: 50
-            maximum: 500
-        - in: query
-          name: view
-          schema:
-            type: string
-            enum: [table, kanban, calendar, gallery, timeline]
-            default: table
-        - in: query
-          name: filters
-          schema:
-            type: string
-          description: JSON-encoded filter conditions
-        - in: query
-          name: sortBy
-          schema:
-            type: string
-        - in: query
-          name: sortOrder
-          schema:
-            type: string
-            enum: [asc, desc]
-            default: asc
-      responses:
-        '200':
-          description: List of rows
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DatabaseRowListResponse'
+/databases/{id}/rows:
+get:
+tags: - Databases
+summary: List database rows
+description: Returns paginated rows from database
+operationId: listDatabaseRows
+security: - BearerAuth: []
+parameters: - in: path
+name: id
+required: true
+schema:
+type: string
+format: uuid
+description: Database ID - in: query
+name: page
+schema:
+type: integer
+default: 1 - in: query
+name: limit
+schema:
+type: integer
+default: 50
+maximum: 500 - in: query
+name: view
+schema:
+type: string
+enum: [table, kanban, calendar, gallery, timeline]
+default: table - in: query
+name: filters
+schema:
+type: string
+description: JSON-encoded filter conditions - in: query
+name: sortBy
+schema:
+type: string - in: query
+name: sortOrder
+schema:
+type: string
+enum: [asc, desc]
+default: asc
+responses:
+'200':
+description: List of rows
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/DatabaseRowListResponse'
 
     post:
       tags:
@@ -664,43 +629,39 @@ paths:
               schema:
                 $ref: '#/components/schemas/DatabaseRow'
 
-  /databases/{id}/rows/{rowId}:
-    put:
-      tags:
-        - Databases
-      summary: Update database row
-      description: Updates an existing row
-      operationId: updateDatabaseRow
-      security:
-        - BearerAuth: []
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-            format: uuid
-          description: Database ID
-        - in: path
-          name: rowId
-          required: true
-          schema:
-            type: string
-            format: uuid
-          description: Row ID
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UpdateRowRequest'
-      responses:
-        '200':
-          description: Row updated successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DatabaseRow'
+/databases/{id}/rows/{rowId}:
+put:
+tags: - Databases
+summary: Update database row
+description: Updates an existing row
+operationId: updateDatabaseRow
+security: - BearerAuth: []
+parameters: - in: path
+name: id
+required: true
+schema:
+type: string
+format: uuid
+description: Database ID - in: path
+name: rowId
+required: true
+schema:
+type: string
+format: uuid
+description: Row ID
+requestBody:
+required: true
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/UpdateRowRequest'
+responses:
+'200':
+description: Row updated successfully
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/DatabaseRow'
 
     delete:
       tags:
@@ -735,24 +696,22 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /automations:
-    get:
-      tags:
-        - Automations
-      summary: List automations
-      description: Returns all automations for the user
-      operationId: listAutomations
-      security:
-        - BearerAuth: []
-      responses:
-        '200':
-          description: List of automations
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Automation'
+/automations:
+get:
+tags: - Automations
+summary: List automations
+description: Returns all automations for the user
+operationId: listAutomations
+security: - BearerAuth: []
+responses:
+'200':
+description: List of automations
+content:
+application/json:
+schema:
+type: array
+items:
+$ref: '#/components/schemas/Automation'
 
     post:
       tags:
@@ -782,36 +741,33 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /automations/{id}:
-    get:
-      tags:
-        - Automations
-      summary: Get automation
-      description: Returns automation with full node and edge definitions
-      operationId: getAutomation
-      security:
-        - BearerAuth: []
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-            format: uuid
- ID
-      responses          description: Automation:
-        '200':
-          description: Automation found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Automation'
-        '404':
-          description: Automation not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+/automations/{id}:
+get:
+tags: - Automations
+summary: Get automation
+description: Returns automation with full node and edge definitions
+operationId: getAutomation
+security: - BearerAuth: []
+parameters: - in: path
+name: id
+required: true
+schema:
+type: string
+format: uuid
+ID
+responses description: Automation:
+'200':
+description: Automation found
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/Automation'
+'404':
+description: Automation not found
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/Error'
 
     put:
       tags:
@@ -869,153 +825,139 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /automations/{id}/execute:
-    post:
-      tags:
-        - Automations
-      summary: Execute automation
-      description: Triggers manual execution of an automation
-      operationId: executeAutomation
-      security:
-        - BearerAuth: []
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-            format: uuid
-          description: Automation ID
-      requestBody:
-        required: false
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ExecuteAutomationRequest'
-      responses:
-        '200':
-          description: Automation executed successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AutomationExecution'
-        '400':
-          description: Automation cannot be executed
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '404':
-          description: Automation not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+/automations/{id}/execute:
+post:
+tags: - Automations
+summary: Execute automation
+description: Triggers manual execution of an automation
+operationId: executeAutomation
+security: - BearerAuth: []
+parameters: - in: path
+name: id
+required: true
+schema:
+type: string
+format: uuid
+description: Automation ID
+requestBody:
+required: false
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/ExecuteAutomationRequest'
+responses:
+'200':
+description: Automation executed successfully
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/AutomationExecution'
+'400':
+description: Automation cannot be executed
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/Error'
+'404':
+description: Automation not found
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/Error'
 
-  /automations/{id}/executions:
-    get:
-      tags:
-        - Automations
-      summary: List automation executions
-      description: Returns execution history for an automation
-      operationId: listAutomationExecutions
-      security:
-        - BearerAuth: []
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-            format: uuid
-          description: Automation ID
-        - in: query
-          name: page
-          schema:
-            type: integer
-            default: 1
-        - in: query
-          name: limit
-          schema:
-            type: integer
-            default: 20
-            maximum: 100
-      responses:
-        '200':
-          description: List of executions
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AutomationExecutionListResponse'
+/automations/{id}/executions:
+get:
+tags: - Automations
+summary: List automation executions
+description: Returns execution history for an automation
+operationId: listAutomationExecutions
+security: - BearerAuth: []
+parameters: - in: path
+name: id
+required: true
+schema:
+type: string
+format: uuid
+description: Automation ID - in: query
+name: page
+schema:
+type: integer
+default: 1 - in: query
+name: limit
+schema:
+type: integer
+default: 20
+maximum: 100
+responses:
+'200':
+description: List of executions
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/AutomationExecutionListResponse'
 
-  /ai/prompt:
-    post:
-      tags:
-        - AI
-      summary: Generate AI content
-      description: Generates content using AI based on prompt
-      operationId: generateAIContent
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AIPromptRequest'
-      responses:
-        '200':
-          description: AI content generated successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AIPromptResponse'
-        '400':
-          description: Invalid prompt or model configuration
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+/ai/prompt:
+post:
+tags: - AI
+summary: Generate AI content
+description: Generates content using AI based on prompt
+operationId: generateAIContent
+security: - BearerAuth: []
+requestBody:
+required: true
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/AIPromptRequest'
+responses:
+'200':
+description: AI content generated successfully
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/AIPromptResponse'
+'400':
+description: Invalid prompt or model configuration
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/Error'
 
-  /ai/transform:
-    post:
-      tags:
-        - AI
-      summary: Transform block content
-      description: Applies AI transformation to block content
-      operationId: transformBlockContent
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AITransformRequest'
-      responses:
-        '200':
-          description: Content transformed successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AITransformResponse'
+/ai/transform:
+post:
+tags: - AI
+summary: Transform block content
+description: Applies AI transformation to block content
+operationId: transformBlockContent
+security: - BearerAuth: []
+requestBody:
+required: true
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/AITransformRequest'
+responses:
+'200':
+description: Content transformed successfully
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/AITransformResponse'
 
-  /users/me:
-    get:
-      tags:
-        - Users
-      summary: Get current user
-      description: Returns the authenticated user's profile
-      operationId: getCurrentUser
-      security:
-        - BearerAuth: []
-      responses:
-        '200':
-          description: User profile
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
+/users/me:
+get:
+tags: - Users
+summary: Get current user
+description: Returns the authenticated user's profile
+operationId: getCurrentUser
+security: - BearerAuth: []
+responses:
+'200':
+description: User profile
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/User'
 
     put:
       tags:
@@ -1039,65 +981,63 @@ paths:
               schema:
                 $ref: '#/components/schemas/User'
 
-  /users/{id}:
-    get:
-      tags:
-        - Users
-      summary: Get user by ID
-      description: Returns public user information
-      operationId: getUserById
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-            format: uuid
-          description: User ID
-      responses:
-        '200':
-          description: User found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserPublic'
-        '404':
-          description: User not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+/users/{id}:
+get:
+tags: - Users
+summary: Get user by ID
+description: Returns public user information
+operationId: getUserById
+parameters: - in: path
+name: id
+required: true
+schema:
+type: string
+format: uuid
+description: User ID
+responses:
+'200':
+description: User found
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/UserPublic'
+'404':
+description: User not found
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/Error'
 
 components:
-  securitySchemes:
-    BearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
+securitySchemes:
+BearerAuth:
+type: http
+scheme: bearer
+bearerFormat: JWT
 
-  schemas:
-    HealthStatus:
-      type: object
-      properties:
-        status:
-          type: string
-          enum: [healthy, unhealthy]
-        timestamp:
-          type: string
-          format: date-time
-        services:
-          type: object
-          properties:
-            database:
-              type: boolean
-            redis:
-              type: boolean
-      example:
-        status: healthy
-        timestamp: 2026-02-12T14:30:00Z
-        services:
-          database: true
-          redis: true
+schemas:
+HealthStatus:
+type: object
+properties:
+status:
+type: string
+enum: [healthy, unhealthy]
+timestamp:
+type: string
+format: date-time
+services:
+type: object
+properties:
+database:
+type: boolean
+redis:
+type: boolean
+example:
+status: healthy
+timestamp: 2026-02-12T14:30:00Z
+services:
+database: true
+redis: true
 
     DetailedHealthStatus:
       type: object
@@ -1899,5 +1839,5 @@ components:
         code: INVALID_INPUT
 
 externalDocs:
-  description: OpenDocs Documentation
-  url: https://docs.opendocs.example.com
+description: OpenDocs Documentation
+url: https://docs.opendocs.example.com

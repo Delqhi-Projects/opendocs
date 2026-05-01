@@ -11,6 +11,7 @@
 ### Adding Blocks
 
 Type `/` to open the block menu:
+
 - Paragraph - regular text
 - Headings (H1-H3) - structured headings
 - Code - syntax-highlighted code blocks
@@ -36,20 +37,21 @@ Type `/` to open the block menu:
 
 ### Keyboard Shortcuts
 
-| Shortcut | Action |
-|----------|--------|
-| Ctrl+S | Save |
-| Ctrl+Z | Undo |
-| Ctrl+Shift+Z | Redo |
-| Ctrl+N | New Document |
-| Ctrl+F | Find |
-| Escape | Close modal |
+| Shortcut     | Action       |
+| ------------ | ------------ |
+| Ctrl+S       | Save         |
+| Ctrl+Z       | Undo         |
+| Ctrl+Shift+Z | Redo         |
+| Ctrl+N       | New Document |
+| Ctrl+F       | Find         |
+| Escape       | Close modal  |
 
 ## Features
 
 ### AI Prompts
 
 Ask the AI to create content:
+
 ```
 Create a table with 5 columns for project management
 ```
