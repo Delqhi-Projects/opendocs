@@ -1,3 +1,5 @@
+---
+content: |
 # SIN-Solver AGENTS.md
 
 **Project:** SIN-Solver - Enterprise AI Automation Platform
@@ -6,7 +8,7 @@
 
 ---
 
-## 🏗️ Architecture Overview
+## ️ Architecture Overview
 
 SIN-Solver follows the **"Das Haus" (The House)** architecture pattern - a centralized, room-based container system with clear separation of concerns.
 
@@ -19,7 +21,7 @@ SIN-Solver follows the **"Das Haus" (The House)** architecture pattern - a centr
 
 ---
 
-## 📋 Container Naming Convention (MANDATORY)
+##  Container Naming Convention (MANDATORY)
 
 All containers MUST follow this pattern:
 
@@ -29,15 +31,15 @@ Zimmer-XX-Descriptive-Name
 
 **Examples:**
 
-- ✅ `Zimmer-01-n8n-Manager`
-- ✅ `Zimmer-Speicher-Redis`
-- ✅ `Zimmer-Archiv-Postgres`
-- ❌ `captcha-worker` (old, non-compliant)
-- ❌ `redis` (too generic)
+-  `Zimmer-01-n8n-Manager`
+-  `Zimmer-Speicher-Redis`
+-  `Zimmer-Archiv-Postgres`
+-  `captcha-worker` (old, non-compliant)
+-  `redis` (too generic)
 
 ---
 
-## 🌐 Network Configuration
+##  Network Configuration
 
 **Network:** `haus-netzwerk`
 **Subnet:** `172.26.0.0/16` (avoided 172.20.0.0/16 conflict with delqhi-network)
@@ -54,7 +56,7 @@ Zimmer-XX-Descriptive-Name
 
 ---
 
-## 🔧 Best Practices (February 2026)
+##  Best Practices (February 2026)
 
 ### 1. Container Management
 
@@ -111,7 +113,7 @@ docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 
 ---
 
-## 🚀 Quick Start for New Agents
+##  Quick Start for New Agents
 
 ### Step 1: Verify Infrastructure
 
@@ -140,27 +142,27 @@ docker ps | grep -i zimmer
 
 ---
 
-## 📝 Development Guidelines
+##  Development Guidelines
 
 ### DO:
 
-- ✅ Use main docker-compose.yml only
-- ✅ Name containers with Zimmer-XX pattern
-- ✅ Check lastchanges.md before making changes
-- ✅ Document all subnet/network changes
-- ✅ Clean up dead containers regularly
+-  Use main docker-compose.yml only
+-  Name containers with Zimmer-XX pattern
+-  Check lastchanges.md before making changes
+-  Document all subnet/network changes
+-  Clean up dead containers regularly
 
 ### DON'T:
 
-- ❌ Create new docker-compose.yml files in subdirectories
-- ❌ Use generic container names
-- ❌ Delete volumes without checking contents
-- ❌ Start containers without verifying network conflicts
-- ❌ Leave dead containers running (wastes resources)
+-  Create new docker-compose.yml files in subdirectories
+-  Use generic container names
+-  Delete volumes without checking contents
+-  Start containers without verifying network conflicts
+-  Leave dead containers running (wastes resources)
 
 ---
 
-## 🔍 Common Issues & Solutions
+##  Common Issues & Solutions
 
 ### Issue: "Pool overlaps with other one on this address space"
 
@@ -184,7 +186,7 @@ docker ps | grep -i zimmer
 
 ---
 
-## 📚 Reference
+##  Reference
 
 ### Project Structure
 
@@ -212,7 +214,7 @@ docker ps | grep -i zimmer
 
 ---
 
-## 🎯 Success Criteria
+##  Success Criteria
 
 A healthy SIN-Solver installation should have:
 
